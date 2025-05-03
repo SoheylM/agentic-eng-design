@@ -122,3 +122,7 @@ If you use or build on this work, please cite:
 ```bash
 Massoudi & Fuge, “Agentic Large Language Models for Conceptual Systems Engineering and Design,” IDETC 2025.
 ```
+
+## License
+
+To be determined.
