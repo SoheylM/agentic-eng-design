@@ -22,12 +22,24 @@ def process_tool_calls(ai_msg) -> List[ToolMessage]:
     # 1) Try to parse JSON from ai_msg.content
     try:
         parsed_content = json.loads(ai_msg.content)
-        if parsed_content.get("type") == "function":
-            tool_calls = [{
-                "name": parsed_content["name"],
-                "args": parsed_content["parameters"],
-                "id": str(uuid.uuid4())
-            }]
+        # Handle both dictionary and list formats
+        if isinstance(parsed_content, dict):
+            if parsed_content.get("type") == "function":
+                tool_calls = [{
+                    "name": parsed_content["name"],
+                    "args": parsed_content["parameters"],
+                    "id": str(uuid.uuid4())
+                }]
+        elif isinstance(parsed_content, list):
+            # Assume each item in the list is a tool call
+            tool_calls = []
+            for item in parsed_content:
+                if isinstance(item, dict) and "name" in item and "args" in item:
+                    tool_calls.append({
+                        "name": item["name"],
+                        "args": item["args"],
+                        "id": str(uuid.uuid4())
+                    })
     except (json.JSONDecodeError, TypeError) as e:
         print(f"🔍 [DEBUG] JSON parsing error: {e}")
         pass
