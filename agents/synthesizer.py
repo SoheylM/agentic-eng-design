@@ -175,7 +175,8 @@ def refine_payload(state: State, modification: NodeModification) -> str: #Dict[s
     ]
     selected_proposal = next((p for p in recent_proposals if p.status == "selected"), None)
     # Retrieve the current design graph summary
-    current_graph_summary = summarize_design_state_func(state.design_graph)
+    current_design_graph = state.design_graph_history[-1] if state.design_graph_history else DesignState()
+    current_graph_summary = summarize_design_state_func(current_design_graph)
 
     refinement_prompt = [
         SystemMessage(content=PAYLOAD_REFINEMENT_PROMPT),
