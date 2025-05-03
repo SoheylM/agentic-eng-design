@@ -40,6 +40,8 @@ if 'workflow' not in st.session_state:
     st.session_state.workflow_thread = None
     st.session_state.last_update = time.time()
     st.session_state.agent_states = {}
+    st.session_state.agent_logs = {}  # Store logs for each agent
+    st.session_state.agent_outputs = {}  # Store structured outputs for each agent
 
 # Set page config
 st.set_page_config(
@@ -59,6 +61,13 @@ def display_agent_output(state: State):
     """Display the current agent's output in a structured way."""
     agent = state.active_agent
     
+    # Display agent's logs
+    if agent in st.session_state.agent_logs:
+        st.subheader("📝 Agent's Thought Process")
+        for log in st.session_state.agent_logs[agent]:
+            st.markdown(f"`{log}`")
+    
+    # Display structured output
     if agent == "requirements":
         if hasattr(state, 'cahier_des_charges'):
             st.subheader("📜 Requirements Document")
@@ -132,8 +141,17 @@ def process_workflow_output():
             
             # Update active agent
             if hasattr(current_state, 'active_agent'):
-                st.session_state.active_agent = current_state.active_agent
-                st.session_state.agent_states[current_state.active_agent] = current_state
+                agent = current_state.active_agent
+                st.session_state.active_agent = agent
+                st.session_state.agent_states[agent] = current_state
+                
+                # Capture agent's logs
+                if hasattr(current_state, 'messages'):
+                    if agent not in st.session_state.agent_logs:
+                        st.session_state.agent_logs[agent] = []
+                    for message in current_state.messages:
+                        if message.role == 'assistant':
+                            st.session_state.agent_logs[agent].append(message.content)
             
             # Check if workflow is completed
             if st.session_state.active_agent == "planner":
