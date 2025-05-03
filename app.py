@@ -9,6 +9,7 @@ import time
 from typing import Dict, Any
 import threading
 import queue
+from data_models import State
 
 # Custom logging class to capture prints
 class StreamlitLogger:
@@ -35,10 +36,10 @@ if 'workflow' not in st.session_state:
     }
     st.session_state.logger = StreamlitLogger()
     st.session_state.active_agent = "router"
-    st.session_state.agent_outputs = {}
     st.session_state.workflow_completed = False
     st.session_state.workflow_thread = None
     st.session_state.last_update = time.time()
+    st.session_state.agent_states = {}
 
 # Set page config
 st.set_page_config(
@@ -54,27 +55,85 @@ This assistant helps you with engineering design tasks. Start by describing your
 and the assistant will guide you through the design process.
 """)
 
+def display_agent_output(state: State):
+    """Display the current agent's output in a structured way."""
+    agent = state.active_agent
+    
+    if agent == "requirements":
+        if hasattr(state, 'cahier_des_charges'):
+            st.subheader("📜 Requirements Document")
+            st.json(state.cahier_des_charges)
+    
+    elif agent == "planner":
+        if hasattr(state, 'design_plan'):
+            st.subheader("📋 Design Plan")
+            st.json(state.design_plan)
+    
+    elif agent == "generation":
+        if hasattr(state, 'proposals'):
+            st.subheader("💡 Generated Proposals")
+            for i, proposal in enumerate(state.proposals):
+                with st.expander(f"Proposal {i+1}: {proposal.title}"):
+                    st.markdown(proposal.content)
+    
+    elif agent == "reflection":
+        if hasattr(state, 'proposals'):
+            st.subheader("🔍 Reflection Feedback")
+            for i, proposal in enumerate(state.proposals):
+                if hasattr(proposal, 'feedback'):
+                    with st.expander(f"Feedback on Proposal {i+1}"):
+                        st.markdown(proposal.feedback)
+    
+    elif agent == "ranking":
+        if hasattr(state, 'proposals'):
+            st.subheader("🏆 Proposal Rankings")
+            for i, proposal in enumerate(state.proposals):
+                if hasattr(proposal, 'grade'):
+                    st.markdown(f"**Proposal {i+1}**: Score {proposal.grade}")
+                    if hasattr(proposal, 'ranking_justification'):
+                        st.markdown(f"*Justification*: {proposal.ranking_justification}")
+    
+    elif agent == "evolution":
+        if hasattr(state, 'proposals'):
+            st.subheader("🔄 Evolved Proposals")
+            for i, proposal in enumerate(state.proposals):
+                if hasattr(proposal, 'evolved_content'):
+                    with st.expander(f"Evolution of Proposal {i+1}"):
+                        st.markdown(proposal.evolved_content)
+                        if hasattr(proposal, 'evolution_justification'):
+                            st.markdown(f"*Justification*: {proposal.evolution_justification}")
+    
+    elif agent == "meta_review":
+        if hasattr(state, 'proposals'):
+            st.subheader("✅ Final Review")
+            for i, proposal in enumerate(state.proposals):
+                if hasattr(proposal, 'status'):
+                    st.markdown(f"**Proposal {i+1}**: {proposal.status}")
+                    if hasattr(proposal, 'reason_for_status'):
+                        st.markdown(f"*Reason*: {proposal.reason_for_status}")
+    
+    elif agent == "synthesizer":
+        if hasattr(state, 'synthesizer_notes'):
+            st.subheader("🔗 Synthesis")
+            st.markdown(state.synthesizer_notes[-1])
+    
+    elif agent == "graph_designer":
+        if hasattr(state, 'design_graph_history'):
+            st.subheader("📊 Design Graph")
+            current_graph = state.design_graph_history[-1]
+            st.json(current_graph)
+
 def process_workflow_output():
     """Process workflow outputs in a background thread."""
     while not st.session_state.workflow_completed:
         try:
             # Get the current state
             current_state = st.session_state.workflow.get_state(st.session_state.workflow_config)
-            st.session_state.current_state = current_state
             
             # Update active agent
             if hasattr(current_state, 'active_agent'):
                 st.session_state.active_agent = current_state.active_agent
-            
-            # Store agent outputs
-            if hasattr(current_state, 'messages'):
-                for message in current_state.messages:
-                    if message.role == 'assistant':
-                        st.session_state.agent_outputs[st.session_state.active_agent] = message.content
-                        st.session_state.messages.append({
-                            "role": "assistant",
-                            "content": message.content
-                        })
+                st.session_state.agent_states[current_state.active_agent] = current_state
             
             # Check if workflow is completed
             if st.session_state.active_agent == "planner":
@@ -87,7 +146,7 @@ def process_workflow_output():
             time.sleep(0.1)
             
         except Exception as e:
-            st.session_state.logger.write(f"Error in workflow processing: {str(e)}")
+            st.error(f"Error in workflow processing: {str(e)}")
             time.sleep(1)
 
 # Sidebar for workflow visualization and logs
@@ -95,8 +154,8 @@ with st.sidebar:
     st.header("Workflow Status")
     st.markdown(f"**Current Agent:** {st.session_state.active_agent}")
     
-    if 'current_state' in st.session_state:
-        st.json(st.session_state.current_state)
+    if st.session_state.active_agent in st.session_state.agent_states:
+        st.json(st.session_state.agent_states[st.session_state.active_agent])
     
     st.header("System Logs")
     # Display new logs
@@ -106,11 +165,9 @@ with st.sidebar:
 
 # Main content area
 if not st.session_state.workflow_completed:
-    # Display agent outputs
-    st.header("Agent Outputs")
-    for agent, output in st.session_state.agent_outputs.items():
-        with st.expander(f"Output from {agent}"):
-            st.markdown(output)
+    # Display current agent's output
+    if st.session_state.active_agent in st.session_state.agent_states:
+        display_agent_output(st.session_state.agent_states[st.session_state.active_agent])
 
     # Only show chat interface during requirements phase
     if st.session_state.active_agent in ["router", "human", "requirements"]:
@@ -160,5 +217,5 @@ if not st.session_state.workflow_completed:
 else:
     st.success("✅ Engineering workflow completed!")
     st.markdown("### Final Design Plan")
-    if 'current_state' in st.session_state and hasattr(st.session_state.current_state, 'design_plan'):
-        st.json(st.session_state.current_state.design_plan) 
+    if st.session_state.active_agent in st.session_state.agent_states:
+        display_agent_output(st.session_state.agent_states[st.session_state.active_agent]) 
