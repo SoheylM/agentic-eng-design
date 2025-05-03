@@ -1,6 +1,6 @@
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, AnyMessage, BaseMessage, SystemMessage
 from llm_models import synthesizer_llm, base_model_reasoning
-from data_models import State, Proposal, NodeModification
+from data_models import State, Proposal, NodeModification, DesignState
 from prompts import SY_PROMPT, SUMMARY_REFINEMENT_PROMPT, PAYLOAD_REFINEMENT_PROMPT
 from utils import remove_think_tags
 from langgraph.types import Command
@@ -37,8 +37,11 @@ def synthesizer_node(state: State) -> Command[Literal["graph_designer"]]:
             goto="graph_designer"
         )
 
+    # Get the current design graph
+    current_design_graph = state.design_graph_history[-1] if state.design_graph_history else DesignState()
+
     # Retrieve the current design graph summary
-    current_graph_summary = summarize_design_state_func()
+    current_graph_summary = summarize_design_state_func(current_design_graph)
 
     print("🔄 [DEBUG] Generating structured synthesis output...")
     synth_output = synthesizer_llm.invoke([
@@ -172,7 +175,7 @@ def refine_payload(state: State, modification: NodeModification) -> str: #Dict[s
     ]
     selected_proposal = next((p for p in recent_proposals if p.status == "selected"), None)
     # Retrieve the current design graph summary
-    current_graph_summary = summarize_design_state_func()
+    current_graph_summary = summarize_design_state_func(state.design_graph)
 
     refinement_prompt = [
         SystemMessage(content=PAYLOAD_REFINEMENT_PROMPT),

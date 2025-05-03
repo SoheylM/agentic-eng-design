@@ -1,7 +1,7 @@
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, AnyMessage, BaseMessage, SystemMessage
 from langgraph.types import Command
 from typing import Literal
-from data_models import State
+from data_models import State, CahierDesCharges
 from prompts import PLANNER_PROMPT
 from llm_models import planner_model, base_model_reasoning
 import json

@@ -3,8 +3,7 @@ import json
 import uuid
 from langchain_core.messages import ToolMessage  # Ensure correct import
 from typing import List
-from tools import python_repl_tool, tavily_tool, duckduckgo_tool, arxiv_search_tool, add_node_tool, delete_node_tool, summarize_design_state_tool, visualize_design_state_tool
-
+from tools import python_repl_tool, tavily_tool, duckduckgo_tool, arxiv_search_tool, summarize_design_state_tool, visualize_design_state_tool, add_node_tool, delete_node_tool
 
 def remove_think_tags(text):
     return re.sub(r'^.*?</think>\s*', '', text, flags=re.DOTALL)

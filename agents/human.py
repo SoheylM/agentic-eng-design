@@ -1,6 +1,7 @@
-from langgraph.types import Command,interrupt
+from langgraph.types import Command
 from typing import Literal
 from data_models import State
+import streamlit as st
 
 
 
@@ -10,7 +11,9 @@ def human_node(state: State) -> Command[Literal["requirements", "planner"]]:
 
     messages = state.messages
     print("DEBUG: HUMAN INTERRUPT")
-    user_input = interrupt(value=f"Ready for user input. This is what the agent has come up with {messages}")
+    
+    # Get the last user message from the state
+    user_input = messages[-1]["content"] if messages else ""
 
     if user_input.upper() == "END":
         print("✅ Ending discussion, finalizing requirements, moving to planner.")

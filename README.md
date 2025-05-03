@@ -22,7 +22,7 @@
 
 This repository implements the framework described in the manuscript  
 **“Agentic Large Language Models for Conceptual Systems Engineering and Design”**.  
-It provides a modular, multi-agent workflow that guides a collection of LLM “agents” through:
+It provides a modular, multi-agent workflow that guides a collection of LLM "agents" through:
 
 1. **Requirements gathering**  
 2. **Planning**  
@@ -77,13 +77,25 @@ agentic-eng-design/
 ```
 
 ## Installation
+
+1. Clone this repository:
 ```bash
-git clone https://github.com/<your-org>/agentic-engineering-design.git
-cd agentic-engineering-design
-python3 -m venv venv
-source venv/bin/activate
+git clone <repository-url>
+cd <repository-name>
+```
+
+2. Create a virtual environment and activate it:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. Install dependencies:
+```bash
 pip install -r requirements.txt
 ```
+
+4. Create a `.env` file based on `.env.example` and fill in your API keys.
 
 ## Configuration
 
@@ -99,16 +111,34 @@ OLLAMA_API_BASE=http://localhost:11434
 # any other required variables…
 ```
 
-## Usage
-Run the interactive design workflow:
+## Running the Application
+
+To start the Streamlit application:
 
 ```bash
-python workflow.py
+streamlit run app.py
 ```
 
-You will be prompted to enter an initial project request (e.g. “Build a solar-powered water filtration system”).
-The system will then iterate through requirements, planning, proposal generation, and graph synthesis.
+This will start a local web server and open your default web browser to the application interface.
 
+## Usage
+
+1. Start by describing your design requirements in the chat interface
+2. The assistant will guide you through the design process
+3. Use the sidebar to monitor the workflow status
+4. When you're ready to move to the planning phase, click the "End Session" button
+
+## Architecture
+
+The application uses a multi-agent workflow powered by LangGraph, with the following components:
+
+- Router: Directs the workflow based on the current state
+- Human: Handles user interaction
+- Requirements: Processes and structures design requirements
+- Planner: Creates design plans
+- Supervisor: Oversees the design process
+- Worker: Executes specific design tasks
+- And more specialized agents for different aspects of the design process
 
 ## Contributing
 
@@ -120,7 +150,7 @@ The system will then iterate through requirements, planning, proposal generation
 
 If you use or build on this work, please cite:
 ```bash
-Massoudi & Fuge, “Agentic Large Language Models for Conceptual Systems Engineering and Design,” IDETC 2025.
+Massoudi & Fuge, "Agentic Large Language Models for Conceptual Systems Engineering and Design," IDETC 2025.
 ```
 
 ## License

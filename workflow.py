@@ -1,4 +1,3 @@
-from IPython.display import Image
 from langgraph.graph import StateGraph
 from agents.router import router_node
 from agents.human import human_node
@@ -17,75 +16,66 @@ from agents.graph_designer import graph_designer_node
 from data_models import State
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.types import Command
-from IPython.display import display
+from config import config
 
-# Create a state graph builder
-graph_builder = StateGraph(State)
+def initialize_workflow():
+    """Initialize the workflow with proper configuration."""
+    # Set up LangSmith tracing
+    config.setup_langsmith_tracing("IDETC25-MassoudiFuge-v2")
+    
+    # Create a state graph builder
+    graph_builder = StateGraph(State)
+    
+    # **Entry Point: Human Interaction**
+    graph_builder.set_entry_point("router")
+    
+    # Add all nodes
+    graph_builder.add_node("router", router_node)
+    graph_builder.add_node("human", human_node)
+    graph_builder.add_node("requirements", requirements_node)
+    graph_builder.add_node("planner", planner_node)
+    graph_builder.add_node("supervisor", supervisor_node)
+    graph_builder.add_node("orchestrator", orchestrator_node)
+    graph_builder.add_node("worker", worker_node)
+    graph_builder.add_node("generation", generation_node)
+    graph_builder.add_node("reflection", reflection_node)
+    graph_builder.add_node("ranking", ranking_node)
+    graph_builder.add_node("evolution", evolution_node)
+    graph_builder.add_node("meta_review", meta_review_node)
+    graph_builder.add_node("synthesizer", synthesizer_node)
+    graph_builder.add_node("graph_designer", graph_designer_node)
+    
+    # Compile the workflow
+    checkpointer = MemorySaver()
+    app = graph_builder.compile(checkpointer=checkpointer)
+    
+    return app
 
-# **Entry Point: Human Interaction**
-graph_builder.set_entry_point("router")
+def main():
+    """Main workflow execution."""
+    # Initialize the workflow
+    app = initialize_workflow()
+    
+    # Invoke the workflow with the client request
+    request = "I want to create a water filtration system that is solar powered."
+    workflow_config = {"configurable": {"thread_id": "17"}, "recursion_limit": 500}
+    app.invoke({"messages": [request]}, config=workflow_config)
+    
+    while True:
+        STATE = app.get_state(workflow_config)
+        
+        # **Interrupt for Human Input**
+        human_answer = input("Provide input to the agent (or type END to finish): ")
+        
+        if human_answer.upper() == "END":
+            print("✅ Finalizing requirements manually. Moving to main workflow.")
+            app.invoke(Command(update={"active_agent": "planner"}), config=workflow_config)
+            break
+        
+        # Resume conversation with human input
+        app.invoke(Command(resume=human_answer), config=workflow_config)
+    
+    print("✅ Engineering workflow completed.")
 
-# TODO: Add the nodes
-# Router
-graph_builder.add_node("router", router_node)
-
-# **Human & Requirements Gathering**
-graph_builder.add_node("human", human_node)
-graph_builder.add_node("requirements", requirements_node)
-
-# Planner and supervisor
-graph_builder.add_node("planner", planner_node)
-graph_builder.add_node("supervisor", supervisor_node)
-
-# Worker team
-graph_builder.add_node("orchestrator", orchestrator_node)
-graph_builder.add_node("worker", worker_node)
-
-# Specialized agents
-graph_builder.add_node("generation", generation_node)
-graph_builder.add_node("reflection", reflection_node)
-graph_builder.add_node("ranking", ranking_node)
-graph_builder.add_node("evolution", evolution_node)
-graph_builder.add_node("meta_review", meta_review_node)
-graph_builder.add_node("synthesizer", synthesizer_node)
-graph_builder.add_node("graph_designer", graph_designer_node)
-
-# The edges are defined by the commands !
-
-# Compile the workflow
-checkpointer = MemorySaver()
-app = graph_builder.compile(checkpointer=checkpointer)
-
-display(Image(app.get_graph().draw_mermaid_png()))
-
-# Invoke the workflow with the client request
-request = "I want to create a water filtration system that is solar powered."
-config = {"configurable": {"thread_id": "17"}, "recursion_limit": 500}
-app.invoke({"messages": [request]}, config=config)
-
-while True:
-    STATE = app.get_state(config)
-
-    #BUG **Exit loop when transitioning to Planner**
-    ##if state.get("active_agent", "human") == "planner":  
-    ##    print("✅ Requirements finalized. Moving to planner...")
-    ##    break
-
-    # **Interrupt for Human Input**
-    human_answer = input("Provide input to the agent (or type END to finish): ")
-
-    if human_answer.upper() == "END":
-        print("✅ Finalizing requirements manually. Moving to main workflow.")
-        app.invoke(Command(update={"active_agent": "planner"}), config=config)
-        break
-
-    # Resume conversation with human input
-    app.invoke(Command(resume=human_answer), config=config)
-
-## Maybe this is nod needed and I can live in the loop..
-# **Now, Transition into the Main Workflow**
-##print("✅ Now launching main design workflow...")
-
-#final_state = app.invoke({"messages": ["Requirements gathering completed."]}, config=config)
-
-print("✅ Engineering workflow completed.")
+if __name__ == "__main__":
+    main()

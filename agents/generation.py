@@ -1,7 +1,7 @@
 from typing import List, Optional, Literal
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, AnyMessage, BaseMessage, SystemMessage
 from langgraph.types import Command
-from data_models import State, SingleProposal, Proposal
+from data_models import State, SingleProposal, Proposal, DesignState
 from prompts import GE_PROMPT_STRUCTURED, GE_PROMPT_BASE, GEN_RESEARCH_PROMPT
 from llm_models import generation_agent, base_model_reasoning
 from utils import remove_think_tags
@@ -33,8 +33,12 @@ def generation_node(state: State) -> Command[Literal["orchestrator", "reflection
     # **Retrieve Supervisor Instructions & Cahier des Charges**
     supervisor_instructions = state.supervisor_instructions[-1] if state.supervisor_instructions else "No specific instructions provided."
     cahier_des_charges = state.cahier_des_charges if state.cahier_des_charges else "No cahier des charges available."
+    
+    # Get the current design graph
+    current_design_graph = state.design_graph_history[-1] if state.design_graph_history else DesignState()
+    
     # **Retrieve the current design graph summary**
-    current_graph_summary = summarize_design_state_func()
+    current_graph_summary = summarize_design_state_func(current_design_graph)
 
     # **🔹 Determine if Worker Analyses Exist**
     expected_analyses = state.current_tasks_count

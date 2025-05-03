@@ -1,7 +1,7 @@
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, AnyMessage, BaseMessage, SystemMessage
 from langgraph.types import Command
 from typing import Literal
-from data_models import State
+from data_models import State, DesignState
 from prompts import SUPERVISOR_PROMPT
 from llm_models import supervisor_model, base_model_reasoning
 from utils import remove_think_tags
@@ -35,8 +35,11 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
     # **Retrieve the current step details**
     current_step = steps[current_step_idx]
 
+    # Get the current design graph
+    current_design_graph = state.design_graph_history[-1] if state.design_graph_history else DesignState()
+
     # **Retrieve current design graph summary**
-    design_graph_summary = summarize_design_state_func()
+    design_graph_summary = summarize_design_state_func(current_design_graph)
 
     # **Retrieve Cahier des Charges (Design Requirements)**
     cahier_des_charges = state.cahier_des_charges if state.cahier_des_charges else "No formal constraints provided."

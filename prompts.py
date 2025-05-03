@@ -964,3 +964,84 @@ Return a structured JSON plan in the **exact format** below:
 
 Return **only valid JSON** in the format above. Do **not** introduce any extra fields or explanations.
 """
+
+
+CAHIER_DES_CHARGES="""
+Here is exactly what I want:
+Cahier des Charges: Solar-Powered Water Filtration System
+1 Project Overview
+
+Title: Design of a Solar-Powered Water Filtration System
+Client Objective: Develop a self-sustaining water filtration system powered by solar energy, capable of purifying water from natural sources (e.g., lakes, rivers, or rainwater).
+2 Functional Requirements
+
+✅ Main Function: Purify contaminated water into safe, potable drinking water.
+✅ Subfunctions:
+
+    Water Intake & Pre-Filtration: Collect and pre-filter water from various sources.
+    Primary Filtration: Remove large sediments and debris.
+    Advanced Purification: Eliminate bacteria, viruses, and chemical contaminants.
+    Solar Power Generation & Storage: Power the system using solar panels and store energy.
+    Water Storage & Distribution: Store purified water and distribute it for usage.
+    Monitoring & Automation: Detect water quality, system health, and automate functions.
+
+3 Non-Functional Requirements
+
+✅ Performance:
+
+    Filtration Capacity: At least 10 liters per hour.
+    Purity Level: Must remove 99.99% of contaminants, including bacteria, heavy metals, and microplastics.
+    Solar Efficiency: Must function with minimal sunlight (50% efficiency in low light conditions).
+
+✅ Sustainability & Materials:
+
+    Eco-Friendly Materials: Use biodegradable or recyclable materials.
+    Energy Efficiency: Optimize power consumption for continuous operation with minimal storage.
+    Waste Management: Implement a mechanism for handling and disposing of filtered waste properly.
+
+✅ Usability & Maintenance:
+
+    User-Friendly Interface: Easy-to-use control panel with basic automation & alerts.
+    Self-Cleaning Mechanism: Prevent clogging and reduce manual maintenance.
+    Modularity: Components should be replaceable without requiring expert intervention.
+
+✅ Safety & Compliance:
+
+    Must comply with WHO & EPA drinking water standards.
+    Should include fail-safe mechanisms to prevent unclean water distribution.
+
+4 Constraints & Design Considerations
+
+✅ Environmental Conditions:
+
+    Must operate in remote locations with limited access to electricity.
+    Must function in temperatures ranging from -10°C to 50°C.
+    Should withstand high humidity and exposure to dust & dirt.
+
+✅ Power & Storage:
+
+    Must be 100% solar-powered with at least 6-hour battery backup.
+    The system should consume less than 50W for continuous operation.
+
+✅ Size & Portability:
+
+    Must be compact & lightweight for easy transport (< 20 kg).
+    Should be scalable for household and community use.
+
+✅ Cost Constraints:
+
+    Target Budget: Less than $500 for a household unit and $5000 for a community-scale system.
+
+5 Expected Deliverables
+
+✅ System Architecture: Definition of main components and subsystems.
+✅ Functional Decomposition: Breakdown of filtration, power, and automation functions.
+✅ Conceptual Design: Propose three design variants for evaluation.
+✅ Numerical Modeling: Simulation of power consumption, filtration efficiency, and sustainability metrics.
+✅ Final Report: A technical document summarizing findings, proposed solutions, and performance estimates.
+📌 Final Note
+
+The design process must follow a structured engineering workflow, ensuring that every step aligns with the functional objectives, technical constraints, and performance goals outlined above.
+
+Implement this cahier des charges and write 'FINALIZED' at the end of it.
+"""
