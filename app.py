@@ -7,15 +7,19 @@ from io import StringIO
 import contextlib
 import time
 from typing import Dict, Any
+import threading
+import queue
 
 # Custom logging class to capture prints
 class StreamlitLogger:
     def __init__(self):
         self.logs = []
+        self.output_queue = queue.Queue()
     
     def write(self, message):
         if message.strip():
             self.logs.append(message)
+            self.output_queue.put(message)
     
     def flush(self):
         pass
@@ -33,6 +37,8 @@ if 'workflow' not in st.session_state:
     st.session_state.active_agent = "router"
     st.session_state.agent_outputs = {}
     st.session_state.workflow_completed = False
+    st.session_state.workflow_thread = None
+    st.session_state.last_update = time.time()
 
 # Set page config
 st.set_page_config(
@@ -48,6 +54,42 @@ This assistant helps you with engineering design tasks. Start by describing your
 and the assistant will guide you through the design process.
 """)
 
+def process_workflow_output():
+    """Process workflow outputs in a background thread."""
+    while not st.session_state.workflow_completed:
+        try:
+            # Get the current state
+            current_state = st.session_state.workflow.get_state(st.session_state.workflow_config)
+            st.session_state.current_state = current_state
+            
+            # Update active agent
+            if hasattr(current_state, 'active_agent'):
+                st.session_state.active_agent = current_state.active_agent
+            
+            # Store agent outputs
+            if hasattr(current_state, 'messages'):
+                for message in current_state.messages:
+                    if message.role == 'assistant':
+                        st.session_state.agent_outputs[st.session_state.active_agent] = message.content
+                        st.session_state.messages.append({
+                            "role": "assistant",
+                            "content": message.content
+                        })
+            
+            # Check if workflow is completed
+            if st.session_state.active_agent == "planner":
+                st.session_state.workflow_completed = True
+            
+            # Update timestamp
+            st.session_state.last_update = time.time()
+            
+            # Small delay to prevent CPU overload
+            time.sleep(0.1)
+            
+        except Exception as e:
+            st.session_state.logger.write(f"Error in workflow processing: {str(e)}")
+            time.sleep(1)
+
 # Sidebar for workflow visualization and logs
 with st.sidebar:
     st.header("Workflow Status")
@@ -57,7 +99,9 @@ with st.sidebar:
         st.json(st.session_state.current_state)
     
     st.header("System Logs")
-    for log in st.session_state.logger.logs:
+    # Display new logs
+    while not st.session_state.logger.output_queue.empty():
+        log = st.session_state.logger.output_queue.get()
         st.text(log)
 
 # Main content area
@@ -82,8 +126,6 @@ if not st.session_state.workflow_completed:
         if prompt := st.chat_input("Describe your design requirements"):
             # Add user message to chat
             st.session_state.messages.append({"role": "user", "content": prompt})
-            with st.chat_message("user"):
-                st.markdown(prompt)
             
             # Process the input through the workflow
             try:
@@ -94,34 +136,17 @@ if not st.session_state.workflow_completed:
                             {"messages": [{"role": "user", "content": prompt}]},
                             config=st.session_state.workflow_config
                         )
+                        # Start the background thread
+                        st.session_state.workflow_thread = threading.Thread(target=process_workflow_output)
+                        st.session_state.workflow_thread.daemon = True
+                        st.session_state.workflow_thread.start()
                     else:
                         # Continue the conversation
                         response = st.session_state.workflow.invoke(
                             Command(resume=prompt),
                             config=st.session_state.workflow_config
                         )
-                    
-                    # Get the current state
-                    current_state = st.session_state.workflow.get_state(st.session_state.workflow_config)
-                    st.session_state.current_state = current_state
-                    
-                    # Update active agent
-                    if hasattr(current_state, 'active_agent'):
-                        st.session_state.active_agent = current_state.active_agent
-                    
-                    # Store agent outputs
-                    if hasattr(current_state, 'messages'):
-                        for message in current_state.messages:
-                            if message.role == 'assistant':
-                                st.session_state.agent_outputs[st.session_state.active_agent] = message.content
-                                st.session_state.messages.append({
-                                    "role": "assistant",
-                                    "content": message.content
-                                })
                 
-                # Rerun to update the display
-                st.rerun()
-            
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
                 st.session_state.logger.write(f"Error: {str(e)}")
@@ -129,16 +154,9 @@ if not st.session_state.workflow_completed:
         # Show progress for autonomous agents
         st.info("The agents are working on your design. Please wait...")
         
-        # Simulate progress (you might want to replace this with actual progress tracking)
-        progress_bar = st.progress(0)
-        for i in range(100):
-            time.sleep(0.1)
-            progress_bar.progress(i + 1)
-            
-            # Check if workflow is completed
-            if st.session_state.active_agent == "planner":
-                st.session_state.workflow_completed = True
-                st.rerun()
+        # Auto-refresh the page every 2 seconds
+        if time.time() - st.session_state.last_update > 2:
+            st.rerun()
 else:
     st.success("✅ Engineering workflow completed!")
     st.markdown("### Final Design Plan")
