@@ -1,467 +1,260 @@
+# evaluation.py
+import networkx as nx
+from typing import List, Dict, Any
+from langgraph.types import StateSnapshot
+
 from data_models import State, DesignState
-from typing import List
+
 
 def merge_snapshot_into_state(base_state: State, snapshot_values: dict) -> None:
     """
-    Merges a single snapshot's .values dict into base_state in-place, 
-    respecting operator.add vs. overwrite semantics.
+    Incorporate one LangGraph StateSnapshot.values dict into base_state in-place.
+    Lists are extended, simple fields are overwritten or updated.
     """
-    # 1) Append list fields
-    for key in [
+    # 1) list fields: append
+    list_fields = [
         "messages", "supervisor_instructions", "supervisor_current_objectives",
         "proposals", "generation_notes", "reflection_notes", "ranking_notes",
         "evolution_notes", "meta_review_notes", "synthesizer_notes",
         "graph_designer_notes", "proximity_notes", "analyses", "orchestrator_orders"
-    ]:
+    ]
+    for key in list_fields:
         if key in snapshot_values:
             getattr(base_state, key).extend(snapshot_values[key])
 
-    # 2) Overwrite certain keys
-    overwrite_keys = [
+    # 2) overwrite fields
+    overwrite_fields = [
         "cahier_des_charges", "design_plan", "supervisor_decision",
         "supervisor_status", "redo_reason", "active_agent", "next_agent",
         "ranking_justification", "evolution_justification", "selected_proposal_index"
     ]
-    for key in overwrite_keys:
+    for key in overwrite_fields:
         if key in snapshot_values:
             setattr(base_state, key, snapshot_values[key])
 
-    # 3) Update numeric and boolean fields
-    for key in [
+    # 3) numeric / bool fields: update
+    update_fields = [
         "current_step_index", "current_tasks_count", "redo_work", "task_complete",
         "generation_iteration", "reflection_iteration", "ranking_iteration",
         "evolution_iteration", "meta_review_iteration", "synthesizer_iteration",
         "graph_designer_iteration", "max_iterations"
-    ]:
+    ]
+    for key in update_fields:
         if key in snapshot_values:
             setattr(base_state, key, snapshot_values[key])
 
-    # 4) Save the design_graph in design_graph_history
+    # 4) record design_graph snapshot
     if "design_graph_history" in snapshot_values:
         base_state.design_graph_history.append(snapshot_values["design_graph_history"])
 
-from langgraph.types import StateSnapshot
 
-def aggregate_all_snapshots(snapshot_list: List[StateSnapshot]) -> State:
-    aggregated = State()  # start empty
-    for snap in snapshot_list:
-        merge_snapshot_into_state(aggregated, snap.values)
-    return aggregated
+def aggregate_all_snapshots(snapshots: List[StateSnapshot]) -> State:
+    """
+    Start from an empty State, merge in every snapshot.value, 
+    and return the aggregated State.
+    """
+    agg = State()
+    for snap in snapshots:
+        merge_snapshot_into_state(agg, snap.values)
+    return agg
 
-import networkx as nx
-from typing import List, Dict, Any
 
 def evaluate_all_metrics_over_history(
-    design_graph_history: List[DesignState]
+    history: List[DesignState]
 ) -> List[Dict[str, Any]]:
     """
-    Computes the full set of metrics for each iteration in the design_graph_history.
-    Returns a list of dicts, each dict containing the metrics for that iteration.
+    For each DesignState in history, build a DiGraph and compute:
+      - node counts, edge counts
+      - coverage rates, depth, growth, convergence, redundancy, etc.
+    Returns a list of per-iteration metric dicts.
     """
+    results: List[Dict[str, Any]] = []
+    prev_nodes, prev_edges = set(), set()
 
-    results = []
-
-    # We'll track node_id sets and edge sets across iterations to compute
-    # growth rates, convergence, redundancy, etc.
-    prev_node_ids = set()
-    prev_edge_set = set()
-
-    for i, ds in enumerate(design_graph_history):
-        print("design_graph_history",design_graph_history)
-        # Convert to a NetworkX DiGraph
+    for idx, ds in enumerate(history):
+        # build DiGraph
         G = nx.DiGraph()
-        for node_id, node_obj in ds.nodes.items():
-            G.add_node(node_id, node_type=node_obj.node_type)
-            for ch in node_obj.children:
-                G.add_edge(node_id, ch)
+        for nid, node in ds.nodes.items():
+            G.add_node(nid, node_type=node.node_type)
+            for child in node.children:
+                G.add_edge(nid, child)
 
         node_count = G.number_of_nodes()
         edge_count = G.number_of_edges()
 
-        # 1) Node Coverage per Category
-        node_type_counts = {}
-        for n_id, data in G.nodes(data=True):
-            ntype = data.get('node_type', 'unknown').lower()
-            node_type_counts[ntype] = node_type_counts.get(ntype, 0) + 1
+        # 1) node coverage per type
+        coverage: Dict[str, int] = {}
+        for _, data in G.nodes(data=True):
+            t = data["node_type"].lower()
+            coverage[t] = coverage.get(t, 0) + 1
 
-        # 2) Subsystem Coverage (%)
-        #    subfunctions with subsystem child / total subfunctions
-        subfunctions = []
-        for n_id, data in G.nodes(data=True):
-            if data['node_type'].lower() == 'subfunction':
-                subfunctions.append(n_id)
-        if len(subfunctions) > 0:
-            subf_with_subsys = 0
-            for sf in subfunctions:
-                child_ids = ds.nodes[sf].children
-                # Check if any child is "subsystem"
-                has_subsys = any(
-                    ds.nodes[ch].node_type.lower() == "subsystem"
-                    for ch in child_ids if ch in ds.nodes
-                )
-                if has_subsys:
-                    subf_with_subsys += 1
-            subsystem_coverage = subf_with_subsys / len(subfunctions)
+        # 2) subsystem coverage
+        subf_ids = [n for n,d in G.nodes(data=True) if d["node_type"].lower()=="subfunction"]
+        if subf_ids:
+            covered = sum(
+                any(ds.nodes[ch].node_type.lower()=="subsystem" for ch in ds.nodes[sf].children)
+                for sf in subf_ids
+            )
+            subsystem_coverage = covered / len(subf_ids)
         else:
             subsystem_coverage = 0.0
 
-        # 3) Numerical Model Attachment Rate
-        #    (subsystems with at least one numerical_model child) / total subsystems
-        subsystems = []
-        for n_id, data in G.nodes(data=True):
-            if data['node_type'].lower() == 'subsystem':
-                subsystems.append(n_id)
-        if len(subsystems) > 0:
-            subs_with_model = 0
-            for sid in subsystems:
-                child_ids = ds.nodes[sid].children
-                # if any child is "numerical_model"
-                has_model = any(
-                    ds.nodes[ch].node_type.lower() == "numerical_model"
-                    for ch in child_ids if ch in ds.nodes
-                )
-                if has_model:
-                    subs_with_model += 1
-            numerical_model_rate = subs_with_model / len(subsystems)
+        # 3) numerical-model attachment rate
+        subsys_ids = [n for n,d in G.nodes(data=True) if d["node_type"].lower()=="subsystem"]
+        if subsys_ids:
+            nm_attached = sum(
+                any(ds.nodes[ch].node_type.lower()=="numerical_model" for ch in ds.nodes[sid].children)
+                for sid in subsys_ids
+            )
+            numerical_model_rate = nm_attached / len(subsys_ids)
         else:
             numerical_model_rate = 0.0
 
-        # 4) Functional Decomposition Depth
-        #    max distance from any root node
-        # if no root_node_ids, define them as nodes with no parents
-        if ds.root_node_ids:
-            roots = ds.root_node_ids
-        else:
-            # fallback
-            roots = []
-            for nid, nobj in ds.nodes.items():
-                if len(nobj.parents) == 0:
-                    roots.append(nid)
-
+        # 4) max depth
+        roots = getattr(ds, "root_node_ids", None) or [
+            n for n,node in ds.nodes.items() if not node.parents
+        ]
         max_depth = 0
-        def dfs_depth(node_id, depth):
+        def dfs(u: str, depth: int):
             nonlocal max_depth
             max_depth = max(max_depth, depth)
-            for ch in ds.nodes[node_id].children:
-                dfs_depth(ch, depth + 1)
+            for v in ds.nodes[u].children:
+                dfs(v, depth+1)
         for r in roots:
-            dfs_depth(r, 1)
+            dfs(r, 1)
 
-        # 5) Orphan Nodes Count
-        orphan_count = 0
-        for nid, nobj in ds.nodes.items():
-            if len(nobj.parents) == 0 and len(nobj.children) == 0:
-                orphan_count += 1
+        # 5) orphan nodes
+        orphan_count = sum(
+            1 for n,node in ds.nodes.items()
+            if not node.parents and not node.children
+        )
 
-        # 6) Node Growth Rate, Edge Growth Rate
-        #    (node_count - prev_node_count)/prev_node_count, etc.
-        if i == 0:
-            node_growth_rate = 0.0
-            edge_growth_rate = 0.0
+        # 6) growth rates
+        if idx == 0:
+            node_growth = edge_growth = 0.0
         else:
-            prev_nc = len(design_graph_history[i-1].nodes)
-            prev_ec = 0
-            for pid, pnode in design_graph_history[i-1].nodes.items():
-                for c in pnode.children:
-                    prev_ec += 1
-            if prev_nc > 0:
-                node_growth_rate = (node_count - prev_nc) / prev_nc
-            else:
-                node_growth_rate = 0.0
-            if prev_ec > 0:
-                edge_growth_rate = (edge_count - prev_ec) / prev_ec
-            else:
-                edge_growth_rate = 0.0
+            prev_nc, prev_ec = len(prev_nodes), len(prev_edges)
+            node_growth = (node_count - prev_nc)/prev_nc if prev_nc else 0.0
+            edge_growth = (edge_count - prev_ec)/prev_ec if prev_ec else 0.0
 
-        # 7) Convergence Score => Jaccard of node sets, edge sets
-        current_node_ids = set(ds.nodes.keys())
-        current_edge_set = set()
-        for nid, nobj in ds.nodes.items():
-            for ch in nobj.children:
-                current_edge_set.add((nid, ch))
-
-        if i == 0:
-            node_jaccard = 1.0
-            edge_jaccard = 1.0
+        # 7) convergence (Jaccard)
+        cur_nodes = set(ds.nodes.keys())
+        cur_edges = {(u,v) for u,node in ds.nodes.items() for v in node.children}
+        if idx == 0:
+            node_jacc, edge_jacc = 1.0, 1.0
         else:
-            inter_nodes = len(current_node_ids.intersection(prev_node_ids))
-            union_nodes = len(current_node_ids.union(prev_node_ids))
-            node_jaccard = inter_nodes / union_nodes if union_nodes > 0 else 1.0
+            node_jacc = len(cur_nodes&prev_nodes)/len(cur_nodes|prev_nodes) if (cur_nodes|prev_nodes) else 1.0
+            edge_jacc = len(cur_edges&prev_edges)/len(cur_edges|prev_edges) if (cur_edges|prev_edges) else 1.0
+        convergence = (node_jacc + edge_jacc)/2
 
-            inter_edges = len(current_edge_set.intersection(prev_edge_set))
-            union_edges = len(current_edge_set.union(prev_edge_set))
-            edge_jaccard = inter_edges / union_edges if union_edges > 0 else 1.0
+        # 8) redundancy
+        name_map: Dict[Any,List[str]] = {}
+        for nid,node in ds.nodes.items():
+            key = (node.node_type.lower(), node.payload.get("name",""))
+            name_map.setdefault(key,[]).append(nid)
+        dup_count = sum(len(lst)-1 for lst in name_map.values() if len(lst)>1)
+        redundancy = dup_count/node_count if node_count else 0.0
 
-        convergence_score = (node_jaccard + edge_jaccard) / 2.0
-
-        # 8) Redundancy Rate => # of duplicate nodes / node_count
-        #    We'll define "duplicates" if same node_type & same 'payload.name' 
-        #    (requires domain logic). We'll do a naive approach:
-        name_map = {}
-        for nid, nobj in ds.nodes.items():
-            node_name = nobj.payload.get('name', '???')
-            key = (nobj.node_type.lower(), node_name)
-            name_map.setdefault(key, []).append(nid)
-        duplicates_count = sum(len(lst) - 1 for lst in name_map.values() if len(lst) > 1)
-        redundancy_rate = (duplicates_count / node_count) if node_count > 0 else 0.0
-
-        # 9) Iteration Refinement Efficiency => 
-        #    ratio of "updated nodes" vs. (updated + new). We'll do a naive approach
-        if i == 0:
-            iteration_ref_eff = 0.0
+        # 9) iteration refinement efficiency
+        if idx==0:
+            it_ref_eff = 0.0
         else:
-            new_nodes = current_node_ids - prev_node_ids
-            old_nodes = current_node_ids.intersection(prev_node_ids)
-            denom = len(new_nodes) + len(old_nodes)
-            iteration_ref_eff = (len(old_nodes) / denom) if denom > 0 else 0.0
+            new_n = cur_nodes - prev_nodes
+            old_n = cur_nodes & prev_nodes
+            denom = len(new_n) + len(old_n)
+            it_ref_eff = len(old_n)/denom if denom else 0.0
 
-        # 10) Loop Detection => DAG check
-        is_dag = nx.is_directed_acyclic_graph(G)
-        loop_detection = 0 if is_dag else 1
+        # 10) loop detection
+        loop_flag = 0 if nx.is_directed_acyclic_graph(G) else 1
 
-        # 11) Subsystem Reuse Rate => 
-        #     average # of subfunctions that share the same subsystem
-        subs_reuse_list = []
-        for sid in ds.nodes:
-            if ds.nodes[sid].node_type.lower() == "subsystem":
-                # how many parent subfunctions?
-                par_subf_count = 0
-                for par_id in ds.nodes[sid].parents:
-                    if ds.nodes[par_id].node_type.lower() == "subfunction":
-                        par_subf_count += 1
-                if par_subf_count > 0:
-                    subs_reuse_list.append(par_subf_count)
-        if len(subs_reuse_list) > 0:
-            subsystem_reuse_rate = sum(subs_reuse_list)/len(subs_reuse_list)
-        else:
-            subsystem_reuse_rate = 0.0
+        # 11) subsystem reuse
+        reuse = []
+        for sid,node in ds.nodes.items():
+            if node.node_type.lower()=="subsystem":
+                par_sf = sum(
+                    1 for pid in node.parents
+                    if ds.nodes[pid].node_type.lower()=="subfunction"
+                )
+                if par_sf>0:
+                    reuse.append(par_sf)
+        subsys_reuse = sum(reuse)/len(reuse) if reuse else 0.0
 
-        # 12) Graph Structural Complexity Score => edges/nodes
-        if node_count <= 1:
-            graph_complexity_score = 0.0
-        else:
-            graph_complexity_score = edge_count / node_count
+        # 12) complexity = edges/nodes
+        complexity = edge_count/node_count if node_count>1 else 0.0
 
-        # The last three are AI Agent Contribution metrics:
-        # 13) Proposal Integration Rate => 
-        #    If you want to track proposals at iteration i, you can store them in parallel, or skip.
-        #    We'll define 0.0 for now:
-        proposal_integration_rate = 0.0
-
-        # 14) Correction Rate per Agent => 
-        correction_rate_per_agent = 0.0
-
-        # 15) Supervisor Override Rate =>
-        supervisor_override_rate = 0.0
-
-        # Collect iteration i metrics
-        iteration_metrics = {
-            "iteration_index": i,
-            "node_coverage_per_category": node_type_counts,  # a dict
+        # assemble
+        metrics = {
+            "iteration_index": idx,
+            "node_coverage_per_type": coverage,
             "subsystem_coverage": subsystem_coverage,
             "numerical_model_attachment_rate": numerical_model_rate,
             "functional_decomposition_depth": max_depth,
             "orphan_nodes_count": orphan_count,
-            "node_growth_rate": node_growth_rate,
-            "edge_growth_rate": edge_growth_rate,
-            "convergence_score": convergence_score,
-            "redundancy_rate": redundancy_rate,
-            "iteration_refinement_efficiency": iteration_ref_eff,
-            "loop_detection": loop_detection,
-            "subsystem_reuse_rate": subsystem_reuse_rate,
-            "graph_structural_complexity_score": graph_complexity_score,
-            "proposal_integration_rate": proposal_integration_rate,
-            "correction_rate_per_agent": correction_rate_per_agent,
-            "supervisor_override_rate": supervisor_override_rate
+            "node_growth_rate": node_growth,
+            "edge_growth_rate": edge_growth,
+            "convergence_score": convergence,
+            "redundancy_rate": redundancy,
+            "iteration_refinement_efficiency": it_ref_eff,
+            "loop_detection": loop_flag,
+            "subsystem_reuse_rate": subsys_reuse,
+            "graph_structural_complexity_score": complexity
         }
 
-        results.append(iteration_metrics)
-
-        # update "prev" sets
-        prev_node_ids = current_node_ids
-        prev_edge_set = current_edge_set
+        results.append(metrics)
+        prev_nodes, prev_edges = cur_nodes, cur_edges
 
     return results
 
-def run_advanced_evaluation_all_scalars(state_obj: State):
+
+def collect_metrics(
+    state_obj: State,
+    workflow: str,
+    run: int
+) -> Dict[str, Any]:
     """
-    Aggregates all design_graph snapshots from state_obj.design_graph_history,
-    computes the metrics for each iteration, and prints them out.
+    Entry point for your CLI runner:
+      - aggregate all snapshots
+      - evaluate iteration metrics
+      - return a flat summary (final iteration) & full history
     """
-    # The design_graph_history was appended in the merge function
-    history = state_obj.design_graph_history
-    if not history:
-        print("No design graph snapshots found. Nothing to evaluate.")
-        return
+    # 1) rebuild full state from snapshots
+    snapshots = list(state_obj._history)  # or however you fetch StateSnapshot list
+    agg_state = aggregate_all_snapshots(snapshots)
 
-    # Evaluate
-    results = evaluate_all_metrics_over_history(history)
+    # 2) get history of design graphs
+    history = agg_state.design_graph_history
+    iter_metrics = evaluate_all_metrics_over_history(history)
 
-    # Print or store
-    for r in results:
-        print(f"\nIteration {r['iteration_index']} metrics:")
-        for k, v in r.items():
-            if k != 'iteration_index':
-                print(f"  {k}: {v}")
+    summary: Dict[str, Any] = {
+        "workflow": workflow,
+        "run": run,
+        "iterations": len(iter_metrics)
+    }
 
-def run_advanced_evaluation(state_obj: State) -> List[Dict[str, Any]]:
-    history = state_obj.design_graph_history
-    if not history:
-        print("No design graph snapshots found. Nothing to evaluate.")
-        return []
-    results = evaluate_all_metrics_over_history(history)
-    return results
-
-"""
-all_snapshots = list(app.get_state_history(config))
-final_aggregated_state = aggregate_all_snapshots(all_snapshots)
-
-# Now run the evaluation
-run_advanced_evaluation(final_aggregated_state)
-"""
-
-import matplotlib.pyplot as plt
-import pandas as pd
-
-def plot_metric_over_iterations(df: pd.DataFrame, metric_key: str, ylabel: str, title: str, save_path: str = None):
-    """
-    Plots a single metric over iterations.
-    
-    Args:
-        df: DataFrame containing metric results with an 'iteration_index' column.
-        metric_key: Column name for the metric to plot.
-        ylabel: Label for the y-axis.
-        title: Title of the plot.
-        save_path: Optional file path to save the plot as a PDF.
-    """
-    plt.figure(figsize=(3.5, 2.5))
-    plt.plot(df['iteration_index'], df[metric_key], marker='o', linestyle='-', color='b')
-    plt.xlabel("Iteration", fontsize=8)
-    plt.ylabel(ylabel, fontsize=8)
-    #plt.title(title, fontsize=10)
-    plt.xticks(fontsize=6)
-    plt.yticks(fontsize=6)
-    plt.tight_layout()
-    if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches="tight")
-        print(f"Saved {title} to {save_path}")
+    if iter_metrics:
+        last = iter_metrics[-1]
+        # flatten a few key scalars
+        summary.update({
+            "final_subsystem_coverage":       last["subsystem_coverage"],
+            "final_numerical_model_rate":     last["numerical_model_attachment_rate"],
+            "final_depth":                    last["functional_decomposition_depth"],
+            "final_convergence":              last["convergence_score"],
+            "final_redundancy":               last["redundancy_rate"],
+            "final_iteration_efficiency":     last["iteration_refinement_efficiency"],
+            "final_complexity":               last["graph_structural_complexity_score"]
+        })
     else:
-        plt.show()
+        # no history → defaults
+        summary.update({
+            "final_subsystem_coverage": 0.0,
+            "final_numerical_model_rate": 0.0,
+            "final_depth": 0,
+            "final_convergence": 0.0,
+            "final_redundancy": 0.0,
+            "final_iteration_efficiency": 0.0,
+            "final_complexity": 0.0
+        })
 
-
-def plot_all_metrics(df: pd.DataFrame):
-    """
-    Generates and saves plots for key metrics.
-    Adjust or remove metrics as needed.
-    """
-    # Node Growth Rate (expected to increase initially and then stabilize)
-    plot_metric_over_iterations(
-        df, 
-        metric_key="node_growth_rate", 
-        ylabel="Node Growth Rate", 
-        title="Node Growth Rate", 
-        save_path="node_growth_rate.pdf"
-    )
-    
-    # Edge Growth Rate (expected to increase)
-    plot_metric_over_iterations(
-        df, 
-        metric_key="edge_growth_rate", 
-        ylabel="Edge Growth Rate", 
-        title="Edge Growth Rate", 
-        save_path="edge_growth_rate.pdf"
-    )
-    
-    # Convergence Score (Jaccard similarity; expected to increase as design stabilizes)
-    plot_metric_over_iterations(
-        df, 
-        metric_key="convergence_score", 
-        ylabel="Convergence Score", 
-        title="Convergence Score", 
-        save_path="convergence_score.pdf"
-    )
-    
-    # Redundancy Rate (expected to decrease)
-    plot_metric_over_iterations(
-        df, 
-        metric_key="redundancy_rate", 
-        ylabel="Redundancy Rate", 
-        title="Redundancy Rate", 
-        save_path="redundancy_rate.pdf"
-    )
-    
-    # Graph Structural Complexity (Edges/Nodes; controlled increase)
-    plot_metric_over_iterations(
-        df, 
-        metric_key="graph_structural_complexity_score", 
-        ylabel="Complexity Score", 
-        title="Graph Structural Complexity", 
-        save_path="graph_complexity.pdf"
-    )
-    
-    # Subsystem Coverage (%)
-    plot_metric_over_iterations(
-        df, 
-        metric_key="subsystem_coverage", 
-        ylabel="Subsystem Coverage (%)", 
-        title="Subsystem Coverage", 
-        save_path="subsystem_coverage.pdf"
-    )
-    
-    # Numerical Model Attachment Rate (%)
-    plot_metric_over_iterations(
-        df, 
-        metric_key="numerical_model_attachment_rate", 
-        ylabel="Model Attachment Rate (%)", 
-        title="Numerical Model Attachment Rate", 
-        save_path="numerical_model_attachment_rate.pdf"
-    )
-    
-    # Functional Decomposition Depth
-    plot_metric_over_iterations(
-        df, 
-        metric_key="functional_decomposition_depth", 
-        ylabel="Max Depth", 
-        title="Functional Decomposition Depth", 
-        save_path="functional_decomposition_depth.pdf"
-    )
-    
-    # Orphan Nodes Count (expected to decrease)
-    plot_metric_over_iterations(
-        df, 
-        metric_key="orphan_nodes_count", 
-        ylabel="Orphan Nodes", 
-        title="Orphan Nodes Count", 
-        save_path="orphan_nodes_count.pdf"
-    )
-    
-    # Loop Detection: we could plot a binary indicator (0 for acyclic, 1 for cycle detected)
-    plot_metric_over_iterations(
-        df, 
-        metric_key="loop_detection", 
-        ylabel="Loop Detection", 
-        title="Loop Detection", 
-        save_path="loop_detection.pdf"
-    )
-    
-    # Subsystem Reuse Rate (expected to increase)
-    plot_metric_over_iterations(
-        df, 
-        metric_key="subsystem_reuse_rate", 
-        ylabel="Subsystem Reuse Rate", 
-        title="Subsystem Reuse Rate", 
-        save_path="subsystem_reuse_rate.pdf"
-    )
-
-"""
-# After aggregating the state snapshots and computing the metrics:
-metrics_results = evaluate_all_metrics_over_history(final_aggregated_state.design_graph_history)
-df_metrics = pd.DataFrame(metrics_results)
-# In case some metrics are dictionaries, you might need to flatten them or extract summary values.
-# For example, for orphan_nodes_count, convert list length:
-if "orphan_nodes_count" not in df_metrics.columns and "orphan_nodes" in df_metrics.columns:
-    df_metrics["orphan_nodes_count"] = df_metrics["orphan_nodes"].apply(len)
-
-# Now, generate the plots:
-plot_all_metrics(df_metrics)
-"""
+    # embed full history if desired
+    summary["metrics_history"] = iter_metrics
+    return summary

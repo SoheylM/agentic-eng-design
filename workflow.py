@@ -1,81 +1,58 @@
-from langgraph.graph import StateGraph
-from agents.router import router_node
-from agents.human import human_node
-from agents.requirements import requirements_node
-from agents.planner import planner_node
-from agents.supervisor import supervisor_node
-from agents.orchestrator import orchestrator_node
-from agents.worker import worker_node
-from agents.generation import generation_node
-from agents.reflection import reflection_node
-from agents.ranking import ranking_node
-from agents.evolution import evolution_node
-from agents.meta_review import meta_review_node
-from agents.synthesizer import synthesizer_node
-from agents.graph_designer import graph_designer_node
-from data_models import State
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.types import Command
-from config import config
+#!/usr/bin/env python3
+"""
+workflow.py    – Unified experiment runner.
 
-def initialize_workflow():
-    """Initialize the workflow with proper configuration."""
-    # Set up LangSmith tracing
-    config.setup_langsmith_tracing("IDETC25-MassoudiFuge-v2")
-    
-    # Create a state graph builder
-    graph_builder = StateGraph(State)
-    
-    # **Entry Point: Human Interaction**
-    graph_builder.set_entry_point("router")
-    
-    # Add all nodes
-    graph_builder.add_node("router", router_node)
-    graph_builder.add_node("human", human_node)
-    graph_builder.add_node("requirements", requirements_node)
-    graph_builder.add_node("planner", planner_node)
-    graph_builder.add_node("supervisor", supervisor_node)
-    graph_builder.add_node("orchestrator", orchestrator_node)
-    graph_builder.add_node("worker", worker_node)
-    graph_builder.add_node("generation", generation_node)
-    graph_builder.add_node("reflection", reflection_node)
-    graph_builder.add_node("ranking", ranking_node)
-    graph_builder.add_node("evolution", evolution_node)
-    graph_builder.add_node("meta_review", meta_review_node)
-    graph_builder.add_node("synthesizer", synthesizer_node)
-    graph_builder.add_node("graph_designer", graph_designer_node)
-    
-    # Compile the workflow
-    checkpointer = MemorySaver()
-    app = graph_builder.compile(checkpointer=checkpointer)
-    
-    return app
+Usage examples
+--------------
+# 1 run of the MAS (default request)
+$ python workflow.py --mode mas
+
+# 5 runs of the 2-Agent baseline, save metrics.jsonl
+$ python workflow.py --mode pair --runs 5 --out results_pair.jsonl
+"""
+import argparse, json, pathlib
+from datetime import datetime
+from evaluation import collect_metrics          # your helper
+
+from workflows.mas_workflow   import run_once as run_mas
+from workflows.pair_workflow  import run_once as run_pair
+
+DEFAULT_REQ = (
+    "I want to create a water filtration system that is solar powered. "
+    "Please satisfy the Cahier des Charges Rev C."
+)
 
 def main():
-    """Main workflow execution."""
-    # Initialize the workflow
-    app = initialize_workflow()
-    
-    # Invoke the workflow with the client request
-    request = "I want to create a water filtration system that is solar powered."
-    workflow_config = {"configurable": {"thread_id": "17"}, "recursion_limit": 500}
-    app.invoke({"messages": [request]}, config=workflow_config)
-    
-    while True:
-        STATE = app.get_state(workflow_config)
-        
-        # **Interrupt for Human Input**
-        human_answer = input("Provide input to the agent (or type END to finish): ")
-        
-        if human_answer.upper() == "END":
-            print("✅ Finalizing requirements manually. Moving to main workflow.")
-            app.invoke(Command(update={"active_agent": "planner"}), config=workflow_config)
-            break
-        
-        # Resume conversation with human input
-        app.invoke(Command(resume=human_answer), config=workflow_config)
-    
-    print("✅ Engineering workflow completed.")
+    p = argparse.ArgumentParser()
+    p.add_argument("--mode",  choices=["mas", "pair"], default="mas",
+                   help="Which workflow to execute")
+    p.add_argument("--runs",  type=int, default=1,
+                   help="How many independent seeds to run")
+    p.add_argument("--request", type=str, default=DEFAULT_REQ,
+                   help="User request string")
+    p.add_argument("--out", type=str, default="",
+                   help="Optional path to save newline-delimited JSON metrics")
+    args = p.parse_args()
+
+    runner = run_mas if args.mode == "mas" else run_pair
+    metrics_sink = open(args.out, "w") if args.out else None
+
+    for k in range(args.runs):
+        state = runner(args.request, thread_id=str(k))
+        metrics = collect_metrics(state, workflow=args.mode, run=k)
+
+        print(f"[{args.mode.upper()} run {k}]  ",
+              ", ".join(f"{k}: {v:.3f}" if isinstance(v, float) else f"{k}: {v}"
+                        for k, v in metrics.items()))
+
+        if metrics_sink:
+            metrics_sink.write(json.dumps(metrics) + "\n")
+            metrics_sink.flush()
+
+    if metrics_sink:
+        metrics_sink.close()
+        print(f"✅  Metrics written to {metrics_sink.name}")
+
 
 if __name__ == "__main__":
     main()
