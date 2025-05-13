@@ -9,7 +9,7 @@ Reflection stage for the 2-agent ablation loop.
 """
 
 from typing import List, Literal
-from langgraph.graph import Command
+from langgraph.types import Command
 from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage
 from data_models import PairState
 from llm_models import pair_reflection_agent
