@@ -6,15 +6,6 @@ from langchain_core.messages import BaseMessage
 
 
 
-class NodeType(str):
-    USER_REQUEST = "user_request"
-    REQUIREMENT = "requirement"
-    OBJECTIVE = "objective"
-    CONSTRAINT = "constraint"
-    SUBFUNCTION = "subfunction"
-    SUBSYSTEM = "subsystem"
-    DISCIPLINE = "discipline"
-
 
 @dataclass(kw_only=True)
 class Node:
