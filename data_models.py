@@ -149,6 +149,56 @@ class DesignState:
         },
     )
 
+
+class NodeOp(BaseModel):
+    """Atomic modification to a node."""
+
+    op: Literal["add", "update", "delete"] = Field(
+        ...,
+        description="Operation type",
+    )
+    node: DesignNode = Field(
+        default_factory=lambda: DesignNode(
+            node_kind="function",
+            name="placeholder",
+            description="auto-generated placeholder",
+        ),
+        description="Full node definition for 'add' OR placeholder for update/delete",
+    )
+    node_id: str = Field(
+        "",
+        description="Target node_id (ignored on 'add' – taken from node.node_id)",
+    )
+    updates: Dict[str, str] = Field(
+        default_factory=dict,
+        description="Shallow key→value edits applied when op=='update'",
+    )
+    justification: str = Field(
+        "",
+        description="Why this change is required",
+    )
+
+
+class EdgeOp(BaseModel):
+    """Atomic modification to an edge."""
+
+    op: Literal["add", "delete"] = Field(
+        ...,
+        description="Edge operation type",
+    )
+    src: str = Field(
+        ...,
+        description="Source node_id (tail of the arrow)",
+    )
+    dst: str = Field(
+        ...,
+        description="Destination node_id (head of the arrow)",
+    )
+    justification: str = Field(
+        "",
+        description="Rationale for adding/removing this dependency",
+    )
+
 @dataclass
 class Proposal:
     """
