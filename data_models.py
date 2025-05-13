@@ -256,11 +256,7 @@ class SingleProposal(BaseModel):
     content: str = Field(description="Main text describing the approach, assumptions, or logic")
 
 class ProposalsOutput(BaseModel):
-    """Structured output for the generation pair agent."""
-    content: str = Field(..., description="The generated proposal content")
-    confidence: float = Field(..., description="Confidence score for the proposal (0-1)")
-    improvements_needed: List[str] = Field(default_factory=list, description="List of areas that need improvement")
-    technical_considerations: List[str] = Field(default_factory=list, description="List of technical considerations")
+    proposals: List[SingleProposal] = Field(..., description="List of proposed ideas")
 
 
 
@@ -269,12 +265,7 @@ class SingleReflection(BaseModel):
     feedback: str = Field(..., description="Critical review or suggestions about the proposal")
 
 class ReflectionOutput(BaseModel):
-    """Structured output for the reflection pair agent."""
-    content: str = Field(..., description="The reflection feedback content")
-    strengths: List[str] = Field(default_factory=list, description="List of proposal strengths")
-    improvements: List[str] = Field(default_factory=list, description="List of suggested improvements")
-    technical_feasibility: float = Field(..., description="Technical feasibility score (0-1)")
-    alignment_score: float = Field(..., description="Alignment with requirements score (0-1)")
+    reflections: List[SingleReflection] = Field(..., description="List of reflection items for each proposal")
 
 
 class SingleRanking(BaseModel):
