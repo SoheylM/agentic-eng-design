@@ -5,19 +5,126 @@ from pydantic import BaseModel, Field
 from langchain_core.messages import BaseMessage
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+#  Low-level payload leaves
+# ──────────────────────────────────────────────────────────────────────────────
+
+@dataclass(kw_only=True)
+class PhysicsModel:
+    """Executable or symbolic model attached to a design element."""
+
+    name: str = field(
+        metadata={"desc": "Human-readable identifier (e.g. 'BernoulliPump')"}
+    )
+    equations: str = field(
+        metadata={"desc": "LaTeX or plain-text formulation of governing eqns"}
+    )
+    python_code: str = field(
+        metadata={"desc": "Runnable snippet or module import path"}
+    )
+    assumptions: List[str] = field(
+        default_factory=list,
+        metadata={"desc": "Key simplifying assumptions made by the model"},
+    )
+    status: str = field(
+        default="draft",
+        metadata={
+            "desc": "Model maturity flag – use 'draft', 'validated', or 'deprecated'"
+        },
+    )
 
 
 @dataclass(kw_only=True)
-class Node:
-    node_id: str
-    node_type: str  # e.g., "function", "subsystem", "numerical_model"
-    name: str
-    payload: str = ""  # Metadata (description, constraints, etc.)
-    status: str = ""  # e.g., "draft", "validated"
-    
-    # ✅ Add explicit lists for tracking incoming and outgoing edges
-    edges_in: List[str] = field(default_factory=list)   # Nodes pointing to this node
-    edges_out: List[str] = field(default_factory=list)  # Nodes this node points to
+class Embodiment:
+    """How a function/sub-function is physically instantiated."""
+
+    principle: str = field(
+        metadata={"desc": "Primary working principle (e.g. 'reverse-osmosis')"}
+    )
+    description: str = field(
+        metadata={"desc": "Concise explanation of how the embodiment works"}
+    )
+    design_parameters: Dict[str, float] = field(
+        default_factory=dict,
+        metadata={"desc": "Key design vars with nominal numeric values"},
+    )
+    cost_estimate: float = field(
+        default=-1.0,
+        metadata={"desc": "USD cost estimate; −1.0 means 'not yet estimated'"},
+    )
+    mass_estimate: float = field(
+        default=-1.0,
+        metadata={"desc": "Mass in kg; −1.0 means 'not yet estimated'"},
+    )
+    status: str = field(
+        default="candidate",
+        metadata={
+            "desc": "Lifecycle state – 'candidate', 'selected', or 'rejected'"
+        },
+    )
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  The single node that carries everything
+# ──────────────────────────────────────────────────────────────────────────────
+
+@dataclass(kw_only=True)
+class DesignNode:
+    """
+    Self-contained design element.  
+    `node_kind` maintains hierarchy while keeping embodiment + models inline.
+    """
+
+    node_id: str = field(
+        default_factory=lambda: str(uuid.uuid4()),
+        metadata={"desc": "Globally unique identifier"},
+    )
+    node_kind: str = field(
+        metadata={
+            "desc": "Token such as 'function', 'subfunction', 'requirement', 'constraint'"
+        }
+    )
+    name: str = field(
+        metadata={"desc": "Short, human-friendly label"}
+    )
+    description: str = field(
+        default="",
+        metadata={"desc": "Long-form text explaining purpose or behaviour"},
+    )
+
+    # Rich payload -------------------------------------------------------------
+    embodiment: Embodiment = field(
+        default_factory=lambda: Embodiment(
+            principle="undefined",
+            description="embodiment not yet specified",
+        ),
+        metadata={"desc": "Current embodiment choice"},
+    )
+    physics_models: List[PhysicsModel] = field(
+        default_factory=list,
+        metadata={"desc": "One or more physics / empirical models"},
+    )
+
+    # Meta-fields --------------------------------------------------------------
+    maturity: str = field(
+        default="draft",
+        metadata={
+            "desc": "Overall maturity – 'draft', 'reviewed', or 'validated'"
+        },
+    )
+    tags: List[str] = field(
+        default_factory=list,
+        metadata={"desc": "Arbitrary keywords for search / filter"},
+    )
+
+    # Graph connectivity -------------------------------------------------------
+    edges_in: List[str] = field(
+        default_factory=list,
+        metadata={"desc": "IDs of parent nodes"},
+    )
+    edges_out: List[str] = field(
+        default_factory=list,
+        metadata={"desc": "IDs of child nodes"},
+    )
 
 @dataclass(kw_only=True)
 class DesignState:
