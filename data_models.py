@@ -330,8 +330,8 @@ class State:
 
     # **🔹 Final Design Graph**
     design_graph_history: Annotated[List[DesignState], operator.add] = field(default_factory=list)
-    design_graph_nodes: Annotated[List[NodeModification], operator.add] = field(default_factory=list)
-    design_graph_edges: Annotated[List[EdgeModification], operator.add] = field(default_factory=list)
+    design_graph_nodes: Annotated[List[NodeOp], operator.add] = field(default_factory=list)
+    design_graph_edges: Annotated[List[EdgeOp], operator.add] = field(default_factory=list)
     
     # **🔹 Handover Logs & Iterations**
     generation_notes: Annotated[List[str], operator.add] = field(default_factory=list)
@@ -472,8 +472,8 @@ class SynthesizerOutput(BaseModel):
     Represents the structured output from the Synthesizer Agent.
     """
     summary_explanation: str
-    nodes: List[NodeModification]
-    edges: List[EdgeModification]
+    nodes: List[NodeOp]
+    edges: List[EdgeOp]
 
 class Modification(BaseModel):
     """
@@ -507,10 +507,10 @@ class GraphDesignerPlan(BaseModel):
     summary_reasoning: str = Field(..., description="A structured explanation of why these graph modifications are needed.")
     
     # List of node modifications (addition, deletion, update)
-    nodes: List[NodeModification] = Field(..., description="A list of modifications (add, delete, update) to apply to nodes in the graph.")
+    nodes: List[NodeOp] = Field(..., description="A list of modifications (add, delete, update) to apply to nodes in the graph.")
     
     # List of edge modifications (addition, deletion)
-    edges: List[EdgeModification] = Field(..., description="A list of edge modifications (add, delete) to apply relationships between nodes.")
+    edges: List[EdgeOp] = Field(..., description="A list of edge modifications (add, delete) to apply relationships between nodes.")
 
 
 @dataclass
