@@ -1,40 +1,56 @@
 # agents/generation_pair.py
 from typing import List, Literal
-from dataclasses import dataclass, field
-import operator
 from langgraph.graph import Command
 from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage
-from llm_models import get_llm  # tiny helper you already have
+from data_models import PairState
+from llm_models import pair_generation_agent
+from prompts import GE_PAIR_PROMPT
+from IPython.display import display, Markdown
 
-@dataclass
-class PairState:
-    messages:      List[BaseMessage] = field(default_factory=list)
-    first_pass:    bool              = True
-    user_request:  str               = ""
-    proposal:      List[str]         = field(default_factory=list)
-    feedback:      List[str]         = field(default_factory=list)
+def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]]:
 
-_GE_PROMPT = open("prompts/generation_pair.txt").read()  # drop the long prompt there
+    first_pass = state.first_pass
+    if first_pass: 
+        user_request = state.messages[-1]
+    else:
+        user_request = state.user_request
+    
 
-LLM = get_llm()
+    generation_user_message = f"""
+    Develop functional decomposition, subsystem mapping, develop matching numerical code. 
+    This is the user request : {user_request}.
 
-def node(state: PairState) -> Command[Literal["reflection_pair"]]:
-    """Generation step of the 2-agent loop."""
-    user_request = state.messages[-1].content if state.first_pass else state.user_request
-    gen_user_msg = f"""
-Develop functional decomposition → subsystem mapping → numerical code
-for:  {user_request}
+    If you have already worked on this, here is your previous work:
+    {state.proposal[-1] if not first_pass else "Nope, that's your first pass"}
 
-Prev-proposal: {state.proposal[-1] if not state.first_pass else '—'}
-Prev-feedback: {state.feedback[-1] if not state.first_pass else '—'}
-"""
+    And here is the feedback on that prior work from an expert in the field:
+    {state.feedback[-1] if not first_pass else "No feedback available yet"}
+    """
 
-    output = LLM.invoke([SystemMessage(_GE_PROMPT), HumanMessage(gen_user_msg)])
+    base_model_output = pair_generation_agent.invoke([
+        SystemMessage(content=GE_PAIR_PROMPT),
+        HumanMessage(content=generation_user_message)
+    ])
 
-    update = {
-        "messages": [output],
-        "proposal": [output.content],
-        "user_request": user_request,
-        "first_pass": False,
-    }
-    return Command(update=update, goto="reflection_pair")
+    display(Markdown(f"**Generator Response:** {base_model_output.content}"))
+
+
+    if first_pass:
+        return Command(
+            update={
+                "messages": [base_model_output.content],
+                "user_request": user_request,
+                "first_pass": False,
+                "proposal": [base_model_output.content],
+            },
+            goto="reflection_pair"
+        )
+    else:
+        return Command(
+            update={
+                "messages": [base_model_output.content],
+                "proposal": [base_model_output.content],
+            },
+            goto="reflection_pair"
+        )
+        

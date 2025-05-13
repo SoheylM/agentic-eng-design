@@ -46,10 +46,10 @@ class Proposal:
     # Design step to know in which design step this proposal was formulated
     current_step_index: int = 0
     
-    # Reflection agent’s critique or suggestions. Could be a short text summary.
+    # Reflection agent's critique or suggestions. Could be a short text summary.
     feedback: Optional[str] = None
     
-    # Ranking agent’s numeric or textual grade. E.g., "score: 8.5"
+    # Ranking agent's numeric or textual grade. E.g., "score: 8.5"
     grade: Optional[float] = None
     ranking_justification: Optional[str] = None
 
@@ -256,7 +256,11 @@ class SingleProposal(BaseModel):
     content: str = Field(description="Main text describing the approach, assumptions, or logic")
 
 class ProposalsOutput(BaseModel):
-    proposals: List[SingleProposal] = Field(..., description="List of proposed ideas")
+    """Structured output for the generation pair agent."""
+    content: str = Field(..., description="The generated proposal content")
+    confidence: float = Field(..., description="Confidence score for the proposal (0-1)")
+    improvements_needed: List[str] = Field(default_factory=list, description="List of areas that need improvement")
+    technical_considerations: List[str] = Field(default_factory=list, description="List of technical considerations")
 
 
 
@@ -265,7 +269,12 @@ class SingleReflection(BaseModel):
     feedback: str = Field(..., description="Critical review or suggestions about the proposal")
 
 class ReflectionOutput(BaseModel):
-    reflections: List[SingleReflection] = Field(..., description="List of reflection items for each proposal")
+    """Structured output for the reflection pair agent."""
+    content: str = Field(..., description="The reflection feedback content")
+    strengths: List[str] = Field(default_factory=list, description="List of proposal strengths")
+    improvements: List[str] = Field(default_factory=list, description="List of suggested improvements")
+    technical_feasibility: float = Field(..., description="Technical feasibility score (0-1)")
+    alignment_score: float = Field(..., description="Alignment with requirements score (0-1)")
 
 
 class SingleRanking(BaseModel):
@@ -345,4 +354,17 @@ class GraphDesignerPlan(BaseModel):
     
     # List of edge modifications (addition, deletion)
     edges: List[EdgeModification] = Field(..., description="A list of edge modifications (add, delete) to apply relationships between nodes.")
+
+
+@dataclass
+class PairState:
+    """State for the 2-Agent System (Generation + Reflection loop)."""
+    messages: Annotated[List[BaseMessage], operator.add] = field(default_factory=list)
+    first_pass: bool = True
+    user_request: str = ""
+    proposal: Annotated[List[str], operator.add] = field(default_factory=list)
+    feedback: Annotated[List[str], operator.add] = field(default_factory=list)
+    generation_iteration: int = 0
+    reflection_iteration: int = 0
+    max_iterations: int = 5  # Default max iterations
 

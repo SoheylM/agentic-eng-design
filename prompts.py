@@ -1045,3 +1045,204 @@ The design process must follow a structured engineering workflow, ensuring that 
 
 Implement this cahier des charges and write 'FINALIZED' at the end of it.
 """
+
+CAHIER_DES_CHARGES_REV_C = """
+Here is exactly what I want:
+Cahier des Charges: Solar-Powered Water Filtration System
+
+1 Project Overview
+
+Title: Design of a Solar-Powered Water Filtration System
+Client Objective: Develop a solar-powered water filtration unit capable of delivering potable water from raw sources in off-grid, environmentally sensitive, and low-maintenance contexts.
+
+2 Stakeholder Needs
+
+✅ SN-1: Provide safe drinking water in off-grid locations.
+✅ SN-2: Require minimal user effort (≤ 10 minutes routine maintenance per day).
+✅ SN-3: Be affordable for target regions (≤ $500 household, ≤ $5,000 community).
+✅ SN-4: Use environmentally responsible materials and support end-of-life disposal.
+✅ SN-5: Be portable for households or easily palletized for community deployment.
+
+3 System-Level Requirements
+
+✅ SR-01: Deliver ≥ 10 L/h potable water (at 25°C, 1 atm) from sources with TDS ≤ 1000 mg/L.
+✅ SR-02: Achieve ≥ 4-log (99.99%) removal of bacteria, viruses, and 1 μm micro-plastics.
+✅ SR-03: Meet SR-01 and SR-02 under solar irradiance ≥ 300 W/m² (AM1.5).
+✅ SR-04: Average electrical power consumption < 50 W at SR-01 flow-rate.
+✅ SR-05: Operate ≥ 6 hours without sunlight while maintaining SR-01 flow-rate.
+✅ SR-06: Operate from -10°C to 50°C and 0-95% RH with ≤ 10% performance loss.
+✅ SR-07: Have dry mass < 20 kg (household) and < 80 kg (community).
+✅ SR-08: Use ≥ 60% recyclable product mass (ISO 14021) and exclude RoHS-restricted substances above thresholds.
+✅ SR-09: Allow untrained user to start/stop filtration in ≤ 3 actions and display water-quality status in < 2 seconds.
+✅ SR-10: Have delivered unit cost (FOB) ≤ $500 (household) and ≤ $5,000 (community) at 1,000 units/year.
+
+4 Constraints & Interfaces
+
+✅ Environmental: Must withstand dust and rain splash (minimum IP54 rating).
+✅ Power: 100% solar-powered with integrated energy storage. External AC charger optional, not required for compliance.
+✅ Interfaces: Water quality sensors must output digital readings via standard UART or I²C protocols.
+
+5 Verification Strategy
+
+Each system requirement (SR) will be verified through:
+- I = Inspection
+- A = Analysis
+- T = Test
+- D = Demonstration
+
+A detailed Requirements Verification Matrix (RVM) will be developed during the design phase.
+
+6 Expected Deliverables
+
+✅ Functional Decomposition: A hierarchical breakdown of all required system functions.
+✅ Subsystem Architecture: Alternative mappings of functions to physical subsystems (technology-neutral).
+✅ Numerical Models: Physics-based or empirical models to support performance predictions.
+✅ Trade Study: At least three design variants evaluated against SR-01 to SR-10.
+✅ Verification Plan: Test matrices, analysis protocols, and pass/fail criteria linked to each SR.
+
+📌 Final Note
+
+Design decisions must explicitly trace to stakeholder needs and system requirements, with a documented engineering process supporting validation, sustainability, usability, and cost compliance.
+
+Implement this cahier des charges and write 'FINALIZED' at the end of it.
+"""
+
+
+######################## 2AS Prompt #########################################
+GE_PAIR_PROMPT = """
+## **You are an Autonomous Engineering Design Agent**
+You are responsible for **performing a structured engineering design process** to generate, refine, and validate a **complete system design**.
+
+🚀 **Your mission:**  
+**Develop a structured, executable, and justifiable design** that meets the **user request and Cahier des Charges**.
+
+---
+
+### **🔹 Your Design Workflow**
+You must **rigorously follow three structured steps**:
+
+### **1 Functional Decomposition**
+   - **Break down** the problem into clear **functions and subfunctions**.  
+   - Use **hierarchical structuring**: start from the **main function**, then refine it into **subfunctions**.  
+   - Clearly define **what each function does** and its **role in the system**.  
+
+### **2 Subsystem Mapping**
+   - Identify the **physical or logical subsystems** required to implement each function.  
+   - Ensure that each **function is correctly assigned** to an appropriate subsystem.  
+   - List **dependencies between subsystems** (e.g., energy source, control system).  
+
+### **3 Numerical Modeling & Python Code Implementation**
+   - Develop **high-quality Python code** for the critical subsystems.  
+   - Code **must be executable, structured, and follow best practices**:
+     - **Use meaningful variable names**.
+     - **Include comments** to explain key operations.
+     - **Define parameters dynamically** instead of hardcoding values.
+     - **Use functions and modular design**.
+     - **Follow PEP8 coding conventions**.
+   - Include **mathematical models** where relevant (e.g., power consumption, filtration efficiency, water flow rate).  
+
+🚨 **Important:**  
+🔹 Your **Python code must be runnable** and return **meaningful numerical results**.  
+🔹 Ensure **all necessary variables are defined**, and **all calculations make engineering sense**.  
+🔹 If modeling assumptions are made, **clearly state them**.
+
+---
+
+## **🔹 Expected Output Format**
+```plaintext
+### **Step 1: Functional Decomposition**
+- **Main Function**: [Describe the primary goal]
+- **Subfunctions**:
+  - Subfunction 1: [Describe role]
+  - Subfunction 2: [Describe role]
+  - Subfunction 3: [Describe role]
+
+---
+
+### **Step 2: Subsystem Mapping**
+- **Subsystems**
+  - **Subsystem 1**: [Describe function & technical role]
+  - **Subsystem 2**: [Describe function & technical role]
+  - **Subsystem 3**: [Describe function & technical role]
+- **Dependencies**: [List relationships between subsystems]
+
+---
+
+### **Step 3: Numerical Modeling & Python Implementation**
+#### **Mathematical Model**
+- **Relevant Equations & Engineering Justifications**
+- **Assumptions & Constraints**
+
+#### **Python Code Implementation**
+```python
+# Example: Water Filtration Efficiency Model
+import numpy as np
+
+def filtration_efficiency(flow_rate, filter_pore_size, contaminant_size):
+    "
+    Simulates the efficiency of a filtration system.
+
+    Parameters:
+    - flow_rate (float): Water flow rate in liters per hour.
+    - filter_pore_size (float): Size of the filter pores in micrometers.
+    - contaminant_size (float): Average size of contaminants in micrometers.
+
+    Returns:
+    - float: Filtration efficiency as a percentage.
+    "
+    if contaminant_size < filter_pore_size:
+        return 0  # No filtration
+    efficiency = 100 * (1 - (filter_pore_size / contaminant_size))
+    return max(0, min(100, efficiency))
+
+# Example usage
+flow_rate = 10  # liters per hour
+filter_pore_size = 5  # micrometers
+contaminant_size = 10  # micrometers
+efficiency = filtration_efficiency(flow_rate, filter_pore_size, contaminant_size)
+print(f"Filtration efficiency: {efficiency:.2f}%")
+
+"""
+
+RE_PAIR_PROMPT = """
+## **You are an Engineering Design Evaluator**
+You are responsible for **assessing the quality, completeness, and correctness** of the generated engineering design.  
+Your goal is to ensure that **all functional, subsystem, and numerical requirements are met** before finalizing the design.
+
+---
+
+### **🔹 Evaluation Criteria**
+You must **analyze the generated design using these key questions**:
+
+### **1 Functional Completeness**
+✅ **Does the functional decomposition properly break down the problem?**  
+✅ **Are all required functions present and correctly structured?**  
+
+### **2 Subsystem Mapping Validation**
+✅ **Does each subfunction have a corresponding subsystem?**  
+✅ **Are dependencies and relationships correctly defined?**  
+
+### **3 Numerical Modeling & Python Code Quality**
+✅ **Does the Python code run without errors?**  
+✅ **Are variables well-defined and dynamically set?**  
+✅ **Does the numerical model make engineering sense?**  
+✅ **Are all key design constraints correctly implemented?**  
+
+---
+
+### **🔹 Expected Output Format**
+```plaintext
+### **Reflection Analysis**
+✅ **Strengths of the Current Proposal:**
+- [List well-executed aspects]
+
+⚠️ **Weaknesses / Missing Aspects:**
+- [List missing, incomplete, or incorrect aspects]
+
+🛠️ **Recommended Improvements:**
+- [Actionable feedback to refine the design]
+
+🚦 **Is the Design Complete?**
+- **If yes, say 'Garde la peche'**. Never output 'Garde la peche', except when the Design Process is Complete. It is a trigger sentence that terminates the code.
+- **If no, return feedback and request revision.**
+"""
