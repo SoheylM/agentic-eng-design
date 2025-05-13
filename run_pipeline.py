@@ -182,10 +182,13 @@ def single_run(mode: str, request: str, idx: int):
 
 # ---------- 6.  CLI --------------------------------------------------------------------
 
+def get_default_request():
+    return f"I want to create a solar powered water filtration system satisfying the Cahier des Charges Rev C: {CAHIER_DES_CHARGES_REV_C}"
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", type=int, default=1)
-    ap.add_argument("--request", default="I want to create a solar powered water filtration system satisfying the Cahier des Charges Rev C: {CAHIER_DES_CHARGES_REV_C}")
+    ap.add_argument("--request", default=get_default_request())
     ap.add_argument("--csv", action="store_true", help="write csv file")
     args = ap.parse_args()
 
