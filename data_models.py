@@ -128,8 +128,26 @@ class DesignNode:
 
 @dataclass(kw_only=True)
 class DesignState:
-    nodes: Dict[str, Node] = field(default_factory=dict)
-    edges: List[Tuple[str, str]] = field(default_factory=list)  # (source_id, target_id)
+    """
+    Pure data container for the evolving design.
+
+    • `nodes`  : mapping from node_id → DesignNode  
+    • `edges`  : list of directed pairs (source_id, target_id)
+
+    No helper methods are defined here – keep graph manipulation
+    in standalone utility functions or in the agent logic.
+    """
+
+    nodes: Dict[str, DesignNode] = field(
+        default_factory=dict,
+        metadata={"desc": "All design nodes keyed by their unique node_id"},
+    )
+    edges: List[Tuple[str, str]] = field(
+        default_factory=list,
+        metadata={
+            "desc": "Directed edges (source_id, target_id) capturing dependencies"
+        },
+    )
 
 @dataclass
 class Proposal:
