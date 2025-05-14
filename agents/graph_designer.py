@@ -1,131 +1,136 @@
+# graph_designer.py  ─────────────────────────────────────────────────────────
 import uuid
-from typing import Literal
-from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, AnyMessage, BaseMessage, SystemMessage
-from langgraph.types import Command
-from data_models import State, DesignState, NodeOp, EdgeOp
-from graph_utils import add_node_func, delete_node_func, update_node_func, visualize_design_state_func, summarize_design_state_func
-from utils import remove_think_tags
-from llm_models import base_model_reasoning
+from typing import Literal, List
 
+from langchain_core.messages import SystemMessage, HumanMessage
+from langgraph.types import Command
+
+from data_models  import (
+    State, DesignState,
+    NodeOp, EdgeOp,
+    DesignNode,
+)
+from graph_utils  import (
+    add_node_func,
+    delete_node_func,
+    update_node_func,
+    add_edges_to_state,         # already defined in graph_utils
+    visualize_design_state_func,
+    summarize_design_state_func,
+)
+from utils        import remove_think_tags
+from llm_models   import base_model_reasoning
+
+
+# ────────────────────────────────────────────────────────────────────────────
 def graph_designer_node(state: State) -> Command[Literal["supervisor"]]:
     """
-    Graph Designer Agent:
-    - Reads structured node and edge modifications from the Synthesizer Agent.
-    - Applies modifications to the Design Graph.
-    - Ensures graph consistency after changes.
-    - Returns the updated graph to the Supervisor.
+    Applies NodeOp / EdgeOp lists produced by the Synthesizer.
+    After updating the in-memory DesignGraph it:
+      • runs a quick LLM “sanity check”,
+      • appends the snapshot to design_graph_history,
+      • hands control back to the supervisor.
     """
-    print("\n📐 [DEBUG] Graph Designer node invoked.")
 
-    # **Retrieve Synthesizer Output**
-    if not state.synthesizer_notes or not state.design_graph_nodes:
-        print("⚠️ [DEBUG] No synthesizer modifications found.")
+    print("\n📐 [DEBUG] Graph-Designer node invoked.")
+
+    # 0. Sanity-check that we actually have something to do
+    if not state.pending_node_ops and not state.pending_edge_ops:
+        print("⚠️  [DEBUG] No pending NodeOps / EdgeOps – nothing to apply.")
         return Command(
-            update={
-                "graph_designer_notes": ["No modifications provided by synthesizer. No changes made."],
-            },
-            goto="supervisor"
+            update={"graph_designer_notes": ["No graph modifications supplied."]},
+            goto="supervisor",
         )
 
-    # Get the current design graph
-    current_design_graph = state.design_graph_history[-1] if state.design_graph_history else DesignState()
+    # Pick last batches pushed by Synthesizer
+    node_ops: List[NodeOp] = state.pending_node_ops[-1] if state.pending_node_ops else []
+    edge_ops: List[EdgeOp] = state.pending_edge_ops[-1] if state.pending_edge_ops else []
 
-    # Retrieve the latest instructions and modifications
-    synthesizer_summary = state.synthesizer_notes[-1]
-    node_modifications = state.design_graph_nodes[-1]  # Extract latest node modifications
-    edge_modifications = state.design_graph_edges[-1] if state.design_graph_edges else []  # Extract latest edge modifications
+    # Work on a *mutable* copy of the latest DesignGraph snapshot
+    graph = state.design_graph_history[-1] if state.design_graph_history else DesignState()
 
-    print(f"\n🔍 [DEBUG] Retrieved synthesizer summary:\n{synthesizer_summary}")
-    print(f"\n🔍 [DEBUG] Retrieved {len(node_modifications)} node modifications.")
-    print(f"\n🔍 [DEBUG] Retrieved {len(edge_modifications)} edge modifications.")
-
-    # **Step 1: Apply Node Modifications**
-    node_results = []
-    for mod in node_modifications:
+    # ───────────────────────────────────────────────────────────── NodeOps
+    node_results: List[str] = []
+    for op in node_ops:
         try:
-            if mod.operation == "add":
-                result = add_node_func(current_design_graph, {
-                    "node_id": mod.node_id or str(uuid.uuid4()),
-                    "node_type": mod.node_type,
-                    "name": mod.name,
-                    "payload": mod.payload,
-                    "status": mod.status or "draft"
-                })
-            elif mod.operation == "delete":
-                result = delete_node_func(current_design_graph, mod.node_id)
-            elif mod.operation == "update":
-                result = update_node_func(current_design_graph, mod)  # ✅ Uses NodeModification directly
+            if op.op == "add":
+                res = add_node_func(graph, op)               # new helper works on NodeOp
+            elif op.op == "delete":
+                res = delete_node_func(graph, op.node_id)
+            elif op.op == "update":
+                res = update_node_func(graph, op)
             else:
-                result = f"❌ Invalid operation '{mod.operation}' for node '{mod.node_id}'. Skipping."
+                res = f"❌ Unknown NodeOp '{op.op}'."
+            node_results.append(res)
+            print(f"✅ [DEBUG] {res}")
+        except Exception as exc:
+            err = f"❌ NodeOp error ({op.op}): {exc}"
+            node_results.append(err)
+            print(err)
 
-            print(f"✅ [DEBUG] {result}")
-            node_results.append(result)
-        except Exception as e:
-            error_msg = f"❌ Error applying node modification: {mod.node_id} - {str(e)}"
-            print(error_msg)
-            node_results.append(error_msg)
-
-    # **Step 2: Apply Edge Modifications**
-    edge_results = []
-    for edge_mod in edge_modifications:
+    # ───────────────────────────────────────────────────────────── EdgeOps
+    edge_results: List[str] = []
+    for eop in edge_ops:
         try:
-            if edge_mod.operation == "add":
-                if edge_mod.from_node in current_design_graph.nodes and edge_mod.to_node in current_design_graph.nodes:
-                    current_design_graph.edges.append((edge_mod.from_node, edge_mod.to_node))  # Store edge
-                    result = f"✅ Edge added: {edge_mod.from_node} → {edge_mod.to_node}"
+            if eop.op == "add":
+                if eop.src in graph.nodes and eop.dst in graph.nodes:
+                    add_edges_to_state(graph, [(eop.src, eop.dst)])
+                    graph.edges.append((eop.src, eop.dst))
+                    res = f"✅ Edge added {eop.src} → {eop.dst}"
                 else:
-                    result = f"❌ Error: Cannot add edge, nodes {edge_mod.from_node} or {edge_mod.to_node} not found."
-            elif edge_mod.operation == "delete":
-                if (edge_mod.from_node, edge_mod.to_node) in current_design_graph.edges:
-                    current_design_graph.edges.remove((edge_mod.from_node, edge_mod.to_node))
-                    result = f"✅ Edge deleted: {edge_mod.from_node} → {edge_mod.to_node}"
+                    res = f"❌ Edge add failed – unknown node(s) {eop.src}/{eop.dst}"
+            elif eop.op == "delete":
+                if (eop.src, eop.dst) in graph.edges:
+                    graph.edges.remove((eop.src, eop.dst))
+                    # also scrub in/out lists
+                    graph.nodes[eop.src].edges_out.remove(eop.dst)
+                    graph.nodes[eop.dst].edges_in.remove(eop.src)
+                    res = f"✅ Edge removed {eop.src} → {eop.dst}"
                 else:
-                    result = f"⚠️ Edge {edge_mod.from_node} → {edge_mod.to_node} not found. No deletion performed."
+                    res = f"⚠️  Edge {eop.src} → {eop.dst} not present."
             else:
-                result = f"❌ Invalid edge operation '{edge_mod.operation}' for edge {edge_mod.from_node} → {edge_mod.to_node}. Skipping."
+                res = f"❌ Unknown EdgeOp '{eop.op}'."
+            edge_results.append(res)
+            print(f"✅ [DEBUG] {res}")
+        except Exception as exc:
+            err = f"❌ EdgeOp error ({eop.op} {eop.src}->{eop.dst}): {exc}"
+            edge_results.append(err)
+            print(err)
 
-            print(f"✅ [DEBUG] {result}")
-            edge_results.append(result)
-        except Exception as e:
-            error_msg = f"❌ Error applying edge modification: {edge_mod.from_node} → {edge_mod.to_node} - {str(e)}"
-            print(error_msg)
-            edge_results.append(error_msg)
-
-    # **Step 3: Validate Updated Graph**
-    print("\n🔍 [DEBUG] Validating updated design graph.")
-
+    # ───────────────────────────────────────────────────────────── Validation (LLM quick-check)
     validation_prompt = f"""
-    ### **Design Graph Validation**
-    
-    - **Synthesizer Summary**: {synthesizer_summary}
-    - **Applied Node Modifications**: {node_results}
-    - **Applied Edge Modifications**: {edge_results}
-    - **Current Graph Summary**: {summarize_design_state_func(current_design_graph)}
+### Design-Graph validation request
 
-    **Your Task**:
-    1. **Analyze the modifications** and check if they align with design goals.
-    2. **Identify missing nodes, inconsistencies, or errors**.
-    3. **If any inconsistencies exist, reprocess the modification plan**.
+• NodeOp results
+{node_results}
 
-    **Format your response as structured JSON.**
-    """
+• EdgeOp results
+{edge_results}
 
-    base_model_output = base_model_reasoning.invoke([
-        SystemMessage(content="You are the Graph Validation Agent. Check the consistency of the Design Graph."),
-        HumanMessage(content=validation_prompt)
-    ])
+• Current graph summary
+{summarize_design_state_func(graph)}
 
-    print("\n🔍 [DEBUG] Graph Validation Completed.")
-    print(f"📝 [DEBUG] Validation Output:\n{remove_think_tags(base_model_output.content)}")
+Please return JSON with keys:
+  {{ "ok": true/false, "issues": [ ... ] }}
+"""
+    val_msg = base_model_reasoning.invoke(
+        [
+            SystemMessage(content="You are an expert systems-engineering auditor."),
+            HumanMessage(content=validation_prompt),
+        ]
+    ).content
 
-    # **Step 4: Visualize Updated Graph**
-    visualize_design_state_func(current_design_graph)
+    print("🔍 [DEBUG] Graph validation response:")
+    print(remove_think_tags(val_msg))
 
-    # **Step 5: Return Updated Graph to Supervisor**
+    # ───────────────────────────────────────────────────────────── Visualisation (optional)
+    visualize_design_state_func(graph)
+
+    # ───────────────────────────────────────────────────────────── Persist + hand back
     return Command(
         update={
-            "graph_designer_notes": [base_model_output.content],
-            "design_graph_history": [current_design_graph],  # Add the updated graph to history
+            "graph_designer_notes": [val_msg],
+            "design_graph_history": [graph],   # snapshot appended
         },
-        goto="supervisor"
+        goto="supervisor",
     )
