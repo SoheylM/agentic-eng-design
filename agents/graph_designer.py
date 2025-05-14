@@ -2,7 +2,7 @@ import uuid
 from typing import Literal
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, AnyMessage, BaseMessage, SystemMessage
 from langgraph.types import Command
-from data_models import State, DesignState
+from data_models import State, DesignState, NodeOp, EdgeOp
 from graph_utils import add_node_func, delete_node_func, update_node_func, visualize_design_state_func, summarize_design_state_func
 from utils import remove_think_tags
 from llm_models import base_model_reasoning

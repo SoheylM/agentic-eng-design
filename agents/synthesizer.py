@@ -1,6 +1,6 @@
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, AnyMessage, BaseMessage, SystemMessage
 from llm_models import synthesizer_llm, base_model_reasoning
-from data_models import State, Proposal, NodeModification, DesignState
+from data_models import State, Proposal, NodeOp, EdgeOp, DesignState
 from prompts import SY_PROMPT, SUMMARY_REFINEMENT_PROMPT, PAYLOAD_REFINEMENT_PROMPT
 from utils import remove_think_tags
 from langgraph.types import Command
@@ -87,8 +87,8 @@ def synthesizer_node(state: State) -> Command[Literal["graph_designer"]]:
     return Command(
         update={
             "synthesizer_notes": [refined_summary],
-            "design_graph_nodes": [refined_nodes],
-            "design_graph_edges": [synth_output.edges],
+            "pending_node_ops": [refined_nodes],
+            "pending_edge_ops": [synth_output.edges],
         },
         goto="graph_designer"
     )

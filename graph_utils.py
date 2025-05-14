@@ -1,9 +1,9 @@
 import uuid
 from typing import List, Tuple
-from data_models import Node, DesignState, NodeModification
+from data_models import DesignNode, DesignState, NodeOp, EdgeOp
 
 
-def add_node_to_state(design_graph: DesignState, node: Node) -> None:
+def add_node_to_state(design_graph: DesignState, node: DesignNode) -> None:
     """
     Adds a node to the design graph.
     """
@@ -22,41 +22,44 @@ def add_edges_to_state(design_graph: DesignState, edges: List[Tuple[str, str]]) 
         if source_id in design_graph.nodes and target_id in design_graph.nodes:
             design_graph.nodes[source_id].edges_out.append(target_id)
             design_graph.nodes[target_id].edges_in.append(source_id)
+            # record in the global edge list, if not already present
+        if (source_id, target_id) not in design_graph.edges:
+            design_graph.edges.append((source_id, target_id))
         else:
             print(f"⚠️ Warning: Edge ({source_id} -> {target_id}) could not be added. One or both nodes are missing.")
 
 
-def add_node_func(design_graph: DesignState, node_info: dict, edges_to_add: List[Tuple[str, str]] = []) -> str:
+def add_node_func(design_graph: DesignState, op: NodeOp) -> str:
     """
-    Adds a node to the design graph and optionally connects it to other nodes via edges.
+    Process a NodeOp of type "add": insert the new DesignNode into the graph
+    and wire up any initial edges.
 
     Args:
-        design_graph: The design graph to modify
-        node_info: A dictionary containing node attributes such as 'node_id', 'node_type', 'name', 'payload', and 'status'.
-        edges_to_add: A list of (source_id, target_id) tuples representing directed edges.
+        design_graph: The DesignState to modify.
+        op: A NodeOp with op=="add", containing:
+            - op.node: the DesignNode to insert
+            - op.edges_to_add: optional list of (src_id, dst_id) to connect
 
     Returns:
         A confirmation message.
+
+    Raises:
+        ValueError: if op.op != "add".
     """
-    node_id = node_info.get("node_id", str(uuid.uuid4()))
-    node_info["node_id"] = node_id
+    if op.op != "add":
+        raise ValueError(f"add_node_func only handles add-ops, got '{op.op}'")
 
-    new_node = Node(
-        node_id=node_id,
-        node_type=node_info.get("node_type", "unknown"),
-        name=node_info.get("name", "Unnamed Node"),
-        payload=node_info.get("payload", ""),
-        status=node_info.get("status", "draft")
-    )
+    new_node: DesignNode = op.node
 
-    # Add node to design graph
+    # 1) Insert node
     add_node_to_state(design_graph, new_node)
 
-    # Add edges if provided
-    if edges_to_add:
-        add_edges_to_state(design_graph, edges_to_add)
+    # 2) Wire up any initial edges (this also records them in design_graph.edges)
+    if op.edges_to_add:
+        add_edges_to_state(design_graph, op.edges_to_add)
 
-    return f"✅ Node '{new_node.name}' ({new_node.node_id}) added successfully."
+    return f"✅ DesignNode '{new_node.name}' ({new_node.node_id}) added successfully."
+
 
 def delete_node_func(design_graph: DesignState, node_id: str, recursive: bool = True) -> str:
     """
@@ -96,236 +99,195 @@ def delete_node_func(design_graph: DesignState, node_id: str, recursive: bool = 
         del design_graph.nodes[nid]
 
     _delete(design_graph, node_id, recursive)
-    return f"✅ Node {node_id} deleted successfully."
+    return f"✅ DesignNode {node_id} deleted successfully."
 
-def update_node_func(design_graph: DesignState, modification: NodeModification) -> str:
+def update_node_func(design_graph: DesignState, op: NodeOp) -> str:
     """
-    Updates an existing node in the design graph based on a NodeModification object.
-    
-    This includes updating:
-    - Node attributes (name, type, status, payload)
-    - Graph structure (adding/removing edges)
-    
-    Args:
-        design_graph: The design graph to modify
-        modification (NodeModification): The modification object containing update details.
-
-    Returns:
-        str: Confirmation message indicating the update status.
-    """
-    node_id = modification.node_id
-    if not node_id or node_id not in design_graph.nodes:
-        return f"❌ Error: Node '{node_id}' not found in the design graph."
-
-    node = design_graph.nodes[node_id]
-
-    # **Apply updates to node attributes**
-    if modification.name:
-        node.name = modification.name
-    if modification.node_type:
-        node.node_type = modification.node_type
-    if modification.status:
-        node.status = modification.status
-    if modification.payload:
-        # Either replace the payload or update it based on the operation
-        node.payload = modification.payload
-
-    # **Update edges if provided**
-    if modification.updates:
-        # If 'edges_add' is in updates, add edges
-        if "edges_add" in modification.updates:
-            for target_id in modification.updates["edges_add"]:
-                if target_id in design_graph.nodes and target_id not in node.edges_out:
-                    node.edges_out.append(target_id)
-                    design_graph.nodes[target_id].edges_in.append(node_id)
-
-        # If 'edges_remove' is in updates, remove specified edges
-        if "edges_remove" in modification.updates:
-            for target_id in modification.updates["edges_remove"]:
-                if target_id in node.edges_out:
-                    node.edges_out.remove(target_id)
-                    design_graph.nodes[target_id].edges_in.remove(node_id)
-
-    return f"✅ Node '{node_id}' updated successfully."
-
-def visualize_design_state_func(design_graph: DesignState, show_payload: bool = False) -> str:
-    """
-    Generate and display an interactive visualization of the current design graph.
-    Uses Plotly to produce the visualization and calls fig.show() to open the figure.
+    Process a NodeOp of type "update": replace the existing DesignNode
+    in the graph with the one supplied in op.node, preserving its connectivity.
 
     Args:
-        design_graph: The design graph to visualize
-        show_payload (bool): If True, displays the payload in hover text. Default is False.
+        design_graph: the in-memory DesignState to modify.
+        op: a NodeOp with op=="update", whose .node is the new version.
 
     Returns:
-        A confirmation message indicating that the visualization has been displayed.
+        A confirmation string.
+
+    Raises:
+        ValueError: if op.op != "update".
     """
+    if op.op != "update":
+        raise ValueError(f"update_node_func only handles update-ops, got '{op.op}'")
+
+    node_id = op.node_id
+    if node_id not in design_graph.nodes:
+        return f"❌ Error: DesignNode '{node_id}' not found in the design graph."
+
+    # Grab the old node so we can hang on to its edges
+    old_node = design_graph.nodes[node_id]
+
+    # The new node from the NodeOp
+    new_node: DesignNode = op.node
+
+    # Enforce the same ID
+    new_node.node_id = node_id
+
+    # Preserve graph connectivity
+    new_node.edges_in  = list(old_node.edges_in)
+    new_node.edges_out = list(old_node.edges_out)
+
+    # Swap it in
+    design_graph.nodes[node_id] = new_node
+
+    return f"✅ DesignNode '{node_id}' updated successfully."
+
+
+def visualize_design_state_func(design_graph: DesignState) -> str:
     import plotly.graph_objects as go
     import networkx as nx
 
-    # Build a directed graph using NetworkX
     G = nx.DiGraph()
+    for nid, node in design_graph.nodes.items():
+        G.add_node(
+            nid,
+            name=node.name,
+            kind=node.node_kind,
+            maturity=node.maturity,
+            desc=node.description,
+            principle=node.embodiment.principle,
+            n_models=len(node.physics_models),
+        )
+    for src, dst in design_graph.edges:
+        if src in G and dst in G:
+            G.add_edge(src, dst)
 
-    # Add nodes
-    for node_id, node in design_graph.nodes.items():
-        G.add_node(node_id, 
-                   name=node.name, 
-                   node_type=node.node_type, 
-                   payload=node.payload, 
-                   status=node.status)
-
-    # Add edges from design_graph.edges
-    for source, target in design_graph.edges:
-        if source in design_graph.nodes and target in design_graph.nodes:
-            G.add_edge(source, target)  # Direction from source → target
-        else:
-            print(f"⚠️ Warning: Edge ({source} → {target}) skipped because one or both nodes are missing.")
-
-    print(f"📌 [DEBUG] Edge list in graph: {list(G.edges())}")
-
-    # Generate layout positions with a fixed seed for reproducibility
     pos = nx.spring_layout(G, seed=42)
-
-    # Define colors for node types
     color_map = {
-        "user_request": 'lightblue',
-        "requirement": 'lightgreen',
-        "objective_constraint": 'limegreen',
-        "functional_decomposition": 'gold',
-        "subfunction": 'orange',
-        "subsystem": 'violet',
-        "discipline": 'pink'
+        "function":    "gold",
+        "subfunction": "orange",
+        "requirement": "lightgreen",
+        "constraint":  "salmon",
+        # add others as needed
     }
 
     node_x, node_y, node_text, node_colors = [], [], [], []
-    annotations = []  # Store node ID text annotations
-
-    for node_id, data in G.nodes(data=True):
-        x, y = pos[node_id]
-        node_x.append(x)
-        node_y.append(y)
-
-        # Create hover text, excluding payload if show_payload=False
-        edges_out = list(G.successors(node_id))
-        edges_in = list(G.predecessors(node_id))
-
-        hover_text = (
-            f"ID: {node_id}<br>"
-            f"Name: {data.get('name')}<br>"
-            f"Type: {data.get('node_type')}<br>"
-            f"Status: {data.get('status')}<br>"
-            f"Edges Out: {', '.join(edges_out) if edges_out else 'None'}<br>"
-            f"Edges In: {', '.join(edges_in) if edges_in else 'None'}"
+    annotations = []
+    for nid, data in G.nodes(data=True):
+        x, y = pos[nid]
+        node_x.append(x); node_y.append(y)
+        hover = (
+            f"ID: {nid}<br>"
+            f"Name: {data['name']}<br>"
+            f"Kind: {data['kind']}<br>"
+            f"Maturity: {data['maturity']}<br>"
+            f"Embodiment: {data['principle']}<br>"
+            f"#Models: {data['n_models']}<br>"
+            f"Desc: {data['desc'][:80]}…"
         )
-
-        # Append payload info only if show_payload=True
-        if show_payload:
-            hover_text += f"<br>Payload: {data.get('payload')}"
-
-        node_text.append(hover_text)
-        node_colors.append(color_map.get(data.get('node_type'), 'gray'))
-
-        # Adjust position slightly to prevent overlap
-        offset_x, offset_y = 0.02, 0.02
+        node_text.append(hover)
+        node_colors.append(color_map.get(data["kind"], "gray"))
         annotations.append(dict(
-            x=x + offset_x, y=y + offset_y, text=node_id, showarrow=False,
-            font=dict(size=12, color="black"), xanchor="left", yanchor="bottom"
+            x=x+0.02, y=y+0.02, text=nid, showarrow=False,
+            font=dict(size=10, color="black")
         ))
 
-    # Create the node trace
-    node_trace = go.Scatter(
-        x=node_x, y=node_y,
-        mode='markers',
-        hoverinfo='text',
-        text=node_text,
-        marker=dict(color=node_colors, size=20, line_width=2)
-    )
-
-    # Create edge traces (with proper arrows)
     edge_x, edge_y = [], []
-    arrow_annotations = []  # To store arrow markers
+    arrow_anns = []
+    for src, dst in G.edges():
+        x0, y0 = pos[src]; x1, y1 = pos[dst]
+        edge_x += [x0, x1, None]; edge_y += [y0, y1, None]
+        arrow_anns.append(dict(ax=x0, ay=y0, x=x1, y=y1,
+                               showarrow=True, arrowhead=3,
+                               arrowsize=1.5, arrowwidth=1.5))
 
-    for source, target in G.edges():
-        x0, y0 = pos[source]
-        x1, y1 = pos[target]
-        edge_x.extend([x0, x1, None])
-        edge_y.extend([y0, y1, None])
-
-        # Add annotation-based arrows
-        arrow_annotations.append(dict(
-            ax=x0, ay=y0, x=x1, y=y1,
-            showarrow=True,
-            arrowhead=3,  # Proper arrowhead
-            arrowsize=2,
-            arrowwidth=2,
-            arrowcolor="black"
-        ))
-
-    print(f"📌 [DEBUG] Edge Coordinates: {edge_x}, {edge_y}")  # Debugging edge positions
-
-    edge_trace = go.Scatter(
-        x=edge_x, y=edge_y,
-        line=dict(width=2, color='black'),
-        hoverinfo='none',
-        mode='lines'
+    edge_trace = go.Scatter(x=edge_x, y=edge_y, mode="lines", line=dict(width=1))
+    node_trace = go.Scatter(
+        x=node_x, y=node_y, mode="markers", marker=dict(color=node_colors, size=20),
+        hoverinfo="text", text=node_text
     )
 
-    # Create the figure layout
     fig = go.Figure(
-        data=[edge_trace, node_trace],  # ✅ Ensure edges are added before nodes
+        data=[edge_trace, node_trace],
         layout=go.Layout(
-            title=dict(text='<br>Directed Design Graph Visualization', font=dict(size=16)),
+            title="Design Graph",
             showlegend=False,
-            hovermode='closest',
-            margin=dict(b=20, l=5, r=5, t=40),
-            annotations=annotations + arrow_annotations,  # ✅ Node IDs + Directed Arrows
+            hovermode="closest",
+            annotations=annotations + arrow_anns,
             xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
             yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            paper_bgcolor="lightblue"  # Background color for better visibility
         )
     )
-
-    # Display the figure (opens a new window or inline, depending on the environment)
     fig.show()
     return "Visualization displayed successfully."
 
+
 def summarize_design_state_func(design_graph: DesignState) -> str:
     """
-    Summarize the current design graph.
-
-    This function scans the design graph and returns a formatted summary that includes:
-      - Node ID
-      - Name
-      - Node Type
-      - Status
-      - Incoming Edges (nodes pointing to this node)
-      - Outgoing Edges (nodes this node points to)
-      - Payload (metadata)
-
-    Args:
-        design_graph: The design graph to summarize
-
-    Returns:
-        A formatted string summarizing the current design graph.
+    Summarize the current design graph in full detail:
+      - DesignNode ID, Name, Kind, Description
+      - Embodiment (principle, description, parameters, cost, mass, status)
+      - Physics Models (name, equations, python_code, assumptions, status)
+      - Maturity & Tags
+      - Incoming & Outgoing Edges
     """
-    summary_lines = []
-    for node_id, node in design_graph.nodes.items():
-        incoming = ", ".join(node.edges_in) if node.edges_in else "None"
-        outgoing = ", ".join(node.edges_out) if node.edges_out else "None"
-        
-        line = (
-            f"ID: {node_id}\n"
-            f"  Name: {node.name}\n"
-            f"  Type: {node.node_type}\n"
-            f"  Status: {node.status}\n"
-            f"  Incoming Edges (from): {incoming}\n"
-            f"  Outgoing Edges (to): {outgoing}\n"
-            f"  Payload: {node.payload}\n"
-            "-------------------------------------"
-        )
-        summary_lines.append(line)
+    lines = []
+    for nid, node in design_graph.nodes.items():
+        # connectivity
+        incoming = ", ".join(node.edges_in) or "None"
+        outgoing = ", ".join(node.edges_out) or "None"
 
-    return "\n".join(summary_lines)
+        # Embodiment block
+        emb = node.embodiment
+        emb_params = (
+            ", ".join(f"{k}={v}" for k, v in emb.design_parameters.items())
+            or "None"
+        )
+        emb_block = (
+            f"  Embodiment:\n"
+            f"    Principle      : {emb.principle}\n"
+            f"    Description    : {emb.description}\n"
+            f"    Parameters     : {emb_params}\n"
+            f"    Cost Estimate  : {emb.cost_estimate}\n"
+            f"    Mass Estimate  : {emb.mass_estimate}\n"
+            f"    EmbodimentStat : {emb.status}\n"
+        )
+
+        # Physics models block
+        if node.physics_models:
+            pm_lines = []
+            for pm in node.physics_models:
+                assumptions = "; ".join(pm.assumptions) or "None"
+                pm_lines.append(
+                    "    • Model Name   : " + pm.name + "\n"
+                    "      Equations    : " + pm.equations + "\n"
+                    "      Python Code  : " + pm.python_code + "\n"
+                    "      Assumptions  : " + assumptions + "\n"
+                    "      Status       : " + pm.status
+                )
+            pm_block = "  Physics Models:\n" + "\n".join(pm_lines) + "\n"
+        else:
+            pm_block = "  Physics Models: None\n"
+
+        # Tags
+        tags = ", ".join(node.tags) or "None"
+
+        block = (
+            f"ID: {nid}\n"
+            f"  Name       : {node.name}\n"
+            f"  Kind       : {node.node_kind}\n"
+            f"  Description: {node.description}\n\n"
+            + emb_block + "\n"
+            + pm_block + "\n"
+            f"  Maturity   : {node.maturity}\n"
+            f"  Tags       : {tags}\n\n"
+            f"  Incoming Edges: {incoming}\n"
+            f"  Outgoing Edges: {outgoing}\n"
+            + "-"*60
+        )
+        lines.append(block)
+
+    return "\n".join(lines)
+
 
 def analyze_node_func(design_graph: DesignState, node_id: str) -> str:
     """
@@ -333,9 +295,9 @@ def analyze_node_func(design_graph: DesignState, node_id: str) -> str:
     
     This function retrieves the node identified by 'node_id' from the design graph and returns a
     formatted summary that includes:
-      - Node ID
+      - DesignNode ID
       - Name
-      - Node type
+      - DesignNode type
       - Status
       - Incoming Edges (dependencies)
       - Outgoing Edges (influences)
@@ -349,14 +311,14 @@ def analyze_node_func(design_graph: DesignState, node_id: str) -> str:
         A formatted string summarizing the node details.
     """
     if node_id not in design_graph.nodes:
-        return f"❌ Error: Node '{node_id}' not found in the design graph."
+        return f"❌ Error: DesignNode '{node_id}' not found in the design graph."
     
     node = design_graph.nodes[node_id]
     incoming = ", ".join(node.edges_in) if node.edges_in else "None"
     outgoing = ", ".join(node.edges_out) if node.edges_out else "None"
 
     summary = (
-        f"🔍 **Node Analysis:**\n"
+        f"🔍 **DesignNode Analysis:**\n"
         f"-----------------\n"
         f"🆔 **ID:** {node.node_id}\n"
         f"🏷️ **Name:** {node.name}\n"
