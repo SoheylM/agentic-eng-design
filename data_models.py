@@ -3,6 +3,7 @@ from typing import List, Optional, Annotated, Dict, Tuple, Literal
 import operator
 from pydantic import BaseModel, Field
 from langchain_core.messages import BaseMessage
+import uuid
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -153,30 +154,18 @@ class DesignState:
 class NodeOp(BaseModel):
     """Atomic modification to a node."""
 
-    op: Literal["add", "update", "delete"] = Field(
-        ...,
-        description="Operation type",
-    )
-    node: DesignNode = Field(
-        default_factory=lambda: DesignNode(
-            node_kind="function",
-            name="placeholder",
-            description="auto-generated placeholder",
-        ),
-        description="Full node definition for 'add' OR placeholder for update/delete",
-    )
-    node_id: str = Field(
-        "",
-        description="Target node_id (ignored on 'add' – taken from node.node_id)",
-    )
+    op: Literal["add", "update", "delete"]        # required
+
+    # For 'add' you supply a full DesignNode; for update/delete you pass node_id
+    node: DesignNode | None = None
+    node_id: str | None = None
+
     updates: Dict[str, str] = Field(
         default_factory=dict,
-        description="Shallow key→value edits applied when op=='update'",
+        description="Shallow key→value edits when op == 'update'",
     )
-    justification: str = Field(
-        "",
-        description="Why this change is required",
-    )
+    justification: str = ""
+
 
 
 class EdgeOp(BaseModel):
@@ -261,34 +250,6 @@ class DesignPlan(BaseModel):
     plan_overview: str = Field(..., description="Summary of the overall engineering design process.")
     steps: List[PlanStep] = Field(..., description="Ordered list of design steps.")
 
-class NodeModification(BaseModel):
-    """
-    Represents a modification to the design graph (add, delete, or update).
-    """
-    operation: Literal["add", "delete", "update"]
-    node_id: str = Field("", description="Unique identifier for the node. For 'add', generate if missing.")
-    node_type: str = Field("", description="Type of the node (e.g., 'function', 'subsystem').")
-    name: str = Field("", description="Human-readable name of the node.")
-    payload: str = Field("", description="Metadata for the node (e.g., function description, constraints, code).")
-    status: str = Field("", description="Status of the node (e.g., 'draft', 'validated').")
-    justification: str = Field("", description="Rationale for the modification.")
-
-    # ✅ Explicit relationships instead of parent_id/children
-    edges_to_add: List[Tuple[str, str]] = Field(default_factory=list, description="New directed edges to establish (source_id, target_id).")
-    edges_to_delete: List[Tuple[str, str]] = Field(default_factory=list, description="Edges to remove (source_id, target_id).")
-
-    # ✅ Only for update operations
-    updates: Dict[str, str] = Field(default_factory=dict, description="Key-value changes for 'update' operations.")
-
-class EdgeModification(BaseModel):
-    """
-    Represents a modification to the design graph's edges (dependencies).
-    """
-    operation: Literal["add", "delete"]
-    from_node: str = Field(..., description="The source node in the dependency.")
-    to_node: str = Field(..., description="The target node in the dependency.")
-    justification: str = Field(..., description="Why this edge is needed.")
-
 
 @dataclass
 class State:
@@ -330,8 +291,8 @@ class State:
 
     # **🔹 Final Design Graph**
     design_graph_history: Annotated[List[DesignState], operator.add] = field(default_factory=list)
-    design_graph_nodes: Annotated[List[NodeOp], operator.add] = field(default_factory=list)
-    design_graph_edges: Annotated[List[EdgeOp], operator.add] = field(default_factory=list)
+    pending_node_ops: Annotated[List[NodeOp], operator.add] = field(default_factory=list)
+    pending_edge_ops: Annotated[List[EdgeOp], operator.add] = field(default_factory=list)
     
     # **🔹 Handover Logs & Iterations**
     generation_notes: Annotated[List[str], operator.add] = field(default_factory=list)
@@ -474,30 +435,6 @@ class SynthesizerOutput(BaseModel):
     summary_explanation: str
     nodes: List[NodeOp]
     edges: List[EdgeOp]
-
-class Modification(BaseModel):
-    """
-    Represents a single modification to the design graph (add, delete, update).
-    """
-    operation: Literal["add", "delete", "update"]
-
-    # Node attributes (Always required)
-    node_id: str  # Unique identifier for target node (update/delete) or new node (add)
-    node_type: str = ""  # e.g., 'function', 'subsystem' (default empty if missing)
-    name: str = ""  # Human-readable name (default empty if missing)
-
-    # Parent & child relationships (default to empty lists)
-    parent_id: str = ""  # single parent's id; empty string means root node
-    children: List[str] = Field(default_factory=list)  # Child nodes (for 'add' or 'update')
-
-    # Node metadata (payload stored as a string, not a dict)
-    payload: str = ""  # Previously Dict[str, str], now a string
-
-    # Status of the node (default empty)
-    status: str = ""  # e.g., 'draft', 'validated'
-
-    # Update-specific changes (optional)
-    updates: Dict[str, str] = Field(default_factory=dict)  # Dictionary of changes for 'update'
 
 
 class GraphDesignerPlan(BaseModel):
