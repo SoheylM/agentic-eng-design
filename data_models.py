@@ -145,6 +145,9 @@ class DesignState(BaseModel):
         },
     )
 
+class DSGListOutput(BaseModel):
+    proposals: List[DesignState]
+
 
 class NodeOp(BaseModel):
     """Atomic modification to a node."""
