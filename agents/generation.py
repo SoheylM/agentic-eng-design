@@ -14,7 +14,7 @@ from data_models import (
     Proposal,                # full life-cycle container
 )
 from prompts import GE_PROMPT_STRUCTURED, GEN_RESEARCH_PROMPT
-from llm_models import generation_agent, base_model_reasoning,base_model
+from llm_models import generation_agent, base_model_reasoning
 from graph_utils import summarize_design_state_func
 from utils import remove_think_tags
 
@@ -59,7 +59,7 @@ def generation_node(state: State) -> Command[Literal["orchestrator", "reflection
     ][-worker_budget:]
 
     if analyses:
-        print(f"   • integrating {len(analyses)} worker analyses")
+        print(f"Integrating {len(analyses)} worker analyses")
         analysis_block = "\n\n---\n\n".join(
             f"From *{a.from_task}*:\n{a.content}" for a in analyses
         )
@@ -98,7 +98,7 @@ Generate **brand-new DSG proposals** (no refinement loop).
     ])
 
     dsg_proposals: List[SingleProposal] = llm_out.proposals
-    print(f"   • LLM returned {len(dsg_proposals)} DSGs")
+    print(f"LLM returned {len(dsg_proposals)} DSGs")
 
     # ── Decide on extra research (optional orchestrator hop) ───────────────
     orch_request = _need_more_research(dsg_proposals, state)
@@ -121,7 +121,7 @@ Generate **brand-new DSG proposals** (no refinement loop).
 
     if orch_request:
         # Ask Orchestrator, bump counters so the loop calls us again later
-        print(f"   🧠 requesting research: {orch_request[:80]}…")
+        print(f"🧠 requesting research: {orch_request[:80]}…")
         return Command(
             update={
                 "proposals":            new_entries,
@@ -135,7 +135,7 @@ Generate **brand-new DSG proposals** (no refinement loop).
         )
 
     # Otherwise go straight to Reflection
-    print("   ✅ generation complete → reflection")
+    print(" ✅ generation complete → reflection")
     return Command(
         update={
             "proposals":          new_entries,
@@ -170,14 +170,14 @@ If yes, output a SINGLE clear task for the orchestrator.
 If no, answer exactly:  "No additional research is needed."
 """
 
-    resp = base_model.invoke([
+    resp = base_model_reasoning.invoke([
         SystemMessage(content=GEN_RESEARCH_PROMPT),
         HumanMessage(content=question)
     ]).content
 
     resp_clean = remove_think_tags(resp).strip()
     if resp_clean.lower().startswith("no additional research"):
-        print("   • no extra research required")
+        print("No extra research required")
         return None
-    print("   • extra research required")
+    print("Extra research required")
     return resp_clean
