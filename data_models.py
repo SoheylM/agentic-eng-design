@@ -278,6 +278,7 @@ class State(BaseModel):
     # **🔹 Proposal Tracking**
     proposals: Annotated[List[Proposal], operator.add] = Field(default_factory=list)  
     selected_proposal_index: Optional[int] = None
+    pending_design_states: Annotated[List[DesignState], operator.add] = Field(default_factory=list)
 
     # **🔹 Proposal Ranking**
     ranking_justification: Optional[str] = None
