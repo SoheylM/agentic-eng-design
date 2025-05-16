@@ -1,4 +1,3 @@
-from dataclasses import dataclass, field
 from typing import List, Optional, Annotated, Dict, Tuple, Literal
 import operator
 from pydantic import BaseModel, Field
@@ -10,24 +9,23 @@ import uuid
 #  Low-level payload leaves
 # ──────────────────────────────────────────────────────────────────────────────
 
-@dataclass(kw_only=True)
-class PhysicsModel:
+class PhysicsModel(BaseModel):
     """Executable or symbolic model attached to a design element."""
 
-    name: str = field(
+    name: str = Field(
         metadata={"desc": "Human-readable identifier (e.g. 'BernoulliPump')"}
     )
-    equations: str = field(
+    equations: str = Field(
         metadata={"desc": "LaTeX or plain-text formulation of governing eqns"}
     )
-    python_code: str = field(
+    python_code: str = Field(
         metadata={"desc": "Runnable snippet or module import path"}
     )
-    assumptions: List[str] = field(
+    assumptions: List[str] = Field(
         default_factory=list,
         metadata={"desc": "Key simplifying assumptions made by the model"},
     )
-    status: str = field(
+    status: str = Field(
         default="draft",
         metadata={
             "desc": "Model maturity flag – use 'draft', 'validated', or 'deprecated'"
@@ -35,29 +33,28 @@ class PhysicsModel:
     )
 
 
-@dataclass(kw_only=True)
-class Embodiment:
+class Embodiment(BaseModel):
     """How a function/sub-function is physically instantiated."""
 
-    principle: str = field(
+    principle: str = Field(
         metadata={"desc": "Primary working principle (e.g. 'reverse-osmosis')"}
     )
-    description: str = field(
+    description: str = Field(
         metadata={"desc": "Concise explanation of how the embodiment works"}
     )
-    design_parameters: Dict[str, float] = field(
+    design_parameters: Dict[str, float] = Field(
         default_factory=dict,
         metadata={"desc": "Key design vars with nominal numeric values"},
     )
-    cost_estimate: float = field(
+    cost_estimate: float = Field(
         default=-1.0,
         metadata={"desc": "USD cost estimate; −1.0 means 'not yet estimated'"},
     )
-    mass_estimate: float = field(
+    mass_estimate: float = Field(
         default=-1.0,
         metadata={"desc": "Mass in kg; −1.0 means 'not yet estimated'"},
     )
-    status: str = field(
+    status: str = Field(
         default="candidate",
         metadata={
             "desc": "Lifecycle state – 'candidate', 'selected', or 'rejected'"
@@ -68,67 +65,65 @@ class Embodiment:
 #  The single node that carries everything
 # ──────────────────────────────────────────────────────────────────────────────
 
-@dataclass(kw_only=True)
-class DesignNode:
+class DesignNode(BaseModel):
     """
     Self-contained design element.  
     `node_kind` maintains hierarchy while keeping embodiment + models inline.
     """
 
-    node_id: str = field(
+    node_id: str = Field(
         default_factory=lambda: str(uuid.uuid4()),
         metadata={"desc": "Globally unique identifier"},
     )
-    node_kind: str = field(
+    node_kind: str = Field(
         metadata={
             "desc": "Token such as 'function', 'subfunction', 'requirement', 'constraint'"
         }
     )
-    name: str = field(
+    name: str = Field(
         metadata={"desc": "Short, human-friendly label"}
     )
-    description: str = field(
+    description: str = Field(
         default="",
         metadata={"desc": "Long-form text explaining purpose or behaviour"},
     )
 
     # Rich payload -------------------------------------------------------------
-    embodiment: Embodiment = field(
+    embodiment: Embodiment = Field(
         default_factory=lambda: Embodiment(
             principle="undefined",
             description="embodiment not yet specified",
         ),
         metadata={"desc": "Current embodiment choice"},
     )
-    physics_models: List[PhysicsModel] = field(
+    physics_models: List[PhysicsModel] = Field(
         default_factory=list,
         metadata={"desc": "One or more physics / empirical models"},
     )
 
     # Meta-fields --------------------------------------------------------------
-    maturity: str = field(
+    maturity: str = Field(
         default="draft",
         metadata={
             "desc": "Overall maturity – 'draft', 'reviewed', or 'validated'"
         },
     )
-    tags: List[str] = field(
+    tags: List[str] = Field(
         default_factory=list,
         metadata={"desc": "Arbitrary keywords for search / filter"},
     )
 
     # Graph connectivity -------------------------------------------------------
-    edges_in: List[str] = field(
+    edges_in: List[str] = Field(
         default_factory=list,
         metadata={"desc": "IDs of parent nodes"},
     )
-    edges_out: List[str] = field(
+    edges_out: List[str] = Field(
         default_factory=list,
         metadata={"desc": "IDs of child nodes"},
     )
 
-@dataclass(kw_only=True)
-class DesignState:
+class DesignState(BaseModel):
     """
     Pure data container for the evolving design.
 
@@ -139,11 +134,11 @@ class DesignState:
     in standalone utility functions or in the agent logic.
     """
 
-    nodes: Dict[str, DesignNode] = field(
+    nodes: Dict[str, DesignNode] = Field(
         default_factory=dict,
         metadata={"desc": "All design nodes keyed by their unique node_id"},
     )
-    edges: List[Tuple[str, str]] = field(
+    edges: List[Tuple[str, str]] = Field(
         default_factory=list,
         metadata={
             "desc": "Directed edges (source_id, target_id) capturing dependencies"
@@ -188,8 +183,7 @@ class EdgeOp(BaseModel):
         description="Rationale for adding/removing this dependency",
     )
 
-@dataclass
-class Proposal:
+class Proposal(BaseModel):
     """
     A container for an ephemeral design proposal, capturing the iterative
     contributions and evaluations of various agents across a single design step.
@@ -251,23 +245,22 @@ class DesignPlan(BaseModel):
     steps: List[PlanStep] = Field(..., description="Ordered list of design steps.")
 
 
-@dataclass
-class State:
+class State(BaseModel):
     """Graph state for the full engineering design workflow."""
 
     # **General Messages** (for Human & LLM Interactions)
-    messages: Annotated[List[BaseMessage], operator.add] = field(default_factory=list)  
+    messages: Annotated[List[BaseMessage], operator.add] = Field(default_factory=list)  
 
     # **🔹 Key Engineering Artifacts**
     cahier_des_charges: Optional[dict] = None  # The structured requirements document
     design_plan: Optional[DesignPlan] = None  # The structured multi-step design plan
-    supervisor_instructions: Annotated[List[str], operator.add] = field(default_factory=list)  # Step-wise instructions
+    supervisor_instructions: Annotated[List[str], operator.add] = Field(default_factory=list)  # Step-wise instructions
 
     # **🔹 Supervisor Agent Tracking**
     supervisor_decision: Optional[dict] = None  # Stores the last decision made by the Supervisor
     supervisor_status: str = "in_progress"  # Can be ["in_progress", "complete", "redo"]
     redo_reason: Optional[str] = None  # If the step is redone, why?
-    supervisor_current_objectives: Annotated[List[str], operator.add] = field(default_factory=list)  # Step-specific objectives
+    supervisor_current_objectives: Annotated[List[str], operator.add] = Field(default_factory=list)  # Step-specific objectives
 
     # **🔹 Step Execution & Control**
     active_agent: str = "human"  # Tracks the currently active agent
@@ -280,7 +273,7 @@ class State:
     next_agent: str = ""  # Which agent should proceed next
 
     # **🔹 Proposal Tracking**
-    proposals: Annotated[List[Proposal], operator.add] = field(default_factory=list)  
+    proposals: Annotated[List[Proposal], operator.add] = Field(default_factory=list)  
     selected_proposal_index: Optional[int] = None
 
     # **🔹 Proposal Ranking**
@@ -290,37 +283,37 @@ class State:
     evolution_justification: Optional[str] = None
 
     # **🔹 Final Design Graph**
-    design_graph_history: Annotated[List[DesignState], operator.add] = field(default_factory=list)
-    pending_node_ops: Annotated[List[NodeOp], operator.add] = field(default_factory=list)
-    pending_edge_ops: Annotated[List[EdgeOp], operator.add] = field(default_factory=list)
+    design_graph_history: Annotated[List[DesignState], operator.add] = Field(default_factory=list)
+    pending_node_ops: Annotated[List[NodeOp], operator.add] = Field(default_factory=list)
+    pending_edge_ops: Annotated[List[EdgeOp], operator.add] = Field(default_factory=list)
     
     # **🔹 Handover Logs & Iterations**
-    generation_notes: Annotated[List[str], operator.add] = field(default_factory=list)
+    generation_notes: Annotated[List[str], operator.add] = Field(default_factory=list)
     generation_iteration: int = 0  
 
-    reflection_notes: Annotated[List[str], operator.add] = field(default_factory=list)
+    reflection_notes: Annotated[List[str], operator.add] = Field(default_factory=list)
     reflection_iteration: int = 0  
 
-    ranking_notes: Annotated[List[str], operator.add] = field(default_factory=list)
+    ranking_notes: Annotated[List[str], operator.add] = Field(default_factory=list)
     ranking_iteration: int = 0  
 
-    evolution_notes: Annotated[List[str], operator.add] = field(default_factory=list)
+    evolution_notes: Annotated[List[str], operator.add] = Field(default_factory=list)
     evolution_iteration: int = 0  
 
-    meta_review_notes: Annotated[List[str], operator.add] = field(default_factory=list)
+    meta_review_notes: Annotated[List[str], operator.add] = Field(default_factory=list)
     meta_review_iteration: int = 0  
 
-    synthesizer_notes: Annotated[List[str], operator.add] = field(default_factory=list)
+    synthesizer_notes: Annotated[List[str], operator.add] = Field(default_factory=list)
     synthesizer_iteration: int = 0  
 
-    graph_designer_notes: Annotated[List[str], operator.add] = field(default_factory=list)
+    graph_designer_notes: Annotated[List[str], operator.add] = Field(default_factory=list)
     graph_designer_iteration: int = 0  
 
-    proximity_notes: Annotated[List[str], operator.add] = field(default_factory=list)
+    proximity_notes: Annotated[List[str], operator.add] = Field(default_factory=list)
 
     # **🔹 Orchestrator & Worker Interactions**
-    analyses: Annotated[List[WorkerAnalysis], operator.add] = field(default_factory=list)
-    orchestrator_orders: Annotated[List[str], operator.add] = field(default_factory=list)
+    analyses: Annotated[List[WorkerAnalysis], operator.add] = Field(default_factory=list)
+    orchestrator_orders: Annotated[List[str], operator.add] = Field(default_factory=list)
     current_requesting_agent: str = ""  # Tracks which agent called the orchestrator
     max_iterations: int = 0 # to be increased to account for each new round sent by the planner
 
@@ -450,14 +443,13 @@ class GraphDesignerPlan(BaseModel):
     edges: List[EdgeOp] = Field(..., description="A list of edge modifications (add, delete) to apply relationships between nodes.")
 
 
-@dataclass
-class PairState:
+class PairState(BaseModel):
     """State for the 2-Agent System (Generation + Reflection loop)."""
-    messages: Annotated[List[BaseMessage], operator.add] = field(default_factory=list)
+    messages: Annotated[List[BaseMessage], operator.add] = Field(default_factory=list)
     first_pass: bool = True
     user_request: str = ""
-    proposal: Annotated[List[str], operator.add] = field(default_factory=list)
-    feedback: Annotated[List[str], operator.add] = field(default_factory=list)
+    proposal: Annotated[List[str], operator.add] = Field(default_factory=list)
+    feedback: Annotated[List[str], operator.add] = Field(default_factory=list)
     generation_iteration: int = 0
     reflection_iteration: int = 0
     max_iterations: int = 5  # Default max iterations
