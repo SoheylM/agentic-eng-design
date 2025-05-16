@@ -376,11 +376,13 @@ class SupervisorDecision(BaseModel):
 
 
 class SingleProposal(BaseModel):
-    title: str = Field(description="A concise title for the proposal")
-    content: str = Field(description="Main text describing the approach, assumptions, or logic")
+    title: str = Field(..., description="Concise human-readable summary")
+    content: DesignState = Field(
+        ..., description="A complete Design-State Graph (DSG) proposal"
+    )
 
 class ProposalsOutput(BaseModel):
-    proposals: List[SingleProposal] = Field(..., description="List of proposed ideas")
+    proposals: List[SingleProposal]
 
 
 
