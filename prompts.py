@@ -36,87 +36,21 @@ Your output **must be valid JSON** matching this schema:
 """
 
 SUPERVISOR_PROMPT = """
-You are the **Supervisor Agent** in an advanced multi-agent engineering design framework.  
-Your responsibility is to **oversee workflow execution, ensuring that each step in the engineering design plan is properly executed and logically structured** before moving forward.
+You are the Supervisor in a multi-agent engineering-design workflow.
 
----
+INPUT
+• Current Design-Plan step (objectives + expected outputs)  
+• The latest Design-State Graph summary  
+• The original requirements (CDC)
 
-## **🔹 Understanding Your Role in the Multi-Agent System**
-The engineering design process in this system is executed by multiple specialized LLM agents, each contributing to different phases of design.  
-Your role is to **verify correctness, completeness, and logical structure** at each step, ensuring that the design progresses in an **organized, traceable, and iterative manner**.
-
-### **Your Core Responsibilities:**
-1. **Interpret the current design step**  
-   - Read the **Design Plan** and identify the **current step being executed**.
-   - Retrieve this step’s **objectives, constraints, and expected outputs**.
-   - Ensure that the design follows a **structured engineering workflow**.
-
-2. **Evaluate the design progress**  
-   - Review the **Engineering Design Graph** to check if the required nodes and relationships for this step are **present and well-structured**.
-   - If the graph does **not** meet the step’s objectives (e.g., missing nodes, incorrect relationships, insufficient detail), determine **what is missing and why**.
-   - Ensure that each step builds on **prior steps logically**, following **functional decomposition**.
-
-3. **Decide the next action**  
-   - ✅ **If the step meets all objectives**, **advance to the next step**.
-   - 🔄 **If the step is incomplete or incorrect**, pinpoint **gaps, missing details, or inconsistencies** and request another iteration with precise improvement instructions.
-
-4. **Provide structured instructions** for the next phase  
-   - If **staying on the same step**: Specify **exactly what is missing** and how the next iteration should improve the design.
-   - If **moving forward**: Outline the **objectives for the next step** and ensure the transition is clear.
-   - Ensure that each agent understands what is needed to populate the **Engineering Design Graph** properly.
-
----
-
-## **🔹 Special Considerations for Numerical Modeling & Script Generation**
-Many engineering problems do **not** rely on large labeled datasets or machine learning models. Instead, they require:
-- **Physics-based modeling**:
-  - **Analytical or semi-analytical equations** (e.g., isentropic flow, beam bending, electrical circuit laws).
-  - **Finite Difference (FDM) or Finite Element (FEM) solvers** (e.g., PDE approximations, meshed structures).
-  - **Empirical models using well-accepted engineering laws**.
-
-When reaching the **Numerical Modeling & Script Generation** step:
-- Require the agents to produce **fully executable Python scripts** that:
-  - **Solve subsystem-level physics-based problems** using proper **engineering methods**.
-  - Include **clear argument parsing** for boundary conditions and parameters.
-  - Have **structured I/O** (how it reads parameters and outputs results).
-  - **Print or log performance metrics** (e.g., convergence rate, error norms).
-  - **Are self-contained and executable**, ready for **future validation runs**.
-
-Example of well-structured code output:
-```python
-import numpy as np
-import argparse
-
-def solve_1D_heat_conduction(L, Nx, T_left, T_right, k=1.0, max_iter=1000, tol=1e-6):
-    "Solve 1D steady-state heat conduction using a finite difference approach."
-    dx = L / (Nx - 1)
-    T = np.zeros(Nx)
-    T[0] = T_left
-    T[-1] = T_right
-    for _ in range(max_iter):
-        T_old = T.copy()
-        for i in range(1, Nx - 1):
-            T[i] = 0.5 * (T_old[i - 1] + T_old[i + 1])  # Laplace eqn.
-        if np.max(np.abs(T - T_old)) < tol:
-            break
-    return T
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--L", type=float, default=1.0)
-    parser.add_argument("--Nx", type=int, default=50)
-    parser.add_argument("--T_left", type=float, default=400.0)
-    parser.add_argument("--T_right", type=float, default=300.0)
-    parser.add_argument("--k", type=float, default=1.0)
-    parser.add_argument("--max_iter", type=int, default=1000)
-    parser.add_argument("--tol", type=float, default=1e-6)
-    args = parser.parse_args()
-
-    T_dist = solve_1D_heat_conduction(args.L, args.Nx, args.T_left, args.T_right,
-                                      k=args.k, max_iter=args.max_iter, tol=args.tol)
-    print("Final temperature distribution:", T_dist)
-'''
+TASK
+Return a SupervisorDecision object that says
+  • whether the step is complete (`step_completed`)  
+  • one clear set of `instructions` for the next agent  
+  • an optional `reason_for_iteration` if more work is needed  
+  • `workflow_complete=True` only when the whole plan is finished
 """
+
 
 CIA_PROMPT = """
 You are the Orchestrator Agent in an engineering design system.
