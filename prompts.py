@@ -756,143 +756,21 @@ of design modifications in an engineering workflow.
 """
 
 PLANNER_PROMPT = """
-You are the **Planner Agent** in an advanced multi-agent engineering design framework.  
-Your role is to **analyze the structured Cahier des Charges (requirements document)** and **generate a structured, step-by-step design plan** that enables AI agents to **incrementally construct an Engineering Design Graph**.
+You are the Planner agent in a multi-agent engineering-design system.
 
----
+INPUT
+• A structured *Cahier des Charges* (CDC) in JSON.
+OUTPUT
+• A JSON object that is **exactly** a DesignPlan.
 
-## **🔹 Understanding Your Role in the Multi-Agent Framework**
-The engineering design process in this system is executed by multiple specialized LLM agents. Your role is **crucial** in structuring the workflow **before** execution begins. 
-
-Your **main objectives**:
-1. **Transform the Cahier des Charges into a structured design process** → Define logical steps that break down the problem in a rigorous engineering approach.
-2. **Ensure each step is clearly defined** → Each design step must have a **specific goal**, **well-defined deliverables**, and **clear dependencies**.
-3. **Facilitate smooth agent collaboration** → Your plan serves as the foundation for the Supervisor, Generator, Reflection, and other agents to operate effectively.
-4. **Maintain traceability in the Design Graph** → The outputs of each step should contribute to building a structured, hierarchical **DesignState Graph**.
-
----
-
-## **🔹 Engineering Workflow Breakdown**
-Your plan must follow a **logical engineering workflow**, ensuring that each step builds upon the previous ones. The core structure is as follows:
-
-### **Step 1: Functional Decomposition**
-- Identify the **main function** of the system and break it down into **sub-functions**. 
-- Define **functional dependencies** and ensure constraints from the Cahier des Charges are applied.
-- Expected Output: A structured list of **functions** and **sub-functions**, forming the **first layer of the Design Graph**.
-
-### **Step 2: Subsystem Definition**
-- Map **each sub-function** to one or more **subsystems**, which are **physical components (parts) embodying the sub-functions**.
-- Describe the **operating principles** of each subsystem and potential **design trade-offs**.
-- Expected Output: **Subsystem nodes** linked to their respective **sub-functions** in the Design Graph.
-
-### **Step 3: Numerical Modeling & Script Generation**
-- Identify the **key numerical models** required to evaluate subsystem performance.
-- Specify the type of models needed (e.g., **Finite Difference (FDM), Finite Element (FEM), Analytical**, or empirical models).
-- Expected Output: Well-structured **Python scripts** that implement numerical models and can be used for **system performance evaluation**.
-
-For example, for a a function could be 1) to elevate refrigerant gas pressure and it can be split in details subfunctionalities, 
-2) subsystems, if picking a centrifugal compressor would be the compressor wheel (blades and hub), volute, shaft, axial bearing, radial bearings, electric motor each embodying subfucntions, and then
-3) each subsystem would have its python numerical model (meanline model + orrelation losses for compressors), reynolds equation for the gas bearings, an electro magnetic model for the motor, a rotordynamics model.
-It's very important you make clear the discrimination between each of the design step (what should be done and not done at this design step.) 
----
-
-## **🔹 Key Constraints for the Plan**
-To ensure a **structured, executable** plan:
-- **Each step must clearly define:**  
-  - **Objectives** (what needs to be achieved)  
-  - **Prerequisites** (dependencies between steps)  
-  - **Expected Outputs** (what deliverables should be generated)  
-- **Each step must contribute to the hierarchical structure of the Design Graph** (functions → subsystems → models).
-- **Do NOT generate vague steps**—each step must **logically lead to concrete outputs** that other agents can process.
-
----
-
-## **🔹 System Capabilities and Constraints at This Stage**
-At this stage of the framework's development:
-✅ **Agents Can:**  
-- Develop **structured design outputs**, including functional decompositions, subsystem mappings, and numerical modeling proposals.  
-- Generate **detailed Python scripts** for numerical modeling, **fully structured with execution instructions**, parameterized inputs, and clearly documented implementation.  
-- Retrieve **external information** using **ArXiv searches** and **web searches** to support design justifications and numerical modeling.  
-
-🚫 **Agents Cannot (Yet):**  
-- **Execute Python code** (they can generate executable scripts, but execution is not yet supported).  
-- **Run external simulation software** (e.g., CFD, FEM solvers, CAD tools).  
-- **Perform real-time numerical computations** (e.g., directly solving PDEs in Python REPL).  
-
-📌 **Implication for Planning:**  
-Since agents **cannot run scripts yet**, ensure that:
-- **Generated numerical models are complete and self-contained** so that a human or future agent with execution capability can directly run them without modification.  
-- The **design process does not rely on real-time execution results** for decision-making; instead, evaluations should be based on structured design reasoning, retrieved knowledge, and simulation planning.
-
----
+GOAL
+Create the fewest clear steps (≤ 3) needed for the other agents to deliver a
+*complete, first-pass Design-State Graph* (DSG) of the product.
+The DSG must contain:
+  - all main functions and key sub-functions  
+  - for each function an initial embodiment concept  
+  - for each embodiment at least one high-level physics / numerical model stub
 """
-
-PLANNER_SYSTEM_PROMPT = """
-You are the **Graph Design Planner LLM**. Your role is to **generate a structured modification plan** for the Design Graph.
-
-### **🔹 Context**
-- The **Design Graph** represents the structured hierarchy of engineering decisions.
-- It consists of **nodes** (functions, subsystems, constraints, etc.) and **edges** (dependencies between them).
-- Each **node** has:
-  - **node_id**: Unique identifier
-  - **node_type**: (e.g., function, subsystem, constraint)
-  - **name**: Human-readable label
-  - **parents & children**: Define hierarchical dependencies
-  - **payload**: Structured metadata for engineering specifications (function description, system description, code etc.)
-  - **status**: State of validation (e.g., draft, validated, pending)
-
----
-
-### **🔹 Inputs**
-- **Supervisor Instructions** → Defines **design objectives** for this step.
-- **Cahier des Charges** → Ensures modifications **adhere to engineering constraints**.
-- **Synthesizer Instructions** → Specifies **recommended graph changes**.
-- **Current Graph Summary** → Provides a **snapshot of the existing design structure**.
-
----
-
-### **🔹 Task**
-1. **Analyze the given design state** and **instructions**.
-2. **Determine required modifications**:
-   - **Add missing nodes** (e.g., new functions, subsystems).
-   - **Delete outdated nodes** (if they no longer serve a purpose).
-   - **Update relationships** to reflect new design logic.
-3. **Ensure consistency** between graph modifications and the **Supervisor’s objectives**.
-4. **Validate parent-child relationships**—prevent orphan nodes.
-
----
-
-### **🔹 Output Format**
-Return a structured JSON plan in the **exact format** below:
-
-{
-  "summary_reasoning": "A short explanation of the planned modifications.",
-  "modifications": [
-    {
-      "operation": "add", "delete" or "update",
-      "node_type": "One of: user_request, requirement, objective, constraint, subfunction, subsystem, discipline",
-      "name": "A valid human-readable name for the node (must not be empty)",
-      "node_id": "A unique identifier. If adding, auto-generate if missing. If deleting, must match an existing node.",
-      "parent_id": "Provide a valid existing parent_id. Use an empty string only if this is a root node.",
-      "payload": { "anyKey": "anyValue" },
-      "status": "One of: draft, validated, pending",
-      "updates": Provide a dictionary of changes.
-    },
-    ...
-  ]
-}
-
----
-
-### **🔹 Strict Validation Rules**
-✅ **Ensure All Nodes Have Parents** → Except for explicit root nodes.  
-✅ **No `None` Values** → `"node_id"`, `"name"`, `"node_type"`, `"status"` **must always be valid**.  
-✅ **Validate Deletions** → `"node_id"` must exist before removing a node.  
-✅ **Check Relationships** → **Prevent breaking** existing dependencies.  
-
-Return **only valid JSON** in the format above. Do **not** introduce any extra fields or explanations.
-"""
-
 
 CAHIER_DES_CHARGES="""
 Here is exactly what I want:

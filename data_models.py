@@ -322,7 +322,7 @@ class State:
     analyses: Annotated[List[WorkerAnalysis], operator.add] = field(default_factory=list)
     orchestrator_orders: Annotated[List[str], operator.add] = field(default_factory=list)
     current_requesting_agent: str = ""  # Tracks which agent called the orchestrator
-    max_iterations: int = 0 # to be increased to account for aeach new round sent by the planner
+    max_iterations: int = 0 # to be increased to account for each new round sent by the planner
 
 
 class EngineeringTask(BaseModel):
