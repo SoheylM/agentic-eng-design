@@ -1,265 +1,183 @@
+# generation_node.py  (or wherever you register the vertex)
+
+from __future__ import annotations
+
 from typing import List, Optional, Literal
-from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, AnyMessage, BaseMessage, SystemMessage
+
+from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.types import Command
-from data_models import State, SingleProposal, Proposal, DesignState
-from prompts import GE_PROMPT_STRUCTURED, GE_PROMPT_BASE, GEN_RESEARCH_PROMPT
-from llm_models import generation_agent, base_model_reasoning
-from utils import remove_think_tags
+
+from data_models import (
+    State,
+    DesignState,
+    SingleProposal,          # title + DSG
+    Proposal,                # full life-cycle container
+)
+from prompts import GE_PROMPT_STRUCTURED, GEN_RESEARCH_PROMPT
+from llm_models import generation_agent, base_model_reasoning,base_model
 from graph_utils import summarize_design_state_func
+from utils import remove_think_tags
 
 
 def generation_node(state: State) -> Command[Literal["orchestrator", "reflection"]]:
     """
-    Generation agent that creates structured proposals, refines them, 
-    integrates worker feedback, and determines if additional research is needed.
+    • Generates *N* DSG proposals (2 by default, defined in GE_PROMPT_STRUCTURED).
+    • Decides if extra research is needed.
+    • Updates State counters so the Supervisor / Orchestrator loops work identically
+      to the previous implementation.
     """
-    print("🔧 [DEBUG] Generation node invoked.")
+    print("\n🔧 [GEN] Generation node")
 
-    iteration = state.generation_iteration
-    max_iterations = state.max_iterations
+    # ── Counters ────────────────────────────────────────────────────────────
+    iter_now      = state.generation_iteration
+    max_iter      = state.max_iterations
+    worker_budget = state.current_tasks_count       # how many analyses we expected
 
-    print(f"\n🔄 [DEBUG] Generation iteration {iteration + 1}/{max_iterations}...")
+    print(f"   • iteration {iter_now + 1}/{max_iter}")
 
-    if iteration >= max_iterations:
-        print("⚠️ [DEBUG] Max iterations reached. Proceeding to reflection.")
+    if iter_now >= max_iter:
+        # Bail-out protection → go straight to reflection
+        print("   ⚠️  max-iterations reached; skipping generation.")
         return Command(
             update={
-                "generation_notes": [f"Stopped after {max_iterations} iterations."],
-                "generation_iteration": iteration - 1, # Prevents artificial iteration increase
+                "generation_notes": [f"Stopped after {max_iter} generation loops."],
+                "generation_iteration": iter_now - 1,   # ← keep last valid index
             },
-            goto="reflection"
+            goto="reflection",
         )
 
-    # **Retrieve Supervisor Instructions & Cahier des Charges**
-    supervisor_instructions = state.supervisor_instructions[-1] if state.supervisor_instructions else "No specific instructions provided."
-    cahier_des_charges = state.cahier_des_charges if state.cahier_des_charges else "No cahier des charges available."
-    
-    # Get the current design graph
-    current_design_graph = state.design_graph_history[-1] if state.design_graph_history else DesignState()
-    
-    # **Retrieve the current design graph summary**
-    current_graph_summary = summarize_design_state_func(current_design_graph)
+    # ── Context strings for the LLM ────────────────────────────────────────
+    sup_instr   = state.supervisor_instructions[-1] if state.supervisor_instructions else "No supervisor instructions."
+    cdc_text    = state.cahier_des_charges or "No Cahier des Charges."
+    graph_now   = state.design_graph_history[-1] if state.design_graph_history else DesignState()
+    graph_sum   = summarize_design_state_func(graph_now)
 
-    # **🔹 Determine if Worker Analyses Exist**
-    expected_analyses = state.current_tasks_count
-    relevant_analyses = [
-        analysis for analysis in state.analyses
-        if analysis.called_by_agent == "generation"
-    ][-expected_analyses:]
+    # ── Attach worker analyses (if any)──────────────────────────────────────
+    analyses = [
+        a for a in state.analyses
+        if a.called_by_agent == "generation"
+    ][-worker_budget:]
 
-    if relevant_analyses:
-        print(f"🔍 [DEBUG] Integrating {len(relevant_analyses)} worker analyses.")
-        combined_analyses = "\n\n---\n\n".join(
-            [f"From Task '{analysis.from_task}':\n{analysis.content}" for analysis in relevant_analyses]
+    if analyses:
+        print(f"   • integrating {len(analyses)} worker analyses")
+        analysis_block = "\n\n---\n\n".join(
+            f"From *{a.from_task}*:\n{a.content}" for a in analyses
         )
-    else:
-        print("⚠️ [DEBUG] No worker analyses received. Proceeding with standard proposal generation.")
+        human_msg = f"""
+Supervisor → {sup_instr}
 
-    # **🔹 Generate or Refine Proposals**
-    if relevant_analyses:
-        # **Refinement Mode: Worker feedback available**
-        refinement_prompt = f"""
-We are refining the following proposals based on new analyses from workers.
+Cahier des Charges →
+{cdc_text}
 
-**Supervisor Instructions:**
-{supervisor_instructions}
+Current DSG summary →
+{graph_sum}
 
-**Cahier des Charges:**
-{cahier_des_charges}
+Worker analyses →
+{analysis_block}
 
-**Current Design Graph Summary**:
-{current_graph_summary}
-
-**Worker Analyses:**
-{combined_analyses}
-
-Refine each proposal accordingly.
+Please (re)generate **precise DSG proposals** accordingly.
 """
-        ge_output = generation_agent.invoke([
-            SystemMessage(content=GE_PROMPT_STRUCTURED),
-            HumanMessage(refinement_prompt)
-        ])
     else:
-        # **Generation Mode: No prior proposals or feedback**
-        messages = [
-            SystemMessage(content=GE_PROMPT_STRUCTURED),
-            HumanMessage(content=f"""
-This is the Cahier des Charges (technical scope of specifications):
-{cahier_des_charges}
+        human_msg = f"""
+Cahier des Charges →
+{cdc_text}
 
-For its implementation, the Planner has defined specific design steps,
-for which the Supervisor has devised instructions for implementation:
-{supervisor_instructions}
+Supervisor instructions →
+{sup_instr}
 
-### **And here is the current state of the Design Graph that your proposals will help to populate**:
-{current_graph_summary}
+Current DSG summary →
+{graph_sum}
 
-Generate design proposals **aligned with these instructions**.
-Ensure clarity, feasibility, and completeness.
-""")
-        ]
+Generate **brand-new DSG proposals** (no refinement loop).
+"""
 
-        ge_output = generation_agent.invoke(messages)
+    # ── LLM call (structured) ──────────────────────────────────────────────
+    llm_out = generation_agent.invoke([
+        SystemMessage(content=GE_PROMPT_STRUCTURED),
+        HumanMessage(content=human_msg.strip()),
+    ])
 
-    raw_proposals = ge_output.proposals
-    print(f"📝 [DEBUG] Generated {len(raw_proposals)} proposals.")
+    dsg_proposals: List[SingleProposal] = llm_out.proposals
+    print(f"   • LLM returned {len(dsg_proposals)} DSGs")
 
-    # **🔹 Refine Each Proposal Using an Additional LLM Call**
-    refined_proposals = [
-        SingleProposal(title=proposal.title, content=refine_proposal_content(proposal, state))
-        for proposal in raw_proposals
-    ]
-    
-    for proposal in refined_proposals:
-        print(f"✅ [DEBUG] Refined proposal: {proposal.title}")
+    # ── Decide on extra research (optional orchestrator hop) ───────────────
+    orch_request = _need_more_research(dsg_proposals, state)
 
-    print("✅ [DEBUG] Proposals refined. Proceeding to research determination.")
-
-    # **🔹 Determine if Additional Research is Needed**
-    orchestrator_order = decide_if_more_research_needed_generation(refined_proposals, state)
-
-    # **🔹 Update the State with New Proposals**
-    new_proposal_entries = [
+    # ── Wrap into long-term `Proposal` objects and update State ────────────
+    new_entries: List[Proposal] = [
         Proposal(
-            title=sp.title,
-            content=sp.content,
-            feedback=None,
-            grade=None,
-            evolved_content=None,
+            title=p.title,
+            content=p.content,                 # ← the DesignState object
             status="generated",
-            reason_for_status=None,
             current_step_index=state.current_step_index,
-            generation_iteration_index=iteration,
+            generation_iteration_index=iter_now,
             reflection_iteration_index=state.reflection_iteration,
             ranking_iteration_index=state.ranking_iteration,
             evolution_iteration_index=state.evolution_iteration,
             meta_review_iteration_index=state.meta_review_iteration,
         )
-        for sp in refined_proposals
+        for p in dsg_proposals
     ]
 
-    # **🔹 If Research is Needed, Call the Orchestrator**
-    if orchestrator_order:
-        print(f"🧠 [DEBUG] Requesting additional research: {orchestrator_order}")
+    if orch_request:
+        # Ask Orchestrator, bump counters so the loop calls us again later
+        print(f"   🧠 requesting research: {orch_request[:80]}…")
         return Command(
             update={
-                "proposals": new_proposal_entries,
-                "orchestrator_orders": [orchestrator_order],
-                "generation_notes": [f"Requested research at iteration {iteration + 1}."],
+                "proposals":            new_entries,
+                "orchestrator_orders":  [orch_request],
                 "current_requesting_agent": "generation",
-                "current_tasks_count": 0,
-                "generation_iteration": iteration + 1,
+                "current_tasks_count":  0,                 # new tasks will be counted by orchestrator
+                "generation_iteration": iter_now + 1,      # next pass
+                "generation_notes":    [f"Research requested at gen-iter {iter_now + 1}"],
             },
-            goto="orchestrator"
+            goto="orchestrator",
         )
 
-    print("✅ [DEBUG] Generation phase complete. Proceeding to reflection.")
+    # Otherwise go straight to Reflection
+    print("   ✅ generation complete → reflection")
     return Command(
         update={
-            "proposals": new_proposal_entries,
-            "generation_notes": [f"Completed generation at step {state.current_step_index}."],
-            "generation_iteration": iteration,
+            "proposals":          new_entries,
+            "generation_notes":  [f"Finished gen-iter {iter_now}"],
+            "generation_iteration": iter_now,              # keep counter
         },
-        goto="reflection"
+        goto="reflection",
     )
 
+# --------------------------------------------------------------------------
+def _need_more_research(props: List[SingleProposal], state: State) -> Optional[str]:
+    """Ask a reasoning LLM whether extra data/tools are required."""
+    sup_instr = state.supervisor_instructions[-1] if state.supervisor_instructions else "No instructions."
+    cdc_text  = state.cahier_des_charges or "No Cahier des Charges."
 
-def decide_if_more_research_needed_generation(proposals: List[SingleProposal], state: State) -> Optional[str]:
-    """
-    Determines whether additional research is required to improve generated proposals.
-    Sends a clear request to the Orchestrator if needed.
-    """
-    print("\n🔍 [DEBUG] Checking if additional research is needed for Generation Agent.")
+    question = f"""
+Supervisor instructions → {sup_instr}
 
-    # **Retrieve Supervisor Instructions & Cahier des Charges**
-    supervisor_instructions = state.supervisor_instructions[-1] if state.supervisor_instructions else "No specific instructions provided."
-    cahier_des_charges_summary = state.cahier_des_charges if state.cahier_des_charges else "No formal constraints provided."
+Cahier des Charges → {cdc_text}
 
-    # **Prepare evaluation request for the base model**
-    research_request = f"""
-### **Supervisor Instructions:**
-{supervisor_instructions}
+Here are the DSG proposals (titles + node counts):
 
-### **Cahier des Charges Summary:**
-{cahier_des_charges_summary}
+{[
+    {"title": p.title,
+     "n_nodes": len(p.content.nodes),
+     "n_edges": len(p.content.edges)}
+    for p in props
+]}
 
-### **Generated Proposals:**
-{[{"Title": p.title, "Content": p.content} for p in proposals]}
-
----
-
-## **🔹 Task for the Reflection Agent**
-- Evaluate whether the proposals are **detailed, feasible, and complete**.
-- **Identify any missing data or research gaps** that need to be addressed.
-- If research is required, **define a precise task request for the Orchestrator** (web searches, simulations, calculations, etc.).
-- If no research is required, state explicitly: `"No additional research is needed."`
+Should we perform **additional web / code / calc research** before sending these to reflection?
+If yes, output a SINGLE clear task for the orchestrator.
+If no, answer exactly:  "No additional research is needed."
 """
 
-    # **Invoke base model for open-ended reflection**
-    decision_output = base_model_reasoning.invoke([
+    resp = base_model.invoke([
         SystemMessage(content=GEN_RESEARCH_PROMPT),
-        HumanMessage(content=research_request)
-    ])
+        HumanMessage(content=question)
+    ]).content
 
-
-    # **Process the decision**
-    response = remove_think_tags(decision_output.content) #.strip().lower()
-
-    if "No additional research is needed" in response:
-        print("✅ [DEBUG] No further research required.")
+    resp_clean = remove_think_tags(resp).strip()
+    if resp_clean.lower().startswith("no additional research"):
+        print("   • no extra research required")
         return None
-    else:
-        print(f"🧠 [DEBUG] Additional research requested: {response}")
-        return response
-
-
-# 🔹 **Refining Proposal Content**
-def refine_proposal_content(proposal: SingleProposal, state: State) -> str:
-    """
-    Uses an additional LLM call to refine the content of a generated proposal.
-    Ensures detailed, engineering-aligned content with structured explanations.
-    """
-    print(f"📝 [DEBUG] Refining proposal: {proposal.title}")
-
-    supervisor_instructions = state.supervisor_instructions[-1] if state.supervisor_instructions else "No specific instructions provided."
-    cahier_des_charges = state.cahier_des_charges if state.cahier_des_charges else "No formal constraints provided."
-
-    refinement_prompt = [
-        SystemMessage(content=GE_PROMPT_BASE),
-        HumanMessage(content=f"""
-### **Original Proposal Title:**
-{proposal.title}
-
-### **Current Proposal Content:**
-{proposal.content}
-
----
-
-### **Supervisor Instructions:**
-{supervisor_instructions}
-
-### **Cahier des Charges (Engineering Constraints):**
-{cahier_des_charges}
-
----
-
-### **Your Task:**
-1. **Refine the proposal content** to make it:
-   - More **structured and precise**.
-   - Aligned with **engineering principles**.
-   - Fully consistent with **design constraints**.
-2. **If the proposal relates to Numerical Modeling**, ensure it includes:
-   - Well-documented **Python code** implementing a **physical model**.
-   - Governing equations (Finite Element, Finite Difference, or Analytical).
-   - Parameter parsing for boundary conditions.
-   - Execution instructions for reproducibility.
-
----
-
-### **Refined Proposal Content (Return only the updated text)**
-""")
-    ]
-
-    #refined_content = base_model.invoke(refinement_prompt).content
-    refined_content = remove_think_tags(base_model_reasoning.invoke(refinement_prompt).content)
-    return refined_content
+    print("   • extra research required")
+    return resp_clean
