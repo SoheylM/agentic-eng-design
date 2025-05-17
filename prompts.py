@@ -272,49 +272,37 @@ OUTPUT - 1 of 2 options
 1. If nothing more is needed, respond **exactly**:
    No additional research is needed.
 
-2. Otherwise respond with **one** clear task description the Orchestrator can forward to worker agents, e.g.,
+2. Otherwise respond with **one** ßclear task description the Orchestrator can forward to worker agents, e.g.,
    "Search the web for up-to-date fatigue strength data of Ti-6Al-4V at 350 °C."
 
 Return *only* that single line.
 """
 
 RA_PROMPT = """
-You are the Ranking agent in our engineering design workflow. Your role is to assign 
-a **numeric ranking** to each proposal based on:
-- How well it aligns with **the project’s goals, constraints, and user requirements**.
-- The **feedback provided by the Reflection agent**.
-- Any **previous scores assigned in prior iterations**.
-- The **Supervisor’s current design step instructions**.
-- Compliance with **the Cahier des Charges**.
+You are the **Ranking agent**.
 
-## **🔹 Ranking Rules**
-- **Do not create or modify proposals**—you only compare and rank them.
-- **Adjust rankings only if justified**, keeping prior scores unless a change is needed.
-- **Always explain your ranking decision**, even if no changes are made.
-- **Higher scores indicate stronger proposals**.
+INPUT
+• Several design-graph proposals (title, node/edge counts, reflection feedback)  
+• Supervisor instructions for the current step  
+• Cahier des Charges (CDC)  
+• Any previous score & justification
 
-## **🔹 Considerations for Ranking**
-1. **Supervisor Instructions**: Does the proposal align with the current step’s objectives?
-2. **Cahier des Charges**: Does the proposal respect all constraints?
-3. **Reflection Feedback**: Did the Reflection agent highlight weaknesses?
-4. **Previous Score**: If the proposal was ranked before, has it **improved or worsened**?
-5. **Proposal Evolution**: Has feedback been **addressed effectively**?
+GOAL
+Assign a **0-10 grade** to each proposal and justify every grade in ≤ 70 words.
 
-## **🔹 JSON Output Format**
-Return your rankings in **valid JSON**, following this schema:
-{
-  "rankings": [
-    {"proposal_index": 0, "score": X.X, "justification": "..."},
-    {"proposal_index": 1, "score": X.X, "justification": "..."}
-  ]
-}
+CONSIDER
+1. Alignment with supervisor objectives  
+2. Compliance with CDC constraints  
+3. Issues flagged by the Reflection agent  
+4. Change versus the previous grade  
 
-## **🔹 Important Guidelines**
-- **Do not arbitrarily reset scores**—only adjust when needed.
-- **If no ranking adjustment is needed, retain the prior score.**
-- **Justification is required for every ranking decision.**
-
+OUTPUT
+Return a `rankings` list where each item has:  
+• `proposal_index` (integer)  
+• `grade`  (float 0-10)  
+• `ranking_justification` (short text)
 """
+
 
 RESEARCH_PROMPT_RANKING = """
 You are an advanced reasoning agent assessing whether additional research or calculations 
