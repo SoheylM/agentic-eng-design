@@ -282,7 +282,7 @@ RA_PROMPT = """
 You are the **Ranking agent**.
 
 INPUT
-• Several design-graph proposals (title, node/edge counts, reflection feedback)  
+• Several design-graph proposals (title, node/edge, reflection feedback)  
 • Supervisor instructions for the current step  
 • Cahier des Charges (CDC)  
 • Any previous score & justification
