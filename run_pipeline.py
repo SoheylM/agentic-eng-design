@@ -52,7 +52,7 @@ def _run_once(mode: str, request: str, tid: int) -> Path:
 # --------------------------------------------------------------------------- CLI
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=("mas", "pair"),
+    ap.add_argument("--mode", choices=("mas", "pair"),
                     help="Workflow type: multi-agent system (mas) or 2-agent pair")
     ap.add_argument("--runs", type=int, default=1,
                     help="Number of independent runs to launch")
