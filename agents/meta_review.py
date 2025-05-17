@@ -115,21 +115,24 @@ Return your final decisions.
         chosen_dsg = None
         print("   ⚠️  no proposal selected")
 
-    # ---------------  AFTER you've finished updating proposal statuses  ----
-    # >>> NEW BLOCK <<<
+    # ── after all meta-review logic, just before the normal return ──────────────
+    # save latest DSG snapshot ---------------------------------------------------
     try:
-        # choose the latest Design-State Graph
-        dsg_now = state.design_graph_history[-1]
-        thread  = state.get("thread_id", "run_" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S"))
-        out     = save_dsg(
+        dsg_now = state.design_graph_history[-1]              # last graph
+
+        # ① thread-id is written into State once at workflow launch
+        thread_id = getattr(state, "thread_id", "unnamed_run")
+
+        out = save_dsg(
             dsg_now,
-            thread_id   = thread,
-            step_idx    = state.current_step_index,
-            meta_iter   = it_now,
+            thread_id = thread_id,
+            step_idx  = state.current_step_index,
+            meta_iter = it_now,                               # current meta-iteration
         )
         print(f"💾 [Meta-Review] DSG snapshot saved → {out}")
     except Exception as e:
         print(f"⚠️  [Meta-Review] failed to save DSG: {e}")
+
 
     # ── Extra research? ────────────────────────────────────────────────────
     orch_req = _need_more_research_meta(state, chosen_dsg, dsg_summaries)
