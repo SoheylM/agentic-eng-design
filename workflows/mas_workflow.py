@@ -55,8 +55,6 @@ def build_app() -> "langgraph.App":
     g.add_node("ranking",         ranking_node)
     g.add_node("evolution",       evolution_node)
     g.add_node("meta_review",     meta_review_node)
-    #g.add_node("synthesizer",     synthesizer_node)
-    #g.add_node("graph_designer",  graph_designer_node)
 
     return g.compile(checkpointer=MemorySaver())
 
