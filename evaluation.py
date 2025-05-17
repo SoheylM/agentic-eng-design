@@ -1,3 +1,4 @@
+########### DEPRECATED ###########
 # evaluation.py
 import networkx as nx
 from typing import List, Dict, Any

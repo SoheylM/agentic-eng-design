@@ -1,3 +1,5 @@
+########### DEPRECATED ###########
+# app.py
 import streamlit as st
 from workflow import initialize_workflow
 from langgraph.types import Command

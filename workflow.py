@@ -1,3 +1,5 @@
+########### DEPRECATED ###########
+# workflow.py
 #!/usr/bin/env python3
 """
 workflow.py    – Unified experiment runner.
