@@ -109,7 +109,7 @@ Return your final decisions.
         chosen_dsg = recent_props[selected_idx].content
         # append to history & visualise
         state.design_graph_history.append(chosen_dsg)
-        print(f"   ✅ proposal {selected_idx} selected – DSG stored to history")
+        print(f"   ✅ proposal {selected_idx} selected - DSG stored to history")
         visualize_design_state_func(chosen_dsg)      # optional GUI pop-up
     else:
         chosen_dsg = None
