@@ -6,7 +6,7 @@
 from langgraph.graph             import StateGraph
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.types             import Command
-
+from langchain_core.messages     import HumanMessage
 from data_models import State
 from config      import config                         # your helper
 
@@ -62,7 +62,7 @@ def run_once(request: str,
     app = build_app()
     cfg = {"configurable": {"thread_id": thread_id}, "recursion_limit": 500}
 
-    app.invoke({"messages": [request]}, config=cfg)
+    app.invoke({"messages": [HumanMessage(content=request)]}, config=cfg)
 
     if interactive:
         while True:

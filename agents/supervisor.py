@@ -1,5 +1,6 @@
 from langchain_core.messages import SystemMessage, HumanMessage
-from langgraph.types import Command, END
+from langgraph.types import Command
+from langgraph.graph import END
 from typing import Literal
 import json
 

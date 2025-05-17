@@ -9,7 +9,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from data_models import PairState
 from agents.generation_pair import generation_pair_node
 from agents.reflection_pair import reflection_pair_node
-
+from langchain_core.messages import HumanMessage
 
 def build_app() -> "langgraph.App":
     g = StateGraph(PairState)
@@ -22,5 +22,5 @@ def build_app() -> "langgraph.App":
 def run_once(request: str, thread_id: str = "0") -> PairState:
     app = build_app()
     cfg = {"configurable": {"thread_id": f"pair-{thread_id}"}, "recursion_limit": 500}
-    app.invoke({"messages": [request]}, config=cfg)
+    app.invoke({"messages": [HumanMessage(content=request)]}, config=cfg)
     return app.get_state(cfg)
