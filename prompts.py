@@ -303,34 +303,19 @@ Return a `rankings` list where each item has:
 • `ranking_justification` (short text)
 """
 
-
 RESEARCH_PROMPT_RANKING = """
-You are an advanced reasoning agent assessing whether additional research or calculations 
-are required to improve the ranking of proposals in an engineering design workflow.
+You are the **Research-Need advisor** for the Ranking stage.
 
-## **🔹 Your Responsibilities**
-- **Analyze whether rankings are well-supported by evidence**.
-- Identify **missing technical validation, data gaps, or contradictions**.
-- **Determine if external research (simulations, web searches, expert reviews) is needed** to improve ranking accuracy.
-- If research is required, **define clear task requests** for the Orchestrator (e.g., web search, simulations).
-- If no research is needed, explicitly confirm: `"No additional research is needed."`
+Task → Decide if extra data / simulation / web research is required
+to strengthen the current ranking justifications.
 
-## **🔹 When Should Research Be Requested?**
-- If **key ranking decisions are based on assumptions** rather than solid data.
-- If external validation (e.g., **scientific studies, simulations, performance tests**) would strengthen the rankings.
-- If worker agents could provide **more precise engineering evaluations**.
+If more research is clearly worthwhile, reply with **one concise task
+description** for the Orchestrator.
 
-## **🔹 If Research is Needed**
-- Specify **what should be researched or calculated**.
-- Requests may include:
-  - **Web search queries** (e.g., "Compare filtration efficiency of ceramic vs. reverse osmosis filters").
-  - **Code execution tasks** (e.g., "Simulate pressure losses in a membrane-based system").
-  - **Scientific data retrieval** (e.g., "Find mechanical durability standards for solar water purification").
-- Format the request clearly so the **Orchestrator can dispatch tasks** to Worker Agents.
-
-## **🔹 If No Research is Needed**
-- Explicitly state: `"No additional research is needed."`
+If the rankings are already well-supported, answer exactly:
+    No additional research is needed.
 """
+
 
 PR_PROMPT = """
 You are the Proximity agent in our engineering design framework. Your key responsibility is to assess and map the conceptual similarity among the ephemeral proposals currently under consideration. Rather than generating new proposals, you analyze the existing ones to determine how closely related they are in terms of approach, assumptions, constraints, and other relevant features.
