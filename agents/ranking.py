@@ -1,214 +1,163 @@
-from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, AnyMessage, BaseMessage, SystemMessage
+# ranking_node.py
+from __future__ import annotations
+
+from typing import List, Optional, Literal
+
+from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.types import Command
-from typing import Literal, List, Optional
-from data_models import State, SingleRanking
+
+from data_models import (
+    State,
+    Proposal,          # long-term container (content is a DesignState)
+    SingleRanking,     # pydantic model for one score
+)
 from prompts import RA_PROMPT, RESEARCH_PROMPT_RANKING
 from llm_models import ranking_agent, base_model_reasoning
 from utils import remove_think_tags
 
+
+# ──────────────────────────────────────────────────────────────────────────────
 def ranking_node(state: State) -> Command[Literal["orchestrator", "evolution"]]:
-    """
-    Ranking agent that assigns scores to proposals iteratively, ensuring alignment with:
-    - Supervisor Instructions
-    - Cahier des Charges
-    - Reflection Agent's feedback
-    - Past proposal scores
-    """
-    print("\n🔺 [DEBUG] Ranking node invoked.")
+    """Score each DSG proposal, possibly ask for extra research, update counters."""
+    print("\n🔺 [RANK] Ranking node")
 
-    iteration = state.ranking_iteration
-    max_iterations = state.max_iterations  # Adjust as needed
+    iter_now = state.ranking_iteration
+    max_iter = state.max_iterations
+    print(f"   • iteration {iter_now + 1}/{max_iter}")
 
-    print(f"\n🔄 [DEBUG] Ranking iteration {iteration + 1}/{max_iterations}...")
-
-    if iteration >= max_iterations:
-        print("⚠️ [DEBUG] Max iterations reached. Proceeding to evolution.")
+    if iter_now >= max_iter:
+        print("   ⚠️  max-iterations reached; skipping ranking.")
         return Command(
             update={
-                "ranking_notes": [f"Stopped after {max_iterations} iterations."],
-                "analyses": [],
-                "ranking_iteration": iteration - 1,
+                "ranking_notes": [f"Stopped after {max_iter} ranking loops."],
+                "ranking_iteration": iter_now - 1,
             },
-            goto="evolution"
+            goto="evolution",
         )
 
-    # **🔹 Retrieve Supervisor Instructions for this step**
-    supervisor_instructions = state.supervisor_instructions[-1] if state.supervisor_instructions else "No specific instructions available."
+    # ---------------------------------------------------------------- context
+    sup_instr = state.supervisor_instructions[-1] if state.supervisor_instructions else "No supervisor instructions."
+    cdc_text  = state.cahier_des_charges or "No Cahier des Charges."
 
-    # **🔹 Load the most recent proposals (Reflection + Prior Ranking)**
-    for p in state.proposals:
-        print(f"⚠️ [DEBUG] p.current_step_index: {p.current_step_index}")
-        print(f"⚠️ [DEBUG] state.current_step_index: {state.current_step_index}")
-        print(f"⚠️ [DEBUG] p.generation_iteration_index: {p.generation_iteration_index}")
-        print(f"⚠️ [DEBUG] state.generation_iteration: {state.generation_iteration}")
-        print(f"⚠️ [DEBUG] p.reflection_iteration_index: {p.reflection_iteration_index}")
-        print(f"⚠️ [DEBUG] state.reflection_iteration: {state.reflection_iteration}")
-        print(f"⚠️ [DEBUG] p.ranking_iteration_index: {p.ranking_iteration_index}")
-        print(f"⚠️ [DEBUG] state.ranking_iteration: {state.ranking_iteration}")
-    recent_proposals = [
-        p for p in state.proposals #TODO: check if ti works
-        if (p.current_step_index == state.current_step_index)
-        and (p.generation_iteration_index == state.generation_iteration)
-        #and (p.reflection_iteration_index == state.reflection_iteration)
-        #and (p.ranking_iteration_index == state.ranking_iteration)
+    recent_props: List[Proposal] = [
+        p for p in state.proposals
+        if p.current_step_index        == state.current_step_index
+        and p.generation_iteration_index == state.generation_iteration
     ]
 
-    if not recent_proposals:
-        print("⚠️ [DEBUG] No valid proposals found. Skipping ranking.")
+    if not recent_props:
+        print("   ⚠️  no proposals → forward to evolution")
         return Command(
-            update={
-                "ranking_notes": ["No proposals available for ranking."],
-                #"ranking_iteration": iteration,
-            },
-            goto="evolution"
+            update={"ranking_notes": ["No proposals to rank."]},
+            goto="evolution",
         )
 
-    # **🔹 Extract previous ranking scores if available**
-    previous_rankings = "\n".join([
-        f"- Proposal {i}: Previous Score = {p.grade}" for i, p in enumerate(recent_proposals) if p.grade is not None
-    ]) if any(p.grade is not None for p in recent_proposals) else "No previous scores available."
+    print(f"   • ranking {len(recent_props)} proposals")
 
-    previous_ranking_justifications = "\n".join([
-        f"- Proposal {i}: Previous Score = {p.ranking_justification}" for i, p in enumerate(recent_proposals) if p.ranking_justification is not None
-    ]) if any(p.ranking_justification is not None for p in recent_proposals) else "No previous justifications available."
+    # compact summary for LLM
+    prop_briefs = [
+        {
+            "index": i,
+            "title": p.title,
+            "n_nodes": len(p.content.nodes),
+            "n_edges": len(p.content.edges),
+            "prev_score": p.grade,
+            "feedback": p.feedback or "None",
+        }
+        for i, p in enumerate(recent_props)
+    ]
 
-    # **🔹 Retrieve Cahier des Charges for constraint checking**
-    cahier_des_charges = state.cahier_des_charges if state.cahier_des_charges else "No Cahier des Charges available."
-
-    # **🔹 Construct ranking prompt**
-    ranking_prompt = f"""
-### **Supervisor Instructions:**
-{supervisor_instructions}
-
-### **Cahier des Charges:**
-{cahier_des_charges}
-
-### **Proposals Under Review:**
-{[p.content for p in recent_proposals]}
-
-### **Reflection Feedback:**
-{[p.feedback or "No prior feedback" for p in recent_proposals]}
-
-### **Previous Scores (if applicable):**
-{previous_rankings}
-
-### **Previous Justifications (if applicable):**
-{previous_ranking_justifications}
----
-
-## **🔹 Task for the Ranking Agent**
-1. **Review each proposal individually** based on:
-   - Supervisor’s current design step instructions.
-   - Cahier des Charges constraints.
-   - Reflection feedback.
-   - Prior scores (if available).
-2. **If a proposal has improved, increase its score.**
-3. **If a proposal has worsened, lower its score.**
-4. **If no change is necessary, maintain the same score.**
-5. **Output structured JSON rankings for each proposal.**
-"""
-
-    # **🔹 Invoke LLM for ranking**
-    rk_output = ranking_agent.invoke([
+    # ---------------------------------------------------------------- LLM call
+    llm_resp = ranking_agent.invoke([
         SystemMessage(content=RA_PROMPT),
-        HumanMessage(ranking_prompt)
+        HumanMessage(content=f"""
+Supervisor instructions → {sup_instr}
+
+Cahier des Charges → {cdc_text}
+
+Proposal briefs →
+{prop_briefs}
+
+Return JSON 'rankings' per the schema.
+""")
     ])
 
-    print(f"📝 [DEBUG] Received {len(rk_output.rankings)} updated rankings.")
+    print(f"   • LLM produced {len(llm_resp.rankings)} scores")
 
-    # **🔹 Ensure rankings match the number of proposals**
-    if len(rk_output.rankings) != len(recent_proposals):
-        print(f"⚠️ [DEBUG] Mismatch: {len(rk_output.rankings)} rankings for {len(recent_proposals)} proposals!")
-
-    # **🔹 Update proposals with new scores**
-    for r_item in rk_output.rankings:
-        idx = r_item.proposal_index
-        if 0 <= idx < len(recent_proposals):
-            recent_proposals[idx].grade = r_item.grade
-            recent_proposals[idx].ranking_justification = r_item.ranking_justification
-            recent_proposals[idx].ranking_iteration_index = iteration #+ 1
-            print(f"✅ [DEBUG] Updated Proposal {idx}: Score {r_item.grade}")
+    # ---------------------------------------------------------------- store scores
+    for r in llm_resp.rankings:
+        idx = r.proposal_index
+        if 0 <= idx < len(recent_props):
+            recent_props[idx].grade                   = r.grade
+            recent_props[idx].ranking_justification   = r.ranking_justification
+            recent_props[idx].ranking_iteration_index = iter_now
+            print(f"     ↳ proposal {idx} → {r.grade:.2f}")
         else:
-            print(f"⚠️ [DEBUG] Invalid proposal index {idx}. Ignoring.")
+            print(f"     ⚠️  invalid index {idx} ignored")
 
-    # **🔹 Decide if additional research is needed**
-    orchestrator_order = decide_if_more_research_needed_ranking(recent_proposals, state)
-    if orchestrator_order:
-        print(f"🧠 [DEBUG] Sending order to orchestrator: {orchestrator_order}")
+    # ---------------------------------------------------------------- research?
+    orch_request = _need_more_research_ranking(recent_props, state)
+
+    if orch_request:
+        preview = (orch_request[:77] + "…") if len(orch_request) > 80 else orch_request
+        print(f"   🧠 requesting research: {preview}")
         return Command(
             update={
-                "orchestrator_orders": [orchestrator_order],
-                "ranking_notes": [f"Requested more worker tasks after iteration {iteration + 1}."],
+                "orchestrator_orders":  [orch_request],
                 "current_requesting_agent": "ranking",
                 "current_tasks_count": 0,
-                "ranking_iteration": iteration + 1,
+                "ranking_iteration":  iter_now + 1,
+                "ranking_notes":     [f"Research requested at rank-iter {iter_now + 1}"],
             },
-            goto="orchestrator"
+            goto="orchestrator",
         )
 
-    print("✅ [DEBUG] Ranking complete. Proceeding to evolution.")
+    # normal exit
+    print("   ✅ ranking complete → evolution")
     return Command(
         update={
-            "ranking_notes": [f"Completed ranking at step {state.current_step_index}."],
-            "analyses": [],
-            "ranking_iteration": iteration #+ 1,
+            "ranking_iteration": iter_now,
+            "ranking_notes":    [f"Completed rank-iter {iter_now}"],
+            "current_tasks_count": 0,
         },
-        goto="evolution"
+        goto="evolution",
     )
 
+# ──────────────────────────────────────────────────────────────────────────────
+def _need_more_research_ranking(
+    props: List[Proposal],
+    state: State,
+) -> Optional[str]:
+    """Ask an LLM if extra data/tools are needed to justify the scores."""
+    sup_instr = state.supervisor_instructions[-1] if state.supervisor_instructions else "No instructions."
+    cdc_text  = state.cahier_des_charges or "No Cahier des Charges."
 
-def decide_if_more_research_needed_ranking(proposals: List[SingleRanking], state: State) -> Optional[str]:
-    """
-    Determines whether additional research is required to improve proposal rankings.
-    Sends a clear request to the Orchestrator if needed.
-    """
-    print("\n🔍 [DEBUG] Checking if additional research is needed for Ranking Agent.")
+    question = f"""
+Supervisor instructions → {sup_instr}
 
-    # **Retrieve Supervisor Instructions & Cahier des Charges**
-    supervisor_instructions = state.supervisor_instructions[-1] if state.supervisor_instructions else "No specific instructions provided."
-    cahier_des_charges_summary = state.cahier_des_charges if state.cahier_des_charges else "No formal constraints provided."
+Cahier des Charges → {cdc_text}
 
-    # **Retrieve Worker Analyses (if available)**
-    worker_analyses = [
-        f"Task '{a.from_task}': {a.content}" for a in state.analyses if a.called_by_agent == "ranking"
-    ]
-    worker_analyses_text = "\n\n---\n\n".join(worker_analyses) if worker_analyses else "No additional worker analyses available."
+Current rankings (truncated):
+{[
+    {"idx": i,
+     "score": p.grade,
+     "excerpt": (p.ranking_justification or "")[:120] + ("…" if p.ranking_justification and len(p.ranking_justification) > 120 else "")}
+    for i, p in enumerate(props)
+]}
 
-    # **Prepare research validation request**
-    research_request = f"""
-### **Supervisor Instructions:**
-{supervisor_instructions}
-
-### **Cahier des Charges Summary:**
-{cahier_des_charges_summary}
-
-### **Current Proposal Rankings:**
-{[{"Index": i, "Content": p.content, "Score": p.grade, "Justification": p.ranking_justification} for i, p in enumerate(proposals)]}
-
-### **Worker Analyses (if available):**
-{worker_analyses_text}
-
----
-
-## **🔹 Task for the Ranking Agent**
-- Evaluate whether rankings are **accurate, justified, and well-supported**.
-- **Identify any missing technical validation or research gaps** that could improve ranking accuracy.
-- If additional research is required, **define a precise task request for the Orchestrator** (web searches, simulations, calculations).
-- If no research is required, state explicitly: `"No additional research is needed."`
+Should we request **additional web / code / calc research** to improve confidence in these scores?
+If yes, output ONE clear task line for the Orchestrator.
+If no, answer exactly:  "No additional research is needed."
 """
 
-    # **Invoke base model for open-ended ranking validation**
-    decision_output = base_model_reasoning.invoke([
+    resp = base_model_reasoning.invoke([
         SystemMessage(content=RESEARCH_PROMPT_RANKING),
-        HumanMessage(content=research_request)
-    ])
+        HumanMessage(content=question),
+    ]).content
 
-    # **Process the decision**
-    response = remove_think_tags(decision_output.content) #.strip().lower()
-
-    if "No additional research is needed" in response:
-        print("✅ [DEBUG] No further research required.")
+    clean = remove_think_tags(resp).strip()
+    if clean.lower().startswith("no additional research"):
+        print("   • no extra research required")
         return None
-    else:
-        print(f"🧠 [DEBUG] Additional research requested: {response}")
-        return response
+    print("   • extra research required")
+    return clean
