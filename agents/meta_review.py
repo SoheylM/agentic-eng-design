@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import List, Optional, Literal
+from datetime import datetime, UTC
 
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.types import Command
@@ -16,8 +17,7 @@ from graph_utils import (
     summarize_design_state_func,
     visualize_design_state_func,       # new utility; no LLM involved
 )
-from utils import remove_think_tags
-
+from utils import remove_think_tags, save_dsg
 
 # ─────────────────────────  M E T A - R E V I E W  N O D E  ──────────────────
 def meta_review_node(state: State) -> Command[Literal["orchestrator", "supervisor"]]:
@@ -114,6 +114,22 @@ Return your final decisions.
     else:
         chosen_dsg = None
         print("   ⚠️  no proposal selected")
+
+    # ---------------  AFTER you've finished updating proposal statuses  ----
+    # >>> NEW BLOCK <<<
+    try:
+        # choose the latest Design-State Graph
+        dsg_now = state.design_graph_history[-1]
+        thread  = state.get("thread_id", "run_" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S"))
+        out     = save_dsg(
+            dsg_now,
+            thread_id   = thread,
+            step_idx    = state.current_step_index,
+            meta_iter   = it_now,
+        )
+        print(f"💾 [Meta-Review] DSG snapshot saved → {out}")
+    except Exception as e:
+        print(f"⚠️  [Meta-Review] failed to save DSG: {e}")
 
     # ── Extra research? ────────────────────────────────────────────────────
     orch_req = _need_more_research_meta(state, chosen_dsg, dsg_summaries)

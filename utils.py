@@ -5,6 +5,10 @@ from langchain_core.messages import ToolMessage  # Ensure correct import
 from typing import List
 from tools import python_repl_tool, tavily_tool, duckduckgo_tool, arxiv_search_tool, summarize_design_state_tool, visualize_design_state_tool, add_node_tool, delete_node_tool
 
+from pathlib import Path
+import json, datetime
+from data_models import DesignState
+
 def remove_think_tags(text):
     return re.sub(r'^.*?</think>\s*', '', text, flags=re.DOTALL)
 
@@ -126,3 +130,23 @@ def process_tool_calls(ai_msg) -> List[ToolMessage]:
     print("🟡 [DEBUG] Finished processing tool calls.")
     return new_messages
 
+
+def save_dsg(
+    dsg: DesignState,
+    thread_id: str,
+    step_idx: int,
+    meta_iter: int,
+) -> Path:
+    """
+    Dump one Design-State Graph to
+        runs/<thread_id>/step<nn>_meta<nn>.json
+    and return the file path.
+    """
+    ts   = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+    root = Path("runs") / thread_id
+    root.mkdir(parents=True, exist_ok=True)
+
+    fname = f"step{step_idx:02d}_meta{meta_iter:02d}_{ts}.json"
+    path  = root / fname
+    path.write_text(json.dumps(json.loads(dsg.model_dump_json()), indent=2))
+    return path
