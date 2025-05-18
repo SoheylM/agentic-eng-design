@@ -1,14 +1,11 @@
-from typing import List, Optional, Annotated, Dict, Tuple, Literal
+from __future__ import annotations
+from typing import List, Optional, Annotated, Dict, Literal
 import operator
 from pydantic import BaseModel, Field
 from langchain_core.messages import BaseMessage
 import uuid
 from dataclasses import dataclass, field
-# dsg_models.py  ── lean (x-grammar-safe) definitions
-from __future__ import annotations
-import uuid
-from typing import List, Dict, Literal, Optional
-from pydantic import BaseModel, Field
+
 
 
 # ────────────────────────────────────────────────
