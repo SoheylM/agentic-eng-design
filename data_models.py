@@ -11,77 +11,106 @@ from dataclasses import dataclass, field
 # ────────────────────────────────────────────────
 #  Leaves
 # ────────────────────────────────────────────────
-
 class PhysicsModel(BaseModel):
-    """Executable or symbolic model attached to a design element."""
-    name: str            = Field(..., description="Short identifier")
-    equations: str       = Field("",  description="LaTeX or plain-text equations")
-    python_code: str     = Field("",  description="Runnable Python snippet")
+    """Analytical / empirical model attached to a design element."""
+    name: str = Field(...,
+        description="Unique identifier, e.g. 'MeanLineCompressor_v2'.")
+    equations: str = Field("",
+        description="LaTeX / plain-text governing equations for documentation.")
+    python_code: str = Field("",
+        description=(
+            "Fully runnable Python snippet **with default-value arguments** so "
+            "`python model.py --help` succeeds without external inputs.  "
+            "Must import its own dependencies (numpy, scipy …) and print or "
+            "return results in a structured way (JSON, CSV, or stdout table)."))
     assumptions: List[str] = Field(default_factory=list,
-                                   description="Key simplifying assumptions")
-    status: str          = Field("draft",
-                                  description="draft | validated | deprecated")
+        description="Simplifying assumptions (steady-state, incompressible…).")
+    status: str = Field("draft",
+        description="'draft' | 'validated' | 'deprecated'.")
 
 
 class Embodiment(BaseModel):
-    """Physical realisation of a (sub)function."""
-    principle: str                     # e.g. 'reverse-osmosis'
-    description: str = ""
-    design_parameters: Dict[str, float] = Field(default_factory=dict)
-    cost_estimate: float  = -1.0       # −1 means “not estimated”
-    mass_estimate: float  = -1.0
-    status: str          = "candidate" # candidate | selected | rejected
+    """Concrete physical realisation of a (sub)function."""
+    principle: str = Field(...,
+        description="Technology keyword – e.g. 'reverse-osmosis', 'airfoil NACA0012'.")
+    description: str = Field("",
+        description="1–3 sentence narrative of how the embodiment works.")
+    design_parameters: Dict[str, float] = Field(default_factory=dict,
+        description="Key variables WITH units, e.g. {'area_m2': 2.5}.")
+    cost_estimate: float = Field(-1.0,
+        description="USD (−1.0 → not yet estimated).")
+    mass_estimate: float = Field(-1.0,
+        description="kg (−1.0 → not yet estimated).")
+    status: str = Field("candidate",
+        description="'candidate' | 'selected' | 'rejected'.")
 
 
 # ────────────────────────────────────────────────
 #  Graph node
 # ────────────────────────────────────────────────
-
 class DesignNode(BaseModel):
-    """Single element in the Design-State Graph."""
-    node_id: str   = Field(default_factory=lambda: str(uuid.uuid4()))
-    node_kind: str = Field(...,  description="function | subfunction | requirement | …")
-    name: str
-    description: str = ""
+    """
+    Atomic element of the Design-State Graph (DSG).
+    """
+    # ── identity ──────────────────────────────────────────────────────────
+    node_id: str = Field(default_factory=lambda: str(uuid.uuid4()),
+        description="Immutable UUID v4.")
+    name: str = Field(..., description="Short label shown in diagrams.")
+    description: str = Field("",
+        description="Long-form explanation (purpose, behaviour, interfaces).")
 
-    embodiment: Embodiment           = Field(default_factory=Embodiment)
-    physics_models: List[PhysicsModel] = Field(default_factory=list)
+    # ── engineering payload ───────────────────────────────────────────────
+    embodiment: Embodiment = Field(
+        default_factory=Embodiment,
+        description="Current embodiment (may be placeholder for requirements).")
+    physics_models: List[PhysicsModel] = Field(default_factory=list,
+        description="Zero or more predictive models.")
 
-    maturity: str = "draft"          # draft | reviewed | validated
-    tags: List[str] = Field(default_factory=list)
+    # ── traceability & maturity ───────────────────────────────────────────
+    linked_reqs: List[str] = Field(default_factory=list,
+        description="IDs of requirement nodes this element satisfies.")
+    verification_plan: str = Field("",
+        description="How compliance will be verified (Inspection / Analysis / Test / Demo).")
+    maturity: str = Field("draft",
+        description="'draft' | 'reviewed' | 'validated'.")
+    tags: List[str] = Field(default_factory=list,
+        description="Free keywords.")
 
-    # graph connectivity (ids only, kept as plain lists)
-    edges_in:  List[str] = Field(default_factory=list)
-    edges_out: List[str] = Field(default_factory=list)
+    # ── connectivity ──────────────────────────────────────────────────────
+    edges_in:  List[str] = Field(default_factory=list,
+        description="Parent node IDs.")
+    edges_out: List[str] = Field(default_factory=list,
+        description="Child node IDs.")
 
 
 # ────────────────────────────────────────────────
 #  Whole DSG
 # ────────────────────────────────────────────────
-
 class DesignState(BaseModel):
-    """Entire design graph (nodes + directed edges)."""
-    nodes: Dict[str, DesignNode]     = Field(default_factory=dict)
-    edges: List[List[str]]           = Field(default_factory=list,
-        description="[source_id, target_id] pairs")
+    """Snapshot of the complete directed graph."""
+    nodes: Dict[str, DesignNode] = Field(default_factory=dict,
+        description="Map node_id ➜ node data.")
+    edges: List[List[str]] = Field(default_factory=list,
+        description="Each item = [source_id, target_id].")
 
 
-# Output schema for the generation agent
+# ────────────────────────────────────────────────
+#  Generation-agent output
+# ────────────────────────────────────────────────
 class DSGListOutput(BaseModel):
-    proposals: List[DesignState]
+    proposals: List[DesignState] = Field(...,
+        description="N alternative DSGs generated in one call.")
 
 
 # ────────────────────────────────────────────────
-#  Atomic edit ops (optional helpers)
+#  Optional edit ops
 # ────────────────────────────────────────────────
-
 class NodeOp(BaseModel):
     op: Literal["add", "update", "delete"]
-    node: Optional[DesignNode] = None     # full node when op == add
-    node_id: Optional[str]     = None     # id when update / delete
+    node: Optional[DesignNode] = None
+    node_id: Optional[str]     = None
     updates: Dict[str, str]    = Field(default_factory=dict)
-    justification: str = ""
-
+    justification: str         = ""
 
 class EdgeOp(BaseModel):
     op: Literal["add", "delete"]
