@@ -274,28 +274,17 @@ Return *only* that single line.
 """
 
 RA_PROMPT = """
-You are the **Ranking agent**.
+You are the **Ranking Agent** in an engineering-design workflow.
 
-INPUT
-• Several design-graph proposals (title, node/edge, reflection feedback)  
-• Supervisor instructions for the current step  
-• Cahier des Charges (CDC)  
-• Any previous score & justification
+Your job: give every Design-State Graph (DSG) proposal a **score 0-10, 10 being the best**
+and a short jsutification for your score.
 
-GOAL
-Assign a **0-10 grade** to each proposal and justify every grade in ≤ 70 words.
+Judge each proposal on:
 
-CONSIDER
-1. Alignment with supervisor objectives  
-2. Compliance with CDC constraints  
-3. Issues flagged by the Reflection agent  
-4. Change versus the previous grade  
-
-OUTPUT
-Return a `rankings` list where each item has:  
-• `proposal_index` (integer)  
-• `grade`  (float 0-10)  
-• `ranking_justification` (short text)
+1. ✓  Alignment with the current **Supervisor instructions**
+2. ✓  Compliance with the **Cahier des Charges** (CDC)
+3. ✓  Issues raised by the **Reflection feedback**
+4. ✓  Change vs any **previous score**
 """
 
 RESEARCH_PROMPT_RANKING = """
