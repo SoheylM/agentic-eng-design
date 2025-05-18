@@ -110,7 +110,7 @@ class Proposal(BaseModel):
     ranking_justification: Optional[str] = None
 
     # Evolved content from the Evolution agent (could be combined or refined text).
-    evolved_content: Optional[str] = None
+    evolved_content: Optional[DesignState] = None
     evolution_justification: Optional[str] = None
     
     # The final status after the entire iteration: "selected", "rejected", or other.
@@ -366,7 +366,7 @@ class RankingOutput(BaseModel):
 class SingleEvolution(BaseModel):
     proposal_index: int = Field(..., description="Index of the proposal being evolved")
     original_score: Optional[float] = Field(None, description="Previous ranking score, if available")
-    new_content: str = Field(..., description="Refined or improved version of the proposal")
+    new_content: DesignState = Field(..., description="Refined or improved version of the DSG")
     evolution_justification: Optional[str] = Field(..., description="Explanation of what was changed and why")
     title: Optional[str] = None  # Retaining title for readability
 
