@@ -331,7 +331,7 @@ Limits of Your Role:
 By clarifying how each proposal relates to the others, you help the rest of the system (especially the Ranking and Evolution agents) work efficiently, combining or discarding ideas as appropriate.
 """
 
-VOLUTION_PROMPT = """
+EVOLUTION_PROMPT = """
 You are the **Evolution Agent** in a multi-agent systems-engineering workflow.
 
 ╭────────────────────────────  YOUR MISSION  ─────────────────────────────-╮
