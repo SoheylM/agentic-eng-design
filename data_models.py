@@ -3,7 +3,7 @@ import operator
 from pydantic import BaseModel, Field
 from langchain_core.messages import BaseMessage
 import uuid
-
+from dataclasses import dataclass, field
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  Low-level payload leaves
@@ -247,23 +247,23 @@ class DesignPlan(BaseModel):
     plan_overview: str = Field(..., description="Summary of the overall engineering design process.")
     steps: List[PlanStep] = Field(..., description="Ordered list of design steps.")
 
-
-class State(BaseModel):
+@dataclass
+class State:
     """Graph state for the full engineering design workflow."""
 
     # **General Messages** (for Human & LLM Interactions)
-    messages: Annotated[List[BaseMessage], operator.add] = Field(default_factory=list)  
+    messages: Annotated[List[BaseMessage], operator.add] = field(default_factory=list)  
 
     # **🔹 Key Engineering Artifacts**
     cahier_des_charges: Optional[dict] = None  # The structured requirements document
     design_plan: Optional[DesignPlan] = None  # The structured multi-step design plan
-    supervisor_instructions: Annotated[List[str], operator.add] = Field(default_factory=list)  # Step-wise instructions
+    supervisor_instructions: Annotated[List[str], operator.add] = field(default_factory=list)  # Step-wise instructions
 
     # **🔹 Supervisor Agent Tracking**
     supervisor_decision: Optional[dict] = None  # Stores the last decision made by the Supervisor
     supervisor_status: str = "in_progress"  # Can be ["in_progress", "complete", "redo"]
     redo_reason: Optional[str] = None  # If the step is redone, why?
-    supervisor_current_objectives: Annotated[List[str], operator.add] = Field(default_factory=list)  # Step-specific objectives
+    supervisor_current_objectives: Annotated[List[str], operator.add] = field(default_factory=list)  # Step-specific objectives
 
     # **🔹 Step Execution & Control**
     active_agent: str = "human"  # Tracks the currently active agent
@@ -276,9 +276,9 @@ class State(BaseModel):
     next_agent: str = ""  # Which agent should proceed next
 
     # **🔹 Proposal Tracking**
-    proposals: Annotated[List[Proposal], operator.add] = Field(default_factory=list)  
+    proposals: Annotated[List[Proposal], operator.add] = field(default_factory=list)  
     selected_proposal_index: Optional[int] = None
-    pending_design_states: Annotated[List[DesignState], operator.add] = Field(default_factory=list)
+    pending_design_states: Annotated[List[DesignState], operator.add] = field(default_factory=list)
 
     # **🔹 Proposal Ranking**
     ranking_justification: Optional[str] = None
@@ -287,37 +287,37 @@ class State(BaseModel):
     evolution_justification: Optional[str] = None
 
     # **🔹 Final Design Graph**
-    design_graph_history: Annotated[List[DesignState], operator.add] = Field(default_factory=list)
-    pending_node_ops: Annotated[List[NodeOp], operator.add] = Field(default_factory=list)
-    pending_edge_ops: Annotated[List[EdgeOp], operator.add] = Field(default_factory=list)
+    design_graph_history: Annotated[List[DesignState], operator.add] = field(default_factory=list)
+    pending_node_ops: Annotated[List[NodeOp], operator.add] = field(default_factory=list)
+    pending_edge_ops: Annotated[List[EdgeOp], operator.add] = field(default_factory=list)
     
     # **🔹 Handover Logs & Iterations**
-    generation_notes: Annotated[List[str], operator.add] = Field(default_factory=list)
+    generation_notes: Annotated[List[str], operator.add] = field(default_factory=list)
     generation_iteration: int = 0  
 
-    reflection_notes: Annotated[List[str], operator.add] = Field(default_factory=list)
+    reflection_notes: Annotated[List[str], operator.add] = field(default_factory=list)
     reflection_iteration: int = 0  
 
-    ranking_notes: Annotated[List[str], operator.add] = Field(default_factory=list)
+    ranking_notes: Annotated[List[str], operator.add] = field(default_factory=list)
     ranking_iteration: int = 0  
 
-    evolution_notes: Annotated[List[str], operator.add] = Field(default_factory=list)
+    evolution_notes: Annotated[List[str], operator.add] = field(default_factory=list)
     evolution_iteration: int = 0  
 
-    meta_review_notes: Annotated[List[str], operator.add] = Field(default_factory=list)
+    meta_review_notes: Annotated[List[str], operator.add] = field(default_factory=list)
     meta_review_iteration: int = 0  
 
-    synthesizer_notes: Annotated[List[str], operator.add] = Field(default_factory=list)
+    synthesizer_notes: Annotated[List[str], operator.add] = field(default_factory=list)
     synthesizer_iteration: int = 0  
 
-    graph_designer_notes: Annotated[List[str], operator.add] = Field(default_factory=list)
+    graph_designer_notes: Annotated[List[str], operator.add] = field(default_factory=list)
     graph_designer_iteration: int = 0  
 
-    proximity_notes: Annotated[List[str], operator.add] = Field(default_factory=list)
+    proximity_notes: Annotated[List[str], operator.add] = field(default_factory=list)
 
     # **🔹 Orchestrator & Worker Interactions**
-    analyses: Annotated[List[WorkerAnalysis], operator.add] = Field(default_factory=list)
-    orchestrator_orders: Annotated[List[str], operator.add] = Field(default_factory=list)
+    analyses: Annotated[List[WorkerAnalysis], operator.add] = field(default_factory=list)
+    orchestrator_orders: Annotated[List[str], operator.add] = field(default_factory=list)
     current_requesting_agent: str = ""  # Tracks which agent called the orchestrator
     max_iterations: int = 0 # to be increased to account for each new round sent by the planner
 

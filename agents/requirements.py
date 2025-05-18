@@ -12,7 +12,7 @@ def requirements_node(state: State) -> Command[Literal["human", "planner"]]:
     print("📝 [DEBUG] REQUIREMENTS NODE ACCESSED")
 
     # **Step 1: Base LLM for Interactive Discussion**
-    messages = [SystemMessage(REQ_PROMPT), *state.messages]
+    messages = [SystemMessage(content=REQ_PROMPT), *state.messages]
     req_output = base_model.invoke(messages)
 
     display(Markdown(f"### 📜 Requirements Agent Response:\n\n{req_output.content}"))
@@ -30,8 +30,6 @@ def requirements_node(state: State) -> Command[Literal["human", "planner"]]:
 
         print(f"📜 Generated Cahier des Charges:\n{structured_output.model_dump_json()}")
 
-        # Grab in global variable:
-        CAHIER_DES_CHARGES = structured_output
 
         return Command(
             update={
@@ -43,6 +41,6 @@ def requirements_node(state: State) -> Command[Literal["human", "planner"]]:
 
     # **Step 3: Continue Iteration with Human**
     return Command(
-        update={"messages": [{"role": "assistant", "content": req_output.content}]},  
+        update={"messages": [AIMessage(content=req_output.content)]},  
         goto="human"
     )
