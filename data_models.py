@@ -256,18 +256,72 @@ class NonFunctionalRequirement(BaseModel):
     id: int = Field(..., description="Unique ID for the non-functional requirement.")
     category: str = Field(..., description="Category such as Performance, Usability, Safety, Compliance, etc.")
     description: str = Field(..., description="Description of the non-functional constraint.")
+    
+    
+    
+# ── lowest-level atoms ────────────────────────────────────────────────
+
+class StakeholderNeed(BaseModel):
+    """Voice-of-customer item (SN-xx)."""
+    code: str              = Field(..., description="e.g. SN-1")
+    text: str              = Field(..., description="Need statement")
+
+
+class Verification(BaseModel):
+    """Verification approach for one requirement."""
+    method: Literal["I", "A", "T", "D"]  # Inspection | Analysis | Test | Demo
+    description: str = ""                # optional extra detail
+
+
+class SystemRequirement(BaseModel):
+    """Engineering requirement (SR-xx)."""
+    code: str             = Field(..., description="e.g. SR-03")
+    text: str             = Field(..., description="Requirement statement")
+    rationale: Optional[str] = None      # why this SR exists
+    verifies: List[str] = Field(default_factory=list,
+                                description="List of SN codes traced to")
+    verification: Verification            # single primary method
+
+
+class Constraint(BaseModel):
+    """Non-negotiable design constraint or external interface."""
+    name: str
+    text: str
+
+
+class Deliverable(BaseModel):
+    """Design artefact to be produced."""
+    name: str
+    description: str
+
+
+# ── top-level Cahier-des-Charges ─────────────────────────────────────
 
 class CahierDesCharges(BaseModel):
-    project_name: str = Field(..., description="The official name of the project.")
-    description: str = Field(..., description="A high-level description of the project scope.")
-    objectives: List[str] = Field(..., description="Key objectives the project aims to fulfill.")
-    
-    functional_requirements: List[FunctionalRequirement] = Field(..., description="List of functional requirements.")
-    non_functional_requirements: List[NonFunctionalRequirement] = Field(..., description="List of non-functional requirements.")
-    
-    constraints: Dict[str, str] = Field(..., description="Constraints such as budget, material limitations, legal constraints.")
-    assumptions: List[str] = Field(default_factory=list, description="List of assumptions made during requirements gathering.")
-    open_questions: List[str] = Field(default_factory=list, description="Unresolved questions that need clarification before proceeding.")
+    """Full requirements specification (INCOSE-style skeleton)."""
+
+    # 1 – Project overview
+    project_title: str
+    objective: str                       # single headline objective
+
+    # 2 – Stakeholder needs
+    stakeholder_needs: List[StakeholderNeed]
+
+    # 3 – System-level requirements
+    system_requirements: List[SystemRequirement]
+
+    # 4 – Constraints & interfaces
+    constraints: List[Constraint]
+
+    # 5 – Verification strategy (derived automatically from SR.verification,
+    #     but a free text field is handy for extra notes)
+    verification_notes: Optional[str] = None
+
+    # 6 – Expected deliverables
+    deliverables: List[Deliverable]
+
+    # Free-form final note
+    final_note: Optional[str] = None
 
 
 class SupervisorDecision(BaseModel):
