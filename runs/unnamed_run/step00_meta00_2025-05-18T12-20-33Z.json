@@ -1,0 +1,50 @@
+{
+  "nodes": {
+    "F3": {
+      "node_id": "F3",
+      "node_kind": "function",
+      "name": "Filtration",
+      "description": "Remove contaminants from water",
+      "embodiment": {
+        "principle": "Membrane filtration",
+        "description": "Membrane filtration to remove bacteria, viruses, and micro-plastics",
+        "design_parameters": {
+          "pore_size": 0.1,
+          "surface_area": 10.0
+        },
+        "cost_estimate": 100.0,
+        "mass_estimate": 10.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [],
+      "verification_plan": "Water quality testing",
+      "maturity": "draft",
+      "tags": [],
+      "edges_in": [
+        "F2"
+      ],
+      "edges_out": [
+        "F4"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "F1",
+      "F2"
+    ],
+    [
+      "F2",
+      "F3"
+    ],
+    [
+      "F3",
+      "F4"
+    ],
+    [
+      "F4",
+      "F5"
+    ]
+  ]
+}
