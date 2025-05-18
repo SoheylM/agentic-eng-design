@@ -1,41 +1,50 @@
+# agents/supervisor.py  – counter-safe, no refinement
+from __future__ import annotations
+from typing  import Literal
+from datetime import datetime
+
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-from langgraph.types import Command
-from langgraph.graph import END
-from typing import Literal
+from langgraph.types          import Command
+from langgraph.graph          import END
+
 import json
 
-from data_models   import State, CahierDesCharges, DesignState, SupervisorDecision
-from prompts       import SUPERVISOR_PROMPT
-from llm_models    import supervisor_model
-from graph_utils   import summarize_design_state_func
+from data_models  import ( State, DesignState, CahierDesCharges,
+                           SupervisorDecision )
+from prompts      import SUPERVISOR_PROMPT
+from llm_models   import supervisor_model
+from graph_utils  import summarize_design_state_func
 
 
+# ─────────────────────────────────────────────────────────────────────────────
 def supervisor_node(state: State) -> Command[Literal["generation", END]]:
-    """Check current step, decide iterate / advance, write instructions."""
+    """
+    Decide whether the current Design-Plan step is complete.
+    *No* second refinement pass; counters behave exactly like the
+    original long version you had.
+    """
 
-    print("\n🔎 [Supervisor] invoked")
+    print("\n🔎  [Supervisor] invoked")
 
-    # ------------------------------------------------ plan & step lookup
+    # 1) plan + step ------------------------------------------------------------
     if not state.design_plan:
-        print("❌ [Supervisor] no DesignPlan — aborting")
+        print("⚠️  no DesignPlan → END")
         return Command(goto=END)
 
     steps = state.design_plan.steps
     idx   = state.current_step_index
-
     if idx >= len(steps):
-        print("🎉 [Supervisor] all steps done")
+        print("🎉 all steps done")
         return Command(goto=END)
 
-    step               = steps[idx]
-    design_graph       = state.design_graph_history[-1] if state.design_graph_history else DesignState()
-    graph_summary      = summarize_design_state_func(design_graph)
-    cdc_json           = (state.cahier_des_charges.model_dump_json()
-                          if isinstance(state.cahier_des_charges, CahierDesCharges)
-                          else json.dumps(state.cahier_des_charges or {}))
+    step   = steps[idx]
+    dsg    = state.design_graph_history[-1] if state.design_graph_history else DesignState()
+    cdc    = state.cahier_des_charges
+    cdc_js = (cdc.model_dump_json() if isinstance(cdc, CahierDesCharges)
+              else json.dumps(cdc or {}, indent=2))
 
-    # ------------------------------------------------ LLM call
-    llm_messages = [
+    # 2) structured LLM call ---------------------------------------------------
+    decision: SupervisorDecision = supervisor_model.invoke([
         SystemMessage(content=SUPERVISOR_PROMPT),
         HumanMessage(content=f"""
 ### Current step
@@ -44,32 +53,39 @@ Name: {step.name}
 Objectives: {step.objectives}
 Expected outputs: {step.expected_outputs}
 
-### DSG summary
-{graph_summary}
+### Design-State Graph (summary)
+{summarize_design_state_func(dsg)}
 
 ### Cahier-des-Charges
-{cdc_json}
+{cdc_js}
 """)
-    ]
+    ])
 
-    try:
-        decision: SupervisorDecision = supervisor_model.invoke(llm_messages)
-    except Exception as e:
-        err = f"❌ [Supervisor] LLM failure → {e}"
-        print(err)
-        return Command(update={"messages": [AIMessage(content=err)]}, goto=END)
+    print(f"✅  decision → step_completed={decision.step_completed}")
 
-    print(f"✅ [Supervisor] decision: step_completed={decision.step_completed}")
-
-    # ------------------------------------------------ state updates
+    # 3) counter / flag maintenance --------------------------------------------
     next_idx   = idx + 1 if decision.step_completed else idx
-    next_agent = "generation" if next_idx < len(steps) and not decision.workflow_complete else END
+    redo_flag  = not decision.step_completed
 
-    update_dict = {
+    # keep max_iterations monotonically increasing so other agents
+    # never see 0/0
+    new_max_iter = max(
+        state.max_iterations,
+        state.generation_iteration,
+        state.reflection_iteration,
+        state.ranking_iteration,
+        state.evolution_iteration,
+    ) + 1
+
+    update = {
         "supervisor_instructions": [decision.instructions],
         "current_step_index": next_idx,
-        "redo_work": not decision.step_completed,
+        "redo_work": redo_flag,
         "redo_reason": decision.reason_for_iteration,
+        "max_iterations": new_max_iter,
+        # trace for debugging
+        "supervisor_status": f"step{idx}_decided_{datetime.utcnow().isoformat(timespec='seconds')}",
     }
 
-    return Command(update=update_dict, goto=next_agent)
+    goto = "generation" if next_idx < len(steps) and not decision.workflow_complete else END
+    return Command(update=update, goto=goto)
