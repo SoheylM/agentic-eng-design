@@ -1,6 +1,7 @@
 from langgraph.types import Command
 from typing import Literal
 from data_models import State
+from langchain_core.messages import HumanMessage
 import streamlit as st
 
 
@@ -25,13 +26,13 @@ def human_node(state: State) -> Command[Literal["requirements", "planner"]]:
         print("✅ Ending discussion, finalizing requirements, moving to planner.")
         return Command(
             update={
-                "messages": [{"role": "user", "content": user_input}],
+                "messages": [HumanMessage(content=user_input)],
                 "active_agent": "planner"
             },
             goto="planner"
         )
 
     return Command(
-        update={"messages": [{"role": "user", "content": user_input}]},
+        update={"messages": [HumanMessage(content=user_input)]},
         goto="requirements"
     )

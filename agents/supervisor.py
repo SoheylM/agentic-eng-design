@@ -1,4 +1,4 @@
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langgraph.types import Command
 from langgraph.graph import END
 from typing import Literal
@@ -57,7 +57,7 @@ Expected outputs: {step.expected_outputs}
     except Exception as e:
         err = f"❌ [Supervisor] LLM failure → {e}"
         print(err)
-        return Command(update={"messages": [err]}, goto=END)
+        return Command(update={"messages": [AIMessage(content=err)]}, goto=END)
 
     print(f"✅ [Supervisor] decision: step_completed={decision.step_completed}")
 

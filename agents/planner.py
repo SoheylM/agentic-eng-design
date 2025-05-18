@@ -1,5 +1,5 @@
 # agents/planner.py
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langgraph.types import Command
 from typing import Literal
 import json
@@ -18,7 +18,7 @@ def planner_node(state: State) -> Command[Literal["supervisor", "human"]]:
     if not state.cahier_des_charges:
         print("❌  [Planner] CDC missing – hand back to human")
         return Command(
-            update={"messages": ["❌ Cahier des Charges missing."]},
+            update={"messages": [AIMessage(content="❌ Cahier des Charges missing.")]},
             goto="human",
         )
 
@@ -39,7 +39,7 @@ def planner_node(state: State) -> Command[Literal["supervisor", "human"]]:
     except Exception as e:
         err = f"❌  [Planner] LLM failed → {e}"
         print(err)
-        return Command(update={"messages": [err]}, goto="human")
+        return Command(update={"messages": [AIMessage(content=err)]}, goto="human")
 
     print(f"✅  [Planner] produced {len(plan.steps)} steps")
 
@@ -47,7 +47,7 @@ def planner_node(state: State) -> Command[Literal["supervisor", "human"]]:
     return Command(
         update={
             "design_plan": plan,
-            "messages": [f"✅ DesignPlan ready with {len(plan.steps)} steps."],
+            "messages": [AIMessage(content=f"✅ DesignPlan ready with {len(plan.steps)} steps.")],
             "active_agent": "supervisor",
         },
         goto="supervisor",
