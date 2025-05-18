@@ -4,187 +4,94 @@ from pydantic import BaseModel, Field
 from langchain_core.messages import BaseMessage
 import uuid
 from dataclasses import dataclass, field
+# dsg_models.py  ── lean (x-grammar-safe) definitions
+from __future__ import annotations
+import uuid
+from typing import List, Dict, Literal, Optional
+from pydantic import BaseModel, Field
 
-# ──────────────────────────────────────────────────────────────────────────────
-#  Low-level payload leaves
-# ──────────────────────────────────────────────────────────────────────────────
+
+# ────────────────────────────────────────────────
+#  Leaves
+# ────────────────────────────────────────────────
 
 class PhysicsModel(BaseModel):
     """Executable or symbolic model attached to a design element."""
-
-    name: str = Field(
-        metadata={"desc": "Human-readable identifier (e.g. 'BernoulliPump')"}
-    )
-    equations: str = Field(
-        metadata={"desc": "LaTeX or plain-text formulation of governing eqns"}
-    )
-    python_code: str = Field(
-        metadata={"desc": "Runnable snippet or module import path"}
-    )
-    assumptions: List[str] = Field(
-        default_factory=list,
-        metadata={"desc": "Key simplifying assumptions made by the model"},
-    )
-    status: str = Field(
-        default="draft",
-        metadata={
-            "desc": "Model maturity flag – use 'draft', 'validated', or 'deprecated'"
-        },
-    )
+    name: str            = Field(..., description="Short identifier")
+    equations: str       = Field("",  description="LaTeX or plain-text equations")
+    python_code: str     = Field("",  description="Runnable Python snippet")
+    assumptions: List[str] = Field(default_factory=list,
+                                   description="Key simplifying assumptions")
+    status: str          = Field("draft",
+                                  description="draft | validated | deprecated")
 
 
 class Embodiment(BaseModel):
-    """How a function/sub-function is physically instantiated."""
+    """Physical realisation of a (sub)function."""
+    principle: str                     # e.g. 'reverse-osmosis'
+    description: str = ""
+    design_parameters: Dict[str, float] = Field(default_factory=dict)
+    cost_estimate: float  = -1.0       # −1 means “not estimated”
+    mass_estimate: float  = -1.0
+    status: str          = "candidate" # candidate | selected | rejected
 
-    principle: str = Field(
-        metadata={"desc": "Primary working principle (e.g. 'reverse-osmosis')"}
-    )
-    description: str = Field(
-        metadata={"desc": "Concise explanation of how the embodiment works"}
-    )
-    design_parameters: Dict[str, float] = Field(
-        default_factory=dict,
-        metadata={"desc": "Key design vars with nominal numeric values"},
-    )
-    cost_estimate: float = Field(
-        default=-1.0,
-        metadata={"desc": "USD cost estimate; −1.0 means 'not yet estimated'"},
-    )
-    mass_estimate: float = Field(
-        default=-1.0,
-        metadata={"desc": "Mass in kg; −1.0 means 'not yet estimated'"},
-    )
-    status: str = Field(
-        default="candidate",
-        metadata={
-            "desc": "Lifecycle state – 'candidate', 'selected', or 'rejected'"
-        },
-    )
 
-# ──────────────────────────────────────────────────────────────────────────────
-#  The single node that carries everything
-# ──────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────
+#  Graph node
+# ────────────────────────────────────────────────
 
 class DesignNode(BaseModel):
-    """
-    Self-contained design element.  
-    `node_kind` maintains hierarchy while keeping embodiment + models inline.
-    """
+    """Single element in the Design-State Graph."""
+    node_id: str   = Field(default_factory=lambda: str(uuid.uuid4()))
+    node_kind: str = Field(...,  description="function | subfunction | requirement | …")
+    name: str
+    description: str = ""
 
-    node_id: str = Field(
-        default_factory=lambda: str(uuid.uuid4()),
-        metadata={"desc": "Globally unique identifier"},
-    )
-    node_kind: str = Field(
-        metadata={
-            "desc": "Token such as 'function', 'subfunction', 'requirement', 'constraint'"
-        }
-    )
-    name: str = Field(
-        metadata={"desc": "Short, human-friendly label"}
-    )
-    description: str = Field(
-        default="",
-        metadata={"desc": "Long-form text explaining purpose or behaviour"},
-    )
+    embodiment: Embodiment           = Field(default_factory=Embodiment)
+    physics_models: List[PhysicsModel] = Field(default_factory=list)
 
-    # Rich payload -------------------------------------------------------------
-    embodiment: Embodiment = Field(
-        default_factory=lambda: Embodiment(
-            principle="undefined",
-            description="embodiment not yet specified",
-        ),
-        metadata={"desc": "Current embodiment choice"},
-    )
-    physics_models: List[PhysicsModel] = Field(
-        default_factory=list,
-        metadata={"desc": "One or more physics / empirical models"},
-    )
+    maturity: str = "draft"          # draft | reviewed | validated
+    tags: List[str] = Field(default_factory=list)
 
-    # Meta-fields --------------------------------------------------------------
-    maturity: str = Field(
-        default="draft",
-        metadata={
-            "desc": "Overall maturity – 'draft', 'reviewed', or 'validated'"
-        },
-    )
-    tags: List[str] = Field(
-        default_factory=list,
-        metadata={"desc": "Arbitrary keywords for search / filter"},
-    )
+    # graph connectivity (ids only, kept as plain lists)
+    edges_in:  List[str] = Field(default_factory=list)
+    edges_out: List[str] = Field(default_factory=list)
 
-    # Graph connectivity -------------------------------------------------------
-    edges_in: List[str] = Field(
-        default_factory=list,
-        metadata={"desc": "IDs of parent nodes"},
-    )
-    edges_out: List[str] = Field(
-        default_factory=list,
-        metadata={"desc": "IDs of child nodes"},
-    )
+
+# ────────────────────────────────────────────────
+#  Whole DSG
+# ────────────────────────────────────────────────
 
 class DesignState(BaseModel):
-    """
-    Pure data container for the evolving design.
+    """Entire design graph (nodes + directed edges)."""
+    nodes: Dict[str, DesignNode]     = Field(default_factory=dict)
+    edges: List[List[str]]           = Field(default_factory=list,
+        description="[source_id, target_id] pairs")
 
-    • `nodes`  : mapping from node_id → DesignNode  
-    • `edges`  : list of directed pairs (source_id, target_id)
 
-    No helper methods are defined here – keep graph manipulation
-    in standalone utility functions or in the agent logic.
-    """
-
-    nodes: Dict[str, DesignNode] = Field(
-        default_factory=dict,
-        metadata={"desc": "All design nodes keyed by their unique node_id"},
-    )
-    edges: List[Tuple[str, str]] = Field(
-        default_factory=list,
-        metadata={
-            "desc": "Directed edges (source_id, target_id) capturing dependencies"
-        },
-    )
-
+# Output schema for the generation agent
 class DSGListOutput(BaseModel):
     proposals: List[DesignState]
 
 
+# ────────────────────────────────────────────────
+#  Atomic edit ops (optional helpers)
+# ────────────────────────────────────────────────
+
 class NodeOp(BaseModel):
-    """Atomic modification to a node."""
-
-    op: Literal["add", "update", "delete"]        # required
-
-    # For 'add' you supply a full DesignNode; for update/delete you pass node_id
-    node: DesignNode | None = None
-    node_id: str | None = None
-
-    updates: Dict[str, str] = Field(
-        default_factory=dict,
-        description="Shallow key→value edits when op == 'update'",
-    )
+    op: Literal["add", "update", "delete"]
+    node: Optional[DesignNode] = None     # full node when op == add
+    node_id: Optional[str]     = None     # id when update / delete
+    updates: Dict[str, str]    = Field(default_factory=dict)
     justification: str = ""
 
 
-
 class EdgeOp(BaseModel):
-    """Atomic modification to an edge."""
+    op: Literal["add", "delete"]
+    src: str
+    dst: str
+    justification: str = ""
 
-    op: Literal["add", "delete"] = Field(
-        ...,
-        description="Edge operation type",
-    )
-    src: str = Field(
-        ...,
-        description="Source node_id (tail of the arrow)",
-    )
-    dst: str = Field(
-        ...,
-        description="Destination node_id (head of the arrow)",
-    )
-    justification: str = Field(
-        "",
-        description="Rationale for adding/removing this dependency",
-    )
 
 class Proposal(BaseModel):
     """
