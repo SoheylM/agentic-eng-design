@@ -1,0 +1,73 @@
+{
+  "nodes": {
+    "F3": {
+      "node_id": "F3",
+      "node_kind": "function",
+      "name": "Filtration",
+      "description": "Remove contaminants from water",
+      "embodiment": {
+        "principle": "Ultrafiltration Membrane with Chlorine Dosing and Ozone Treatment",
+        "description": "Ultrafiltration membrane with chlorine dosing and ozone treatment to remove bacteria, viruses, and micro-plastics",
+        "design_parameters": {
+          "membrane_type": 2.0,
+          "pore_size": 0.01,
+          "transmembrane_pressure": 5.0,
+          "chemical_type": 2.0,
+          "dosage_rate": 5.0,
+          "contact_time": 5.0,
+          "ozone_dosage_rate": 2.0,
+          "ozone_contact_time": 2.0
+        },
+        "cost_estimate": 380.0,
+        "mass_estimate": 32.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Ultrafiltration Model",
+          "equations": "J = (P * A) / (R * T); C/C0 = e^(-k * t)",
+          "python_code": "import numpy as np; J = (P * A) / (R * T); C_C0 = np.exp(-k * t)",
+          "assumptions": [
+            "Steady-state conditions"
+          ],
+          "status": "draft"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-02",
+        "SR-03",
+        "SR-04",
+        "SR-05",
+        "SR-06",
+        "SR-07",
+        "SR-08",
+        "SR-09",
+        "SR-10"
+      ],
+      "verification_plan": "Performance testing under different environmental conditions",
+      "maturity": "draft",
+      "tags": [
+        "water treatment",
+        "membrane filtration",
+        "chemical treatment"
+      ],
+      "edges_in": [
+        "F2"
+      ],
+      "edges_out": [
+        "F4"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "F2",
+      "F3"
+    ],
+    [
+      "F3",
+      "F4"
+    ]
+  ]
+}

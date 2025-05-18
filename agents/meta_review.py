@@ -63,17 +63,22 @@ def meta_review_node(state: State) -> Command[Literal["orchestrator", "superviso
     print(f"   • reviewing {len(recent_props)} DSG proposals")
 
     # Compact summaries for the LLM
+    # ----- replace the existing dsg_summaries comprehension ------------------
     dsg_summaries = [
         {
             "index": idx,
             "title": p.title,
-            "summary": summarize_design_state_func(p.content),
+            # ⚠️  use the *most recent* graph for the summary
+            "summary": summarize_design_state_func(
+                p.evolved_content if p.evolved_content is not None else p.content
+            ),
             "reflection": p.feedback or "No reflection feedback.",
             "grade": p.grade if p.grade is not None else "Not yet scored",
-            "evolved": (bool(p.evolved_content) and "Yes") or "No",
+            "is_evolved": bool(p.evolved_content),          # clearer flag
         }
         for idx, p in enumerate(recent_props)
     ]
+
 
     # ── LLM call ────────────────────────────────────────────────────────────
     llm_resp = meta_reviewer_agent.invoke([
@@ -104,13 +109,22 @@ Return your final decisions.
             pr.meta_review_iteration_index = it_now
             print(f"     ↳ proposal {idx} → {dec.final_status}")
 
+    # ----- keep the loop that writes status unchanged ------------------------
+
     selected_idx = llm_resp.selected_proposal_index
     if 0 <= selected_idx < len(recent_props):
-        chosen_dsg = recent_props[selected_idx].content
-        # append to history & visualise
+        chosen_prop = recent_props[selected_idx]
+
+        # ⚠️  pick evolved_content first, fall back to original
+        chosen_dsg = (
+            chosen_prop.evolved_content
+            if chosen_prop.evolved_content is not None
+            else chosen_prop.content
+        )
+
         state.design_graph_history.append(chosen_dsg)
-        print(f"   ✅ proposal {selected_idx} selected - DSG stored to history")
-        visualize_design_state_func(chosen_dsg)      # optional GUI pop-up
+        print(f"   ✅ proposal {selected_idx} selected – DSG stored to history")
+        visualize_design_state_func(chosen_dsg)
     else:
         chosen_dsg = None
         print("   ⚠️  no proposal selected")
