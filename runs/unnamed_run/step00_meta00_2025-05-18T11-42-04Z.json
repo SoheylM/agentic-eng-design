@@ -1,0 +1,68 @@
+{
+  "nodes": {
+    "main_function": {
+      "node_id": "MF-01",
+      "node_kind": "Function",
+      "name": "Water Filtration",
+      "description": "Remove contaminants from raw water to produce potable water",
+      "embodiment": {
+        "principle": "Ceramic membrane filtration with UV treatment",
+        "description": "High-efficiency filtration with minimal maintenance and UV treatment for disinfection",
+        "design_parameters": {
+          "flow_rate": 10.0,
+          "filtration_efficiency": 0.9999,
+          "energy_consumption": 50.0,
+          "uv_intensity": 30.0
+        },
+        "cost_estimate": 450.0,
+        "mass_estimate": 18.0,
+        "status": "Proposed"
+      },
+      "physics_models": [
+        {
+          "name": "Filtration Efficiency Model",
+          "equations": "dC/dt = -k * C",
+          "python_code": "import numpy as np\ndef filtration_efficiency(C0, k, t):\n  return C0 * np.exp(-k * t)",
+          "assumptions": [
+            "Constant filtration rate",
+            "No filter clogging"
+          ],
+          "status": "Proposed"
+        },
+        {
+          "name": "UV Disinfection Model",
+          "equations": "dN/dt = -k * N",
+          "python_code": "import numpy as np\ndef uv_disinfection(N0, k, t):\n  return N0 * np.exp(-k * t)",
+          "assumptions": [
+            "Constant UV intensity",
+            "No UV resistance"
+          ],
+          "status": "Proposed"
+        }
+      ],
+      "maturity": "Low",
+      "tags": [
+        "Solar-Powered",
+        "Water Filtration",
+        "Ceramic Membrane",
+        "UV Treatment"
+      ],
+      "edges_in": [
+        "MF-05"
+      ],
+      "edges_out": [
+        "MF-06"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "MF-01",
+      "MF-05"
+    ],
+    [
+      "MF-01",
+      "MF-06"
+    ]
+  ]
+}
