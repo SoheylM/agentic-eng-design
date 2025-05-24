@@ -61,7 +61,11 @@ Expected outputs: {step.expected_outputs}
 """)
     ])
 
-    print(f"✅  decision → step_completed={decision.step_completed}")
+    # Print concise decision summary
+    status = "✅" if decision.step_completed else "🔄"
+    print(f"{status} Step {step.step_id} ({step.name}): {'Completed' if decision.step_completed else 'Needs iteration'}")
+    if not decision.step_completed:
+        print(f"   Reason: {decision.reason_for_iteration}")
 
     # 3) counter / flag maintenance --------------------------------------------
     next_idx   = idx + 1 if decision.step_completed else idx

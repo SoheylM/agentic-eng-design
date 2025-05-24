@@ -45,10 +45,10 @@ INPUT
 
 TASK
 Return a SupervisorDecision object that says
-  • whether the step is complete (`step_completed`)  
-  • one clear set of `instructions` for the next agent  
-  • an optional `reason_for_iteration` if more work is needed  
-  • `workflow_complete=True` only when the whole plan is finished
+  • whether the step is complete ('step_completed')  
+  • one clear set of 'instructions' for the agents in the framework 
+  • an optional 'reason_for_iteration' if more work is needed  
+  • return 'workflow_complete=True' only when the whole plan is met
 """
 
 
@@ -641,8 +641,9 @@ Create the fewest clear steps (≤ 3) needed for the other agents to deliver a
 *complete, first-pass Design-State Graph* (DSG) of the product.
 The DSG must contain:
   - all main functions and key sub-functions  
-  - for each function an initial embodiment concept  
-  - for each embodiment at least one high-level physics / numerical model stub
+  - for each function an embodiment concept  
+  - for each embodiment high-level physics
+  - for each embodiment a python script to fully implement the embodiment in a simulation environment
 """
 
 CAHIER_DES_CHARGES="""

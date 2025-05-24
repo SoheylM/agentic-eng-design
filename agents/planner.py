@@ -42,6 +42,11 @@ def planner_node(state: State) -> Command[Literal["supervisor", "human"]]:
         return Command(update={"messages": [AIMessage(content=err)]}, goto="human")
 
     print(f"✅  [Planner] produced {len(plan.steps)} steps")
+    print("\n📋 Design Plan Steps:")
+    for step in plan.steps:
+        print(f"  {step.step_id}. {step.name}")
+        print(f"     Objectives: {step.objectives}")
+        print(f"     Outputs: {step.expected_outputs}")
 
     # ------------------------------------------------------------------ state update
     return Command(
