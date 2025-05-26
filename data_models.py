@@ -190,7 +190,7 @@ class State:
     messages: Annotated[List[BaseMessage], operator.add] = field(default_factory=list)  
 
     # **🔹 Key Engineering Artifacts**
-    cahier_des_charges: Optional[dict] = None  # The structured requirements document
+    cahier_des_charges: Optional[CahierDesCharges] = None  # The structured requirements document
     design_plan: Optional[DesignPlan] = None  # The structured multi-step design plan
     supervisor_instructions: Annotated[List[str], operator.add] = field(default_factory=list)  # Step-wise instructions
 
