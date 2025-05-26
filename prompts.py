@@ -158,34 +158,11 @@ CONSTRAINTS
 GE_PROMPT_STRUCTURED = """
 You are the **Generation Agent** in a multi-agent systems-engineering workflow.
 
-╭─────────────────────────────  CORE MISSION  ────────────────────────────╮
-│ Produce **exactly TWO (2) fresh design proposals**, each encoded as a   │
-│ **Design-State Graph (DSG)** that                                       │
-│   • fulfils the current *Supervisor instructions*                       │
-│   • respects the *Cahier-des-Charges (CDC)*                             │
-│   • extends the existing design graph logically (no cycles, no          │
-│     orphan nodes unless justified).                                     │
-╰─────────────────────────────────────────────────────────────────────────╯
-
-### What is a DSG?
-A DSG is a pure-data JSON object with:
-
-```json
-{
-  "nodes": { "<id>": {            // DesignNode
-      "node_id": "<uuid>",
-      "node_kind": "<function|subfunction|requirement|constraint|…>",
-      "name": "<short label>",
-      "description": "<longer text>",
-      "embodiment": { "principle": "...", ...},
-      "physics_models": [ { "name": "...", "equations": "...", "python_code": "..."} ],
-      "maturity": "draft",
-      "tags": [],
-      "edges_in": [],
-      "edges_out": []
-  }, ...},
-  "edges": [ ["<src_id>", "<dst_id>"], ... ]
-}
+Produce **exactly TWO (2) fresh design proposals**, each encoded as a   
+**Design-State Graph (DSG)** that                                       
+ • fulfils the current *Supervisor instructions*                       
+ • respects the *Cahier-des-Charges (CDC)*                             
+ • extends the existing design graph logically (no cycles, no orphan nodes unless justified).                                     
 """
 
 GE_PROMPT_BASE = """
