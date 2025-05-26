@@ -1,0 +1,258 @@
+{
+  "nodes": {
+    "Water Quality Monitoring": {
+      "node_id": "Water Quality Monitoring",
+      "node_kind": "sub-function",
+      "name": "Water Quality Monitoring",
+      "description": "Monitor water quality parameters using advanced sensors",
+      "embodiment": {
+        "principle": "electrical",
+        "description": "pH, turbidity, and conductivity sensors with real-time monitoring",
+        "design_parameters": {},
+        "cost_estimate": 300.0,
+        "mass_estimate": 30.0,
+        "status": "active"
+      },
+      "physics_models": [
+        {
+          "name": "Sensor Calibration",
+          "equations": "y = mx + b",
+          "python_code": "import numpy as np; y = mx + b",
+          "assumptions": [
+            "linear relationship"
+          ],
+          "status": "active"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-02"
+      ],
+      "verification_plan": "Testing under controlled conditions",
+      "maturity": "high",
+      "tags": [
+        "water quality monitoring"
+      ],
+      "edges_in": [
+        "Filtration"
+      ],
+      "edges_out": [
+        "System Control",
+        "User Interface"
+      ]
+    },
+    "Filtration": {
+      "node_id": "Filtration",
+      "node_kind": "sub-function",
+      "name": "Filtration",
+      "description": "Remove contaminants from water using filtration technologies",
+      "embodiment": {
+        "principle": "mechanical",
+        "description": "Membrane filtration with pore size 0.1 \u03bcm",
+        "design_parameters": {},
+        "cost_estimate": 350.0,
+        "mass_estimate": 35.0,
+        "status": "active"
+      },
+      "physics_models": [
+        {
+          "name": "Filtration Efficiency",
+          "equations": "\u03b7 = (1 - (d_p / d_c))^2",
+          "python_code": "import numpy as np; \u03b7 = (1 - (d_p / d_c))^2",
+          "assumptions": [
+            "laminar flow"
+          ],
+          "status": "active"
+        }
+      ],
+      "linked_reqs": [
+        "SR-02"
+      ],
+      "verification_plan": "Testing under controlled conditions",
+      "maturity": "medium",
+      "tags": [
+        "filtration"
+      ],
+      "edges_in": [],
+      "edges_out": [
+        "Water Quality Monitoring"
+      ]
+    },
+    "System Control": {
+      "node_id": "System Control",
+      "node_kind": "sub-function",
+      "name": "System Control",
+      "description": "Control system operation using advanced control algorithms",
+      "embodiment": {
+        "principle": "electrical",
+        "description": "Microcontroller with advanced control algorithm and real-time monitoring",
+        "design_parameters": {},
+        "cost_estimate": 200.0,
+        "mass_estimate": 20.0,
+        "status": "active"
+      },
+      "physics_models": [
+        {
+          "name": "Control Algorithm",
+          "equations": "u = K * e",
+          "python_code": "import numpy as np; u = K * e",
+          "assumptions": [
+            "linear relationship"
+          ],
+          "status": "active"
+        }
+      ],
+      "linked_reqs": [
+        "SR-03"
+      ],
+      "verification_plan": "Testing under controlled conditions",
+      "maturity": "high",
+      "tags": [
+        "system control"
+      ],
+      "edges_in": [
+        "Water Quality Monitoring"
+      ],
+      "edges_out": [
+        "Maintenance",
+        "Power Management"
+      ]
+    },
+    "Maintenance": {
+      "node_id": "Maintenance",
+      "node_kind": "sub-function",
+      "name": "Maintenance",
+      "description": "Perform routine maintenance tasks to ensure system longevity",
+      "embodiment": {
+        "principle": "mechanical",
+        "description": "Replaceable filters and cleaning schedule",
+        "design_parameters": {},
+        "cost_estimate": 150.0,
+        "mass_estimate": 15.0,
+        "status": "active"
+      },
+      "physics_models": [
+        {
+          "name": "Filter Replacement",
+          "equations": "t_r = (V_f / Q_f) * (1 - \u03b7)",
+          "python_code": "import numpy as np; t_r = (V_f / Q_f) * (1 - \u03b7)",
+          "assumptions": [
+            "constant flow rate"
+          ],
+          "status": "active"
+        }
+      ],
+      "linked_reqs": [],
+      "verification_plan": "Inspection of system design and components",
+      "maturity": "medium",
+      "tags": [
+        "maintenance"
+      ],
+      "edges_in": [
+        "System Control"
+      ],
+      "edges_out": []
+    },
+    "User Interface": {
+      "node_id": "User Interface",
+      "node_kind": "sub-function",
+      "name": "User Interface",
+      "description": "Provide user-friendly interface for system operation and monitoring",
+      "embodiment": {
+        "principle": "electrical",
+        "description": "Touchscreen display with real-time monitoring and alerts",
+        "design_parameters": {},
+        "cost_estimate": 250.0,
+        "mass_estimate": 25.0,
+        "status": "active"
+      },
+      "physics_models": [
+        {
+          "name": "User Interaction",
+          "equations": "t_i = (n_i / r_i) * (1 - e_i)",
+          "python_code": "import numpy as np; t_i = (n_i / r_i) * (1 - e_i)",
+          "assumptions": [
+            "constant user interaction rate"
+          ],
+          "status": "active"
+        }
+      ],
+      "linked_reqs": [
+        "SR-09"
+      ],
+      "verification_plan": "Usability testing with untrained users",
+      "maturity": "medium",
+      "tags": [
+        "user interface"
+      ],
+      "edges_in": [
+        "Water Quality Monitoring"
+      ],
+      "edges_out": []
+    },
+    "Power Management": {
+      "node_id": "Power Management",
+      "node_kind": "sub-function",
+      "name": "Power Management",
+      "description": "Manage power consumption and energy storage for system operation",
+      "embodiment": {
+        "principle": "electrical",
+        "description": "Solar panel with battery backup and power conversion",
+        "design_parameters": {},
+        "cost_estimate": 400.0,
+        "mass_estimate": 40.0,
+        "status": "active"
+      },
+      "physics_models": [
+        {
+          "name": "Power Consumption",
+          "equations": "P_c = (V * I) / \u03b7",
+          "python_code": "import numpy as np; P_c = (V * I) / \u03b7",
+          "assumptions": [
+            "constant power consumption rate"
+          ],
+          "status": "active"
+        }
+      ],
+      "linked_reqs": [
+        "SR-04",
+        "SR-05"
+      ],
+      "verification_plan": "Testing under controlled conditions",
+      "maturity": "medium",
+      "tags": [
+        "power management"
+      ],
+      "edges_in": [
+        "System Control"
+      ],
+      "edges_out": []
+    }
+  },
+  "edges": [
+    [
+      "Filtration",
+      "Water Quality Monitoring"
+    ],
+    [
+      "Water Quality Monitoring",
+      "System Control"
+    ],
+    [
+      "Water Quality Monitoring",
+      "User Interface"
+    ],
+    [
+      "System Control",
+      "Maintenance"
+    ],
+    [
+      "System Control",
+      "Power Management"
+    ],
+    [
+      "Maintenance",
+      "System Control"
+    ]
+  ]
+}

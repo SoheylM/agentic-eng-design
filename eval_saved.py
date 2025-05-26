@@ -15,6 +15,126 @@ try:
     from radon.complexity import cc_visit_ast        # tiny dependency: pip install radon
 except ImportError:
     cc_visit_ast = None
+from collections import OrderedDict
+
+# ------------------------------------------------------------------
+#  Human-readable metadata for every metric we emit
+# ------------------------------------------------------------------
+_METRIC_INFO = OrderedDict([
+    # ------------------------------------------------------------
+    #  Requirement-centric
+    # ------------------------------------------------------------
+    ("req", (
+        "Requirement coverage (SR-01 ... SR-10)",
+        (
+            "Scalar recall of top-level system requirements.\n"
+            " 1) For every SR code we look for a semantically similar sentence\n"
+            "    in any node payload (SBERT cosine >= 0.7).\n"
+            " 2) Score = hits / 10.\n"
+            "    1.00 -> every requirement mentioned at least once.\n"
+            "    0.70 -> three of the ten SR codes never appear.\n"
+            " Raise by adding missing SR IDs or paraphrases."
+        ))),
+
+    # ------------------------------------------------------------
+    #  Graph topology
+    # ------------------------------------------------------------
+    ("depth", (
+        "Average graph depth",
+        (
+            "Mean longest-path length from each root to its furthest leaf.\n"
+            " < 1.0  -> flat list, no decomposition.\n"
+            " 1-3    -> typical concept-design hierarchy.\n"
+            " > 5    -> very deep; risk of telephone-pole design."
+        ))),
+
+    ("branch", (
+        "Average branching factor",
+        (
+            "Fan-out = outgoing edges per node (mean).\n"
+            " ~= 1   -> linear chain.\n"
+            " 2-4    -> balanced decomposition.\n"
+            " > 6    -> extremely broad; consider merging functions."
+        ))),
+
+    ("density", (
+        "Edge density",
+        (
+            "|E| / |V|  (0 when no edges).\n"
+            " 0.05-0.30 is healthy; >0.50 often means spaghetti coupling."
+        ))),
+
+    # ------------------------------------------------------------
+    #  Design richness / embodiment
+    # ------------------------------------------------------------
+    ("embody", (
+        "Embodiment ratio",
+        (
+            "Fraction of all nodes whose embodiment.principle is not 'undefined'.\n"
+            "Indicates how much of the concept space has concrete tech choices."
+        ))),
+
+    ("phys_model", (
+        "Physics-model coverage",
+        (
+            "Fraction of subsystem nodes that include one or more PhysicsModel.\n"
+            " 0.0 -> no predictive capability.\n"
+            " 1.0 -> every subsystem has code."
+        ))),
+
+    ("maturity", (
+        "Maturity index",
+        (
+            "Weighted mean over node.maturity:\n"
+            " draft = 0, reviewed = 0.5, validated = 1.\n"
+            "Tracks progress through design reviews and V&V."
+        ))),
+
+    # ------------------------------------------------------------
+    #  Analytic documentation
+    # ------------------------------------------------------------
+    ("sympy", (
+        "Equation parse rate",
+        (
+            "Share of PhysicsModel.equations strings that SymPy can parse\n"
+            "without error.  High value hints at well-formatted algebra."
+        ))),
+
+    # ------------------------------------------------------------
+    #  Code health
+    # ------------------------------------------------------------
+    ("compile", (
+        "Scripts compile",
+        (
+            "Fraction of extracted *.py files that pass ast.parse().\n"
+            "Detects syntax errors and bad indentation."
+        ))),
+
+    ("execute", (
+        "Scripts execute (--help)",
+        (
+            "Fraction of scripts that run 'python script.py --help' without\n"
+            "raising.  Catches missing imports or disallowed I/O."
+        ))),
+
+    ("phys_quality", (
+        "Physics-quality composite",
+        (
+            "0-1 normalised average of a 0-100 rubric:\n"
+            "  * 10 pts CLI + JSON I/O contract\n"
+            "  * 20 pts Units (pint, .to(), dimensional safety)\n"
+            "  * 25 pts Solver richness (ODE, PDE, FEM, optimisation)\n"
+            "  * 25 pts Verification hooks (asserts, residuals, pytest)\n"
+            "  * 20 pts Physics keyword depth (enthalpy, Reynolds, etc.)\n"
+            "\n"
+            "Guide:\n"
+            " 0.80-1.00 -> production-ready simulation code\n"
+            " 0.40-0.79 -> partial physics, needs units/tests\n"
+            " < 0.40    -> stub or empirical placeholders"
+        ))),
+])
+
+
 
 # ---------- regex / constants ----------------------------------------------
 # ---------------------------------------
@@ -230,98 +350,56 @@ def physics_rubric(p: Path) -> int:
     return pts
 
 
-# ---------- per-snapshot evaluation -----------------------------------------
-def evaluate_dsg(dsg: DesignState, tmp: Path) -> Dict[str, float]:
+
+def _wrap_metrics(raw: Dict[str, float]) -> Dict[str, Dict[str, float | str]]:
     """
-    Analyse a single **Design-State Graph** (DSG) snapshot and condense its
-    engineering quality into a dictionary of scalar signals.  Each signal is
-    tuned for *LLM-agent feedback*: high-level agents can treat the numbers as
-    rewards, while low-level agents can optimise individual weaknesses
-    (coverage, physics fidelity, graph hygiene, …).
-
-    ----------
-    PIPELINE
-    ----------
-    1.  **Script extraction**
-        Every ``PhysicsModel.python_code`` block is written to a temporary
-        *.py* file so we can statically inspect and dynamically execute it.
-
-    2.  **Basic viability checks**
-        • ``compile``  – fraction of scripts that pass ``ast.parse``  
-        • ``execute`` – fraction that run ``script.py --help`` without error  
-          (These catch syntax errors and missing imports before deeper tests.)
-
-    3.  **Physics-fidelity rubric**
-        Each script is scored 0-100 by `physics_rubric()`  
-        (interface contract 10 pts + unit safety 20 + solver richness 25 +
-        verification hooks 25 + physics keywords 20).  The average is returned
-        as **``phys_quality``** ∈ [0-1].
-
-    4.  **Requirement coverage**
-        ``req`` – semantic recall of SR-01…SR-10 requirements inside any node
-        payload (1.0 = all referenced at least once).
-
-    5.  **Graph topology**
-        • ``depth``   – mean longest-path length from root nodes  
-        • ``branch``  – average out-degree (fan-out) per node  
-        • ``density`` – |E| / |V|, a spaghetti-vs-stick indicator
-
-    6.  **Design richness**
-        • ``embody``      – share of nodes whose embodiment *principle* is set  
-        • ``phys_model``  – share of **subsystem** nodes that carry at least
-          one ``PhysicsModel``  
-        • ``maturity``    – 0/0.5/1 average over *draft / reviewed / validated*
-
-    7.  **Math formalism**
-        ``sympy`` – ratio of equations that SymPy can parse (syntax sanity
-        check for analytic documentation).
-
-    ----------
-    RETURNS
-    ----------
-    Dict[str, float] with normalised metrics:
-
-    | Key            | Range | What the agent should read into it                    |
-    |----------------|-------|-------------------------------------------------------|
-    | ``req``        | 0-1   | Have we *mentioned* every system requirement?         |
-    | ``depth``      | ≥0    | How many abstraction layers exist (too low ⇒ shallow) |
-    | ``branch``     | ≥0    | Functional decomposition breadth                      |
-    | ``density``    | ≥0    | Coupling complexity; high ⇒ spaghetti                 |
-    | ``embody``     | 0-1   | Concept-to-hardware concreteness                      |
-    | ``phys_model`` | 0-1   | Analytical coverage of subsystems                     |
-    | ``maturity``   | 0-1   | Review / validation progress                          |
-    | ``sympy``      | 0-1   | Formal equation soundness                             |
-    | ``compile``    | 0-1   | Syntactic health of generated code                    |
-    | ``execute``    | 0-1   | Runtime health of generated code                      |
-    | ``phys_quality``| 0-1  | Depth & rigour of numerical modelling (**reward!**)   |
-
-    Agents can optimise locally (e.g. raise *phys_quality* by adding units and
-    solvers) or globally (raise *req* by linking missing SR-codes).  Over time
-    the composite view tracks convergence toward a fully-specified, executable
-    engineering design.
+    Convert a {name: value} dict into a verbose dict
+    {name: {'value': …, 'title': …, 'explain': …}}  using _METRIC_INFO.
+    Unknown keys are passed through untouched.
     """
-    scripts = extract_scripts(dsg, tmp)
+    verbose = OrderedDict()
+    for k, v in raw.items():
+        title, explain = _METRIC_INFO.get(
+            k, (k, "no description available"))
+        verbose[k] = {"value": round(v, 3), "title": title, "explain": explain}
+    return verbose
 
-    compile_ok = sum(compiles(p) for p in scripts)
-    exec_ok    = sum(execs(p)    for p in scripts)
+# ------------------------------------------------------------------
+#  Main evaluator ---------------------------------------------------
+# ------------------------------------------------------------------
+def evaluate_dsg(dsg: DesignState, tmp: Path) -> Dict[str, Dict[str, float | str]]:
+    """
+    Return a VERBOSE dict where each metric is annotated with its meaning.
+    Example::
 
-    phys_pts   = [physics_rubric(p) for p in scripts]
-    phys_qual  = sum(phys_pts) / len(phys_pts) if phys_pts else 0   # 0-100
+        {
+          "req":         {"value": 0.9, "title": "Requirement coverage",
+                          "explain": "0-1 ⇒ fraction of SR-codes referenced anywhere"},
+          "depth":       {"value": 2.3, …},
+          …
+        }
+    """
+    scripts     = extract_scripts(dsg, tmp)
+    compile_ok  = sum(compiles(p) for p in scripts)
+    exec_ok     = sum(execs(p)    for p in scripts)
+    phys_pts    = [physics_rubric(p) for p in scripts]
+    phys_qual   = sum(phys_pts)/len(phys_pts) if phys_pts else 0   # 0-100
 
-
-    return {
-        "req" : req_coverage(dsg),
-        "depth": depth_avg(dsg),
-        "branch": branching_avg(dsg),
-        "density": edge_density(dsg),
-        "embody": embodiment_ratio(dsg),
-        "phys_model": physics_model_ratio(dsg),
-        "maturity": maturity_index(dsg),
-        "sympy": sympy_rate(dsg),
-        "compile": compile_ok / len(scripts) if scripts else 0,
-        "execute": exec_ok    / len(scripts) if scripts else 0,
-        "phys_quality" : round(phys_qual / 100, 3),   # 0-1 normalised
+    raw = {
+        "req"        : req_coverage(dsg),
+        "depth"      : depth_avg(dsg),
+        "branch"     : branching_avg(dsg),
+        "density"    : edge_density(dsg),
+        "embody"     : embodiment_ratio(dsg),
+        "phys_model" : physics_model_ratio(dsg),
+        "maturity"   : maturity_index(dsg),
+        "sympy"      : sympy_rate(dsg),
+        "compile"    : compile_ok/len(scripts) if scripts else 0,
+        "execute"    : exec_ok /len(scripts) if scripts else 0,
+        "phys_quality": phys_qual/100,                         # 0-1
     }
+    return _wrap_metrics(raw)
+
 
 # ---------- evaluate a run folder -------------------------------------------
 def evaluate_folder(folder: Path) -> Dict[str, float]:
