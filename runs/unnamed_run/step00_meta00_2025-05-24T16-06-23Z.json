@@ -1,0 +1,264 @@
+{
+  "nodes": {
+    "water_intake": {
+      "node_id": "water_intake",
+      "node_kind": "function",
+      "name": "Water Intake",
+      "description": "Collect water from raw sources",
+      "embodiment": {
+        "principle": "Pumping or gravity-fed with pre-treatment",
+        "description": "Collect water from raw sources",
+        "design_parameters": {
+          "flow_rate": 15.0,
+          "units": 10.0
+        },
+        "cost_estimate": 80.0,
+        "mass_estimate": 8.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Water Flow Model",
+          "equations": "Q = A \u00d7 v",
+          "python_code": "import numpy as np; Q = np.pi * (0.1)**2 * 1.5",
+          "assumptions": [
+            "Laminar flow"
+          ],
+          "status": "draft"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-03"
+      ],
+      "verification_plan": "Testing under controlled conditions",
+      "maturity": "draft",
+      "tags": [
+        "water_intake"
+      ],
+      "edges_in": [],
+      "edges_out": [
+        "water_filtration"
+      ]
+    },
+    "water_filtration": {
+      "node_id": "water_filtration",
+      "node_kind": "function",
+      "name": "Water Filtration",
+      "description": "Remove contaminants from water",
+      "embodiment": {
+        "principle": "Ceramic filtration with UV treatment and activated carbon",
+        "description": "Remove contaminants from water",
+        "design_parameters": {
+          "pore_size": 0.01,
+          "units": 0.1
+        },
+        "cost_estimate": 150.0,
+        "mass_estimate": 15.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Filtration Model",
+          "equations": "J = (P \u00d7 A) / (R \u00d7 \u03c1)",
+          "python_code": "import numpy as np; J = (150 * np.pi * (0.01)**2) / (1000 * 1000)",
+          "assumptions": [
+            "Laminar flow"
+          ],
+          "status": "draft"
+        }
+      ],
+      "linked_reqs": [
+        "SR-02",
+        "SR-03"
+      ],
+      "verification_plan": "Testing under controlled conditions",
+      "maturity": "draft",
+      "tags": [
+        "water_filtration"
+      ],
+      "edges_in": [
+        "water_intake"
+      ],
+      "edges_out": [
+        "water_output"
+      ]
+    },
+    "water_output": {
+      "node_id": "water_output",
+      "node_kind": "function",
+      "name": "Water Output",
+      "description": "Deliver potable water",
+      "embodiment": {
+        "principle": "Gravity-fed or pumping",
+        "description": "Deliver potable water",
+        "design_parameters": {
+          "flow_rate": 15.0,
+          "units": 10.0
+        },
+        "cost_estimate": 80.0,
+        "mass_estimate": 8.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Water Flow Model",
+          "equations": "Q = A \u00d7 v",
+          "python_code": "import numpy as np; Q = np.pi * (0.1)**2 * 1.5",
+          "assumptions": [
+            "Laminar flow"
+          ],
+          "status": "draft"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-03"
+      ],
+      "verification_plan": "Testing under controlled conditions",
+      "maturity": "draft",
+      "tags": [
+        "water_output"
+      ],
+      "edges_in": [
+        "water_filtration"
+      ],
+      "edges_out": []
+    },
+    "system_control": {
+      "node_id": "system_control",
+      "node_kind": "subfunction",
+      "name": "System Control",
+      "description": "Monitor and control system operation",
+      "embodiment": {
+        "principle": "Microcontroller-based with advanced sensors",
+        "description": "Monitor and control system operation",
+        "design_parameters": {
+          "sampling_rate": 3.0,
+          "units": 1.0
+        },
+        "cost_estimate": 45.0,
+        "mass_estimate": 3.5,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Control Model",
+          "equations": "u = K \u00d7 e",
+          "python_code": "import numpy as np; u = 20 * np.abs(1 - 0.5)",
+          "assumptions": [
+            "Linear control"
+          ],
+          "status": "draft"
+        }
+      ],
+      "linked_reqs": [
+        "SR-09"
+      ],
+      "verification_plan": "Usability testing with untrained users",
+      "maturity": "draft",
+      "tags": [
+        "system_control"
+      ],
+      "edges_in": [
+        "water_intake",
+        "water_filtration",
+        "water_output"
+      ],
+      "edges_out": [
+        "water_intake",
+        "water_filtration",
+        "water_output"
+      ]
+    },
+    "water_quality_monitoring": {
+      "node_id": "water_quality_monitoring",
+      "node_kind": "subfunction",
+      "name": "Water Quality Monitoring",
+      "description": "Monitor water quality parameters",
+      "embodiment": {
+        "principle": "Sensor-based with real-time monitoring",
+        "description": "Monitor water quality parameters",
+        "design_parameters": {
+          "sampling_rate": 3.0,
+          "units": 1.0
+        },
+        "cost_estimate": 60.0,
+        "mass_estimate": 4.5,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Water Quality Model",
+          "equations": "C = C0 \u00d7 e^(-k \u00d7 t)",
+          "python_code": "import numpy as np; C = 15 * np.exp(-0.1 * 10)",
+          "assumptions": [
+            "First-order kinetics"
+          ],
+          "status": "draft"
+        }
+      ],
+      "linked_reqs": [
+        "SR-02"
+      ],
+      "verification_plan": "Testing under controlled conditions",
+      "maturity": "draft",
+      "tags": [
+        "water_quality_monitoring"
+      ],
+      "edges_in": [
+        "water_intake",
+        "water_filtration"
+      ],
+      "edges_out": [
+        "system_control"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "water_intake",
+      "water_filtration"
+    ],
+    [
+      "water_filtration",
+      "water_output"
+    ],
+    [
+      "system_control",
+      "water_intake"
+    ],
+    [
+      "system_control",
+      "water_filtration"
+    ],
+    [
+      "system_control",
+      "water_output"
+    ],
+    [
+      "water_intake",
+      "system_control"
+    ],
+    [
+      "water_filtration",
+      "system_control"
+    ],
+    [
+      "water_output",
+      "system_control"
+    ],
+    [
+      "water_intake",
+      "water_quality_monitoring"
+    ],
+    [
+      "water_filtration",
+      "water_quality_monitoring"
+    ],
+    [
+      "water_quality_monitoring",
+      "system_control"
+    ]
+  ]
+}

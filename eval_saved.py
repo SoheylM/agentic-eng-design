@@ -189,23 +189,49 @@ def evaluate_folder(folder: Path) -> Dict[str, float]:
 
     return {**final, **delta}
 
+def evaluate_single_file(file_path: Path) -> Dict[str, float]:
+    """Evaluate a single DesignState JSON file."""
+    if not file_path.exists():
+        return {"error": "file_not_found"}
+    
+    dsg = DesignState(**json.loads(file_path.read_text()))
+    tmp = Path(tempfile.mkdtemp(prefix="eval_"))
+    results = evaluate_dsg(dsg, tmp)
+    
+    # Add file information
+    results["file"] = file_path.name
+    results["timestamp"] = datetime.fromtimestamp(file_path.stat().st_mtime, tz=tz.UTC).isoformat()
+    
+    return results
+
 # ---------- CLI --------------------------------------------------------------
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("folders", nargs="+", help="run folders (glob patterns ok)")
+    ap.add_argument("paths", nargs="+", help="run folders or individual JSON files")
     ap.add_argument("--csv", action="store_true", help="save aggregate CSV")
     args = ap.parse_args()
 
     rows: List[Dict[str, float]] = []
-    for pat in args.folders:
-        for fld in Path().glob(pat):
-            if fld.is_dir():
-                res = evaluate_folder(fld); res["run"] = fld.name
-                rows.append(res); print(res)
+    for pat in args.paths:
+        path = Path(pat)
+        if path.is_file() and path.suffix == '.json':
+            # Single file analysis
+            res = evaluate_single_file(path)
+            rows.append(res)
+            print(f"\nResults for {path.name}:")
+            print(json.dumps(res, indent=2))
+        elif path.is_dir():
+            # Folder analysis
+            res = evaluate_folder(path)
+            res["run"] = path.name
+            rows.append(res)
+            print(f"\nResults for folder {path.name}:")
+            print(json.dumps(res, indent=2))
 
     if args.csv and rows:
         out = Path(f"eval_{datetime.now(tz.UTC).strftime('%Y%m%dT%H%M%SZ')}.csv")
         with out.open("w", newline="") as fh:
             w = csv.DictWriter(fh, rows[0].keys())
-            w.writeheader(); w.writerows(rows)
-        print(f"✅ aggregate CSV saved → {out}")
+            w.writeheader()
+            w.writerows(rows)
+        print(f"\n✅ aggregate CSV saved → {out}")
