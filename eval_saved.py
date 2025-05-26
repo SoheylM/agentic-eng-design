@@ -9,6 +9,13 @@ import networkx as nx, sympy as sp
 
 from data_models import DesignState
 
+import json
+from itertools import chain
+try:
+    from radon.complexity import cc_visit_ast        # tiny dependency: pip install radon
+except ImportError:
+    cc_visit_ast = None
+
 # ---------- regex / constants ----------------------------------------------
 # ---------------------------------------
 # Regex patterns for SR-01 … SR-10
@@ -47,6 +54,63 @@ REQ_PATTS: dict[str, str] = {
 
 PHYS_IMPORTS = ("numpy", "scipy", "sympy", "pint", "math")
 FENCE_RE     = re.compile(r"```(?:python)?\s+([\s\S]+?)```", re.I)
+
+# ─────────────────────────────────────────────
+#  Physics-fidelity rubric helpers
+# ─────────────────────────────────────────────
+SOLVER_IMPORTS = {
+    "ode":  ("scipy.integrate", "torchdiffeq"),
+    "pde":  ("fenics", "dolfin", "fireshape"),
+    "optim":("scipy.optimize", "pyomo", "openmdao", "cvxpy"),
+    "lin":  ("numpy.linalg",),
+}
+PHYS_KEYWORDS = (
+    "reynolds", "navierstokes", "bernoulli", "poisson",
+    "fourier", "enthalpy", "osmotic", "viscosity",
+    "young", "stefan-boltzmann", "richardson"
+)
+
+def _has_cli(p: Path) -> bool:
+    try:
+        out = subprocess.check_output([sys.executable, str(p), "--help"],
+                                      stderr=subprocess.STDOUT, timeout=5)
+        return b"--help" in out or b"usage" in out.lower()
+    except Exception:
+        return False
+
+def _json_io_ok(p: Path) -> bool:
+    try:
+        out = subprocess.check_output([sys.executable, str(p)],
+                                      stderr=subprocess.STDOUT, timeout=10)
+        j = json.loads(out)
+        return {"inputs", "outputs"}.issubset(j)
+    except Exception:
+        return False
+
+def _uses_units(tree: ast.AST, text: str) -> bool:
+    return ("unitregistry" in text) or any(
+        isinstance(n, ast.Attribute) and n.attr == "to" for n in ast.walk(tree)
+    )
+
+def _solver_subscore(tree: ast.AST, text: str) -> int:
+    score = 0
+    for imps in SOLVER_IMPORTS.values():
+        if any(imp in text for imp in imps):
+            score += 1
+    if re.search(r"solve_ivp|odeint|fdm|fem|mesh", text):
+        score += 1
+    return min(score, 5)          # 0-5
+
+def _verification_subscore(text: str) -> int:
+    if "assert" in text or "pytest" in text:
+        return 3                  # full sub-score
+    if re.search(r"convergen|residual|richardson", text):
+        return 2
+    return 0
+
+def _phys_kw_subscore(text: str) -> int:
+    return min(sum(k in text for k in PHYS_KEYWORDS), 4)  # 0-4
+
 
 # ---------- requirement coverage -------------------------------------------
 def req_coverage(dsg: DesignState) -> float:
@@ -135,19 +199,47 @@ def execs(p: Path, timeout=10) -> bool:
     except Exception:
         return False
 
-def phys_score(p: Path) -> int:
-    t = p.read_text().lower(); s = 0
-    if any(f"import {m}" in t for m in PHYS_IMPORTS): s += 1
-    if re.search(r"=\s*[^=].*\*\*|np\.", t):         s += 1
-    if re.search(r"pressure|flow|energy", t):        s += 1
-    return s    # 0-3
+def physics_rubric(p: Path) -> int:
+    """
+    0-100 score:
+      A Interface (10)   – CLI + JSON I/O
+      B Units     (20)   – pint / .to() / UnitRegistry
+      C Solvers   (25)   – ODE/PDE/FEM/optim imports
+      D Checks    (25)   – asserts, residuals, pytest
+      E Keywords  (20)   – domain physics vocabulary
+    """
+    try:
+        text = p.read_text().lower()
+        tree = ast.parse(text)
+    except Exception:
+        return 0   # unreadable file
+
+    pts = 0
+    # A – interface contract
+    if _has_cli(p) and _json_io_ok(p):
+        pts += 10
+    # B – units / dimensional safety
+    if _uses_units(tree, text):
+        pts += 20
+    # C – solver richness
+    pts += 5 * _solver_subscore(tree, text)          # max 25
+    # D – verification hooks
+    pts += 5 * _verification_subscore(text)          # max 25
+    # E – physics keyword depth
+    pts += 5 * _phys_kw_subscore(text)               # max 20
+    return pts
+
 
 # ---------- per-snapshot evaluation -----------------------------------------
 def evaluate_dsg(dsg: DesignState, tmp: Path) -> Dict[str, float]:
     scripts = extract_scripts(dsg, tmp)
+
     compile_ok = sum(compiles(p) for p in scripts)
     exec_ok    = sum(execs(p)    for p in scripts)
-    phys       = sum(phys_score(p) for p in scripts)
+
+    phys_pts   = [physics_rubric(p) for p in scripts]
+    phys_qual  = sum(phys_pts) / len(phys_pts) if phys_pts else 0   # 0-100
+
 
     return {
         "req" : req_coverage(dsg),
@@ -160,7 +252,7 @@ def evaluate_dsg(dsg: DesignState, tmp: Path) -> Dict[str, float]:
         "sympy": sympy_rate(dsg),
         "compile": compile_ok / len(scripts) if scripts else 0,
         "execute": exec_ok    / len(scripts) if scripts else 0,
-        "phys_code": phys / (3 * len(scripts)) if scripts else 0,
+        "phys_quality" : round(phys_qual / 100, 3),   # 0-1 normalised
     }
 
 # ---------- evaluate a run folder -------------------------------------------
