@@ -200,7 +200,7 @@ def evaluate_single_file(file_path: Path) -> Dict[str, float]:
     
     # Add file information
     results["file"] = file_path.name
-    results["timestamp"] = datetime.fromtimestamp(file_path.stat().st_mtime, tz=tz.UTC).isoformat()
+    results["timestamp"] = datetime.fromtimestamp(file_path.stat().st_mtime, tz=tz.utc).isoformat()
     
     return results
 
