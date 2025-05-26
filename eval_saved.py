@@ -232,6 +232,74 @@ def physics_rubric(p: Path) -> int:
 
 # ---------- per-snapshot evaluation -----------------------------------------
 def evaluate_dsg(dsg: DesignState, tmp: Path) -> Dict[str, float]:
+    """
+    Analyse a single **Design-State Graph** (DSG) snapshot and condense its
+    engineering quality into a dictionary of scalar signals.  Each signal is
+    tuned for *LLM-agent feedback*: high-level agents can treat the numbers as
+    rewards, while low-level agents can optimise individual weaknesses
+    (coverage, physics fidelity, graph hygiene, …).
+
+    ----------
+    PIPELINE
+    ----------
+    1.  **Script extraction**
+        Every ``PhysicsModel.python_code`` block is written to a temporary
+        *.py* file so we can statically inspect and dynamically execute it.
+
+    2.  **Basic viability checks**
+        • ``compile``  – fraction of scripts that pass ``ast.parse``  
+        • ``execute`` – fraction that run ``script.py --help`` without error  
+          (These catch syntax errors and missing imports before deeper tests.)
+
+    3.  **Physics-fidelity rubric**
+        Each script is scored 0-100 by `physics_rubric()`  
+        (interface contract 10 pts + unit safety 20 + solver richness 25 +
+        verification hooks 25 + physics keywords 20).  The average is returned
+        as **``phys_quality``** ∈ [0-1].
+
+    4.  **Requirement coverage**
+        ``req`` – semantic recall of SR-01…SR-10 requirements inside any node
+        payload (1.0 = all referenced at least once).
+
+    5.  **Graph topology**
+        • ``depth``   – mean longest-path length from root nodes  
+        • ``branch``  – average out-degree (fan-out) per node  
+        • ``density`` – |E| / |V|, a spaghetti-vs-stick indicator
+
+    6.  **Design richness**
+        • ``embody``      – share of nodes whose embodiment *principle* is set  
+        • ``phys_model``  – share of **subsystem** nodes that carry at least
+          one ``PhysicsModel``  
+        • ``maturity``    – 0/0.5/1 average over *draft / reviewed / validated*
+
+    7.  **Math formalism**
+        ``sympy`` – ratio of equations that SymPy can parse (syntax sanity
+        check for analytic documentation).
+
+    ----------
+    RETURNS
+    ----------
+    Dict[str, float] with normalised metrics:
+
+    | Key            | Range | What the agent should read into it                    |
+    |----------------|-------|-------------------------------------------------------|
+    | ``req``        | 0-1   | Have we *mentioned* every system requirement?         |
+    | ``depth``      | ≥0    | How many abstraction layers exist (too low ⇒ shallow) |
+    | ``branch``     | ≥0    | Functional decomposition breadth                      |
+    | ``density``    | ≥0    | Coupling complexity; high ⇒ spaghetti                 |
+    | ``embody``     | 0-1   | Concept-to-hardware concreteness                      |
+    | ``phys_model`` | 0-1   | Analytical coverage of subsystems                     |
+    | ``maturity``   | 0-1   | Review / validation progress                          |
+    | ``sympy``      | 0-1   | Formal equation soundness                             |
+    | ``compile``    | 0-1   | Syntactic health of generated code                    |
+    | ``execute``    | 0-1   | Runtime health of generated code                      |
+    | ``phys_quality``| 0-1  | Depth & rigour of numerical modelling (**reward!**)   |
+
+    Agents can optimise locally (e.g. raise *phys_quality* by adding units and
+    solvers) or globally (raise *req* by linking missing SR-codes).  Over time
+    the composite view tracks convergence toward a fully-specified, executable
+    engineering design.
+    """
     scripts = extract_scripts(dsg, tmp)
 
     compile_ok = sum(compiles(p) for p in scripts)
