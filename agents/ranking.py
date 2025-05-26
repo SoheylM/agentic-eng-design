@@ -78,6 +78,7 @@ Proposal briefs →
 {prop_briefs}
 """)
     ])
+    rk_out = remove_think_tags(rk_out).strip()
 
     print(f"   • LLM produced {len(rk_out.rankings)} ranking items")
 
@@ -157,8 +158,8 @@ If no, answer exactly:  "No additional research is needed."
         SystemMessage(content=RESEARCH_PROMPT_RANKING),
         HumanMessage(content=question),
     ]).content
-
     resp_clean = remove_think_tags(resp).strip()
+
     if resp_clean.lower().startswith("no additional research"):
         print("   • no extra research required")
         return None

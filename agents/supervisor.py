@@ -14,6 +14,7 @@ from data_models  import ( State, DesignState, CahierDesCharges,
 from prompts      import SUPERVISOR_PROMPT
 from llm_models   import supervisor_model
 from graph_utils  import summarize_design_state_func
+from utils        import remove_think_tags
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -60,6 +61,7 @@ Expected outputs: {step.expected_outputs}
 {cdc_js}
 """)
     ])
+    decision = remove_think_tags(decision).strip()
 
     # Print concise decision summary
     status = "✅" if decision.step_completed else "🔄"

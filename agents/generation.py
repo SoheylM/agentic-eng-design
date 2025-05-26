@@ -96,6 +96,7 @@ Generate **brand-new DSG proposals** (no refinement loop).
         SystemMessage(content=GE_PROMPT_STRUCTURED),
         HumanMessage(content=human_msg.strip()),
     ])
+    llm_out = remove_think_tags(llm_out).strip()
 
     dsg_proposals: List[SingleProposal] = llm_out.proposals
     print(f"LLM returned {len(dsg_proposals)} DSGs")
@@ -174,8 +175,8 @@ If no, answer exactly:  "No additional research is needed."
         SystemMessage(content=GEN_RESEARCH_PROMPT),
         HumanMessage(content=question)
     ]).content
-
     resp_clean = remove_think_tags(resp).strip()
+
     if resp_clean.lower().startswith("no additional research"):
         print("No extra research required")
         return None

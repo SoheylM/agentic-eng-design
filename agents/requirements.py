@@ -14,6 +14,7 @@ def requirements_node(state: State) -> Command[Literal["human", "planner"]]:
     # **Step 1: Base LLM for Interactive Discussion**
     messages = [SystemMessage(content=REQ_PROMPT), *state.messages]
     req_output = base_model.invoke(messages)
+    req_output = remove_think_tags(req_output).strip()
 
     display(Markdown(f"### 📜 Requirements Agent Response:\n\n{req_output.content}"))
 
@@ -27,6 +28,7 @@ def requirements_node(state: State) -> Command[Literal["human", "planner"]]:
             SystemMessage(content="Convert the finalized requirements into a structured Cahier des Charges."),
             HumanMessage(content=req_output.content)
         ])
+        structured_output = remove_think_tags(structured_output).strip()
 
         print(f"📜 Generated Cahier des Charges:\n{structured_output.model_dump_json()}")
 

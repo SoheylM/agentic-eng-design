@@ -93,6 +93,7 @@ def reflection_node(state: State) -> Command[Literal["orchestrator", "ranking"]]
             ),
         ]
     )
+    llm_resp = remove_think_tags(llm_resp).strip()
 
     print(f"   • LLM returned {len(llm_resp.reflections)} feedback items")
 
@@ -173,8 +174,8 @@ If no, answer exactly:  "No additional research is needed."
             HumanMessage(content=question),
         ]
     ).content
-
     resp_clean = remove_think_tags(resp).strip()
+
     if resp_clean.lower().startswith("no additional research"):
         print("   • no extra research required")
         return None

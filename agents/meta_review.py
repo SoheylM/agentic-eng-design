@@ -96,6 +96,7 @@ Here are the DSG proposals (one block per proposal):
 Return your final decisions.
 """)
     ])
+    llm_resp = remove_think_tags(llm_resp).strip()
 
     print(f"   • LLM returned decisions for {len(llm_resp.decisions)} proposals")
 
@@ -208,10 +209,10 @@ If no, answer exactly: "No additional research is needed."
         SystemMessage(content=RESEARCH_PROMPT_META_REVIEW),
         HumanMessage(content=question),
     ]).content
+    resp_clean = remove_think_tags(resp).strip()
 
-    clean = remove_think_tags(resp).strip()
-    if clean.lower().startswith("no additional research"):
+    if resp_clean.lower().startswith("no additional research"):
         print("   • no extra research required")
         return None
     print("   • extra research required")
-    return clean
+    return resp_clean

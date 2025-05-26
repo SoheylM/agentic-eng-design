@@ -82,6 +82,7 @@ Ranked proposal briefs →
 Produce refined and/or merged DSG proposals where it genuinely adds value.
 """)
     ])
+    evo_out = remove_think_tags(evo_out).strip()
 
     print(f"   • LLM produced {len(evo_out.evolutions)} evolutions")
 
@@ -164,10 +165,10 @@ If no, answer exactly:  "No additional research is needed."
         SystemMessage(content=RESEARCH_PROMPT_EVOLUTION),
         HumanMessage(content=question),
     ]).content
+    resp_clean = remove_think_tags(resp).strip()
 
-    clean = remove_think_tags(resp).strip()
-    if clean.lower().startswith("no additional research"):
+    if resp_clean.lower().startswith("no additional research"):
         print("   • no extra research required")
         return None
     print("   • extra research required")
-    return clean
+    return resp_clean
