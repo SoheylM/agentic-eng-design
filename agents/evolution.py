@@ -79,7 +79,7 @@ Cahier des Charges → {cdc_text}
 Ranked proposal briefs →
 {briefs}
 
-Produce refined and/or merged DSG proposals where it genuinely adds value.
+Produce refined DSG proposal for each ranked proposal.
 """)
     ])
     evo_out = remove_think_tags(evo_out).strip()
