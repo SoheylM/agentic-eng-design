@@ -29,7 +29,7 @@ def requirements_node(state: State) -> Command[Literal["human", "planner"]]:
             SystemMessage(content="Convert the finalized requirements into a structured Cahier des Charges."),
             HumanMessage(content=req_output.content)
         ])
-        structured_output = remove_think_tags(structured_output).strip()
+        structured_output.content = remove_think_tags(structured_output.content).strip()
 
         print(f"📜 Generated Cahier des Charges:\n{structured_output.model_dump_json()}")
 
