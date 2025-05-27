@@ -31,16 +31,21 @@ def process_tool_calls(ai_msg) -> List[ToolMessage]:
         # Handle both dictionary and list formats
         if isinstance(parsed_content, dict):
             if parsed_content.get("type") == "function":
-                tool_calls = [{
-                    "name": parsed_content["name"],
-                    "args": parsed_content["parameters"],
-                    "id": str(uuid.uuid4())
-                }]
+                # Safely get name and parameters with defaults
+                name = parsed_content.get("name")
+                if not name:
+                    print("🚨 [DEBUG] Function call missing name field, skipping...")
+                else:
+                    tool_calls = [{
+                        "name": name,
+                        "args": parsed_content.get("parameters", {}),
+                        "id": str(uuid.uuid4())
+                    }]
         elif isinstance(parsed_content, list):
             # Assume each item in the list is a tool call
             tool_calls = []
             for item in parsed_content:
-                if isinstance(item, dict) and "name" in item and "args" in item:
+                if isinstance(item, dict) and item.get("name") and item.get("args"):
                     tool_calls.append({
                         "name": item["name"],
                         "args": item["args"],
