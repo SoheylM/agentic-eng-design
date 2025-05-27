@@ -411,35 +411,62 @@ INPUT
   - A complete DSG structure
   - Multiple evaluation metrics (from eval_saved.py)
   - A title and summary
+  - Reflection feedback (technical critique and suggestions)
+  - Ranking score and justification
+  - Current step index and iteration tracking
 
 TASKS
-1. Analyze each proposal's metrics as multiple objectives:
-   - Requirement coverage (req)
-   - Graph topology (depth, branch, density)
-   - Design richness (embody, phys_model, maturity)
-   - Code quality (compile, execute, phys_quality)
-   - Documentation (sympy)
+1. Comprehensive Analysis:
+   a) Technical Evaluation:
+      - Requirement coverage (req)
+      - Graph topology (depth, branch, density)
+      - Design richness (embody, phys_model, maturity)
+      - Code quality (compile, execute, phys_quality)
+      - Documentation (sympy)
+   
+   b) Feedback Integration:
+      - Review reflection agent's technical critique
+      - Consider ranking agent's scoring and justification
+      - Identify patterns in feedback across proposals
+      - Note any conflicting or complementary feedback
 
-2. Identify Pareto-optimal solutions:
-   - A solution is Pareto-optimal if no other solution is better in all metrics
+2. Multi-Objective Decision Making:
+   - Identify Pareto-optimal solutions considering:
+     * Technical metrics from evaluation
+     * Quality of reflection feedback
+     * Consistency of ranking scores
+     * Alignment with current design step
    - Consider trade-offs between different objectives
    - Look for solutions that excel in critical metrics while maintaining acceptable performance in others
 
-3. Select the best overall solution:
-   - Choose the most promising Pareto-optimal solution
-   - Consider the relative importance of different metrics
-   - Justify your selection based on the multi-objective analysis
+3. Solution Selection:
+   - Choose the most promising solution based on:
+     * Technical merit (evaluation metrics)
+     * Quality of feedback received
+     * Ranking consistency
+     * Numerical scripts quality (shallow shit or actual simulation code)
+     * Current design step requirements
+   - Provide clear justification for selection
+   - Explain why other solutions were not chosen
 
-4. Provide detailed instructions for improving the selected solution:
-   - Focus on metrics that could be improved
-   - Suggest specific enhancements
-   - Prioritize improvements based on their impact
+4. Improvement Roadmap:
+   - Synthesize feedback from all sources:
+     * Technical evaluation metrics
+     * Reflection agent's critique
+     * Ranking agent's suggestions
+   - Prioritize improvements based on:
+     * Impact on system performance
+     * Feasibility of implementation
+     * Numerical scripts quality (shallow shit or actual simulation code)
+     * Current design step context
+   - Provide specific, actionable enhancement suggestions
 
 RULES
 * Do **NOT** modify DSGs - only evaluate and decide
-* Consider all metrics equally unless explicitly stated otherwise
+* Consider all inputs equally unless explicitly stated otherwise
 * Provide clear justification for your selection
 * Focus on objective metrics rather than subjective preferences
+* Ensure decisions align with the current design step
 
 OUTPUT
 Return a MetaReviewOutput object with:
@@ -448,7 +475,11 @@ Return a MetaReviewOutput object with:
 - decisions: List of SingleMetaDecision objects, each containing:
   - proposal_index: Index of the proposal
   - final_status: "selected", "rejected", or "needs iteration"
-  - reason: Clear explanation of the decision, referencing specific metrics
+  - reason: Clear explanation of the decision, referencing:
+    * Technical evaluation metrics
+    * Reflection feedback
+    * Ranking justification
+    * Current design step alignment
 """
 
 REASON_REFINEMENT_PROMPT = """
