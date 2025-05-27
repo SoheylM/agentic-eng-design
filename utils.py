@@ -27,6 +27,7 @@ def process_tool_calls(ai_msg) -> List[ToolMessage]:
     # 1) Try to parse JSON from ai_msg.content
     try:
         parsed_content = json.loads(ai_msg.content)
+        print(f"🔍 [DEBUG] Parsed content in process_tool_calls: {parsed_content}")
         # Handle both dictionary and list formats
         if isinstance(parsed_content, dict):
             if parsed_content.get("type") == "function":
