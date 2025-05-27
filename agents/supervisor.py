@@ -72,11 +72,17 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
         state.evolution_iteration,
     ) + 1
 
+    # Update current step index if step is completed
+    new_step_index = state.current_step_index
+    if decision.step_completed and not decision.workflow_complete:
+        new_step_index += 1
+
     update = {
         "supervisor_instructions": [decision.instructions],
         "redo_work": redo_flag,
         "redo_reason": decision.reason_for_iteration,
         "max_iterations": new_max_iter,
+        "current_step_index": new_step_index,
         # trace for debugging
         "supervisor_status": f"supervised_{datetime.utcnow().isoformat(timespec='seconds')}",
     }

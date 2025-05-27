@@ -42,7 +42,10 @@ def build_app() -> "langgraph.App":
     g.add_node("orchestrator",   orchestrator_node)
     g.add_node("worker",         worker_node)
     g.add_node("generation",     generation_node)
+    g.add_node("reflection",     reflection_node)
+    g.add_node("ranking",        ranking_node)
     g.add_node("meta_review",    meta_review_node)
+
 
     return g.compile(checkpointer=MemorySaver())
 

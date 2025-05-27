@@ -68,6 +68,8 @@ def meta_review_node(state: State) -> Command[Literal["supervisor"]]:
             "title": p.title,
             "summary": summarize_design_state_func(p.content),
             "metrics": p.grade,  # Contains all evaluation metrics
+            "ranking_justification": p.ranking_justification,  # Add ranking justification
+            "reflection_feedback": p.feedback,  # Add reflection feedback
         }
         for idx, p in enumerate(recent_props)
     ]
@@ -82,10 +84,10 @@ Supervisor instructions →
 Cahier des Charges →
 {cdc_text}
 
-Here are the DSG proposals with their evaluation metrics:
+Here are the DSG proposals with their evaluation metrics, rankings, and reflection feedback:
 {dsg_summaries}
 
-Analyze these proposals considering all metrics as objectives.
+Analyze these proposals considering all metrics, rankings, and feedback as objectives.
 Return your final decisions.
 """)
     ])

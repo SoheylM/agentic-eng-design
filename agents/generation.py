@@ -23,7 +23,7 @@ from eval_saved import evaluate_dsg  # Import the evaluation function
 from validation import filter_valid_proposals  # Import our validation functions
 
 
-def generation_node(state: State) -> Command[Literal["orchestrator", "meta_review"]]:
+def generation_node(state: State) -> Command[Literal["orchestrator", "reflection"]]:
     """
     • Generates *N* DSG proposals (2 by default, defined in GE_PROMPT_STRUCTURED).
     • Decides if extra research is needed.
@@ -40,14 +40,14 @@ def generation_node(state: State) -> Command[Literal["orchestrator", "meta_revie
     print(f"   • iteration {iter_now + 1}/{max_iter}")
 
     if iter_now >= max_iter:
-        # Bail-out protection → go straight to meta_review
+        # Bail-out protection → go straight to reflection
         print("   ⚠️  max-iterations reached; skipping generation.")
         return Command(
             update={
                 "generation_notes": [f"Stopped after {max_iter} generation loops."],
                 "generation_iteration": iter_now - 1,   # ← keep last valid index
             },
-            goto="meta_review",
+            goto="reflection",
         )
 
     # ── Context strings for the LLM ────────────────────────────────────────
@@ -135,6 +135,7 @@ Generate **brand-new DSG proposals** (no refinement loop).
             title=p.title,
             content=p.content,                 # ← the DesignState object
             status="generated",
+            current_step_index=state.current_step_index,  # Add current step index
             generation_iteration_index=iter_now,
             reflection_iteration_index=state.reflection_iteration,
             ranking_iteration_index=state.ranking_iteration,
@@ -160,15 +161,15 @@ Generate **brand-new DSG proposals** (no refinement loop).
             goto="orchestrator",
         )
 
-    # Otherwise go straight to meta_review
-    print(" ✅ generation complete → meta_review")
+    # Otherwise go straight to reflection
+    print(" ✅ generation complete → reflection")
     return Command(
         update={
             "proposals":          new_entries,
             "generation_notes":  [f"Finished gen-iter {iter_now}"],
             "generation_iteration": iter_now,              # keep counter
         },
-        goto="meta_review",
+        goto="reflection",
     )
 
 # --------------------------------------------------------------------------
@@ -191,7 +192,7 @@ Here are the DSG proposals (titles + node counts):
     for p in props
 ]}
 
-Should we perform **additional web / code / calc research** before sending these to meta_review?
+Should we perform **additional web / code / calc research** before sending these to reflection?
 If yes, output a SINGLE clear task for the orchestrator.
 If no, answer exactly:  "No additional research is needed."
 """

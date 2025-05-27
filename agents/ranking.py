@@ -13,7 +13,7 @@ from utils        import remove_think_tags
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-def ranking_node(state: State) -> Command[Literal["orchestrator", "evolution"]]:
+def ranking_node(state: State) -> Command[Literal["orchestrator", "meta_review"]]:
     """
     • Assigns / updates numeric scores for each DSG proposal.
     • May ask the Orchestrator for extra research to validate rankings.
@@ -33,7 +33,7 @@ def ranking_node(state: State) -> Command[Literal["orchestrator", "evolution"]]:
                 "ranking_iteration": iter_now - 1,
                 "analyses":        [],
             },
-            goto="evolution",
+            goto="meta_review",
         )
 
     # ── Context strings ────────────────────────────────────────────────────
@@ -48,10 +48,10 @@ def ranking_node(state: State) -> Command[Literal["orchestrator", "evolution"]]:
     ]
 
     if not recent_props:
-        print("   ⚠️  no proposals available → evolution")
+        print("   ⚠️  no proposals available → meta_review")
         return Command(
             update={"ranking_notes": ["No proposals to rank."]},
-            goto="evolution",
+            goto="meta_review",
         )
 
     # short, but information-dense briefs for the LLM
@@ -109,15 +109,15 @@ Proposal briefs →
             goto="orchestrator",
         )
 
-    # ── Normal exit to Evolution ───────────────────────────────────────────
-    print("   ✅ ranking complete → evolution")
+    # ── Normal exit to meta_review ───────────────────────────────────────────
+    print("   ✅ ranking complete → meta_review")
     return Command(
         update={
             "ranking_iteration": iter_now,
             "ranking_notes":    [f"Completed rank-iter {iter_now}"],
             "current_tasks_count": 0,
         },
-        goto="evolution",
+        goto="meta_review",
     )
 
 

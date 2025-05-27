@@ -131,7 +131,7 @@ class Proposal(BaseModel):
     feedback: Optional[str] = None
     
     # Ranking agent's metrics from eval_saved.py evaluation
-    grade: Optional[Dict[str, Dict[str, float | str]]] = None
+    grade: Optional[float] = None
     ranking_justification: Optional[str] = None
 
     # Evolved content from the Evolution agent (could be combined or refined text).
@@ -174,6 +174,7 @@ class State:
     # **🔹 Key Engineering Artifacts**
     cahier_des_charges: Optional[CahierDesCharges] = None  # The structured requirements document
     supervisor_instructions: Annotated[List[str], operator.add] = field(default_factory=list)  # Step-wise instructions
+    current_step_index: int = 0  # Track the current design step
 
     # **🔹 Supervisor Agent Tracking**
     supervisor_decision: Optional[dict] = None  # Stores the last decision made by the Supervisor
