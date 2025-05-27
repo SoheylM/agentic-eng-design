@@ -135,6 +135,7 @@ Generate **brand-new DSG proposals** (no refinement loop).
             title=p.title,
             content=p.content,                 # ← the DesignState object
             status="generated",
+            current_step_index=state.current_step_index,
             generation_iteration_index=iter_now,
             reflection_iteration_index=state.reflection_iteration,
             ranking_iteration_index=state.ranking_iteration,
