@@ -21,7 +21,7 @@ def requirements_node(state: State) -> Command[Literal["human", "supervisor"]]:
 
 
     # **Step 2: If FINALIZED, Generate Structured Cahier des Charges**
-    if "FINALIZED" in req_output.content:
+    if "FINALIZED" in req_output.content or "FINALIZED" in req_output.content.lower():
         print("✅ Cahier des Charges finalized. Generating structured output...")
 
         # Invoke **structured LLM** to format the final Cahier des Charges
