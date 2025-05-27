@@ -22,7 +22,7 @@ from utils import remove_think_tags
 from eval_saved import evaluate_dsg  # Import the evaluation function
 
 
-def generation_node(state: State) -> Command[Literal["orchestrator", "reflection"]]:
+def generation_node(state: State) -> Command[Literal["orchestrator", "meta_review"]]:
     """
     • Generates *N* DSG proposals (2 by default, defined in GE_PROMPT_STRUCTURED).
     • Decides if extra research is needed.
@@ -39,14 +39,14 @@ def generation_node(state: State) -> Command[Literal["orchestrator", "reflection
     print(f"   • iteration {iter_now + 1}/{max_iter}")
 
     if iter_now >= max_iter:
-        # Bail-out protection → go straight to reflection
+        # Bail-out protection → go straight to meta_review
         print("   ⚠️  max-iterations reached; skipping generation.")
         return Command(
             update={
                 "generation_notes": [f"Stopped after {max_iter} generation loops."],
                 "generation_iteration": iter_now - 1,   # ← keep last valid index
             },
-            goto="reflection",
+            goto="meta_review",
         )
 
     # ── Context strings for the LLM ────────────────────────────────────────
@@ -145,15 +145,15 @@ Generate **brand-new DSG proposals** (no refinement loop).
             goto="orchestrator",
         )
 
-    # Otherwise go straight to Reflection
-    print(" ✅ generation complete → reflection")
+    # Otherwise go straight to meta_review
+    print(" ✅ generation complete → meta_review")
     return Command(
         update={
             "proposals":          new_entries,
             "generation_notes":  [f"Finished gen-iter {iter_now}"],
             "generation_iteration": iter_now,              # keep counter
         },
-        goto="reflection",
+        goto="meta_review",
     )
 
 # --------------------------------------------------------------------------
@@ -176,7 +176,7 @@ Here are the DSG proposals (titles + node counts):
     for p in props
 ]}
 
-Should we perform **additional web / code / calc research** before sending these to reflection?
+Should we perform **additional web / code / calc research** before sending these to meta_review?
 If yes, output a SINGLE clear task for the orchestrator.
 If no, answer exactly:  "No additional research is needed."
 """
