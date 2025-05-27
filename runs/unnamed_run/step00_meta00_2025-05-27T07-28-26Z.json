@@ -1,0 +1,52 @@
+{
+  "nodes": {
+    "node1": {
+      "node_id": "node1",
+      "node_kind": "Function",
+      "name": "Water Filtration",
+      "description": "Filter water to meet WHO standards",
+      "embodiment": {
+        "principle": "Ceramic Filtration",
+        "description": "Ceramic filters to remove impurities and contaminants from the water.",
+        "design_parameters": {},
+        "cost_estimate": 300.0,
+        "mass_estimate": 10.0,
+        "status": "candidate"
+      },
+      "physics_models": [
+        {
+          "name": "Filtration Model",
+          "equations": "Flow rate = (Pressure difference) / (Viscosity * Resistance)",
+          "python_code": "def calculate_flow_rate(pressure_diff, viscosity=1.0, resistance=1.0):\n    return pressure_diff / (viscosity * resistance)",
+          "assumptions": [
+            "Laminar flow",
+            "Constant viscosity"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-06"
+      ],
+      "verification_plan": "Water quality testing against WHO standards.",
+      "maturity": "Low",
+      "tags": [
+        "Water Filtration",
+        "Ceramic Filters"
+      ],
+      "edges_in": [
+        "F2"
+      ],
+      "edges_out": [
+        "F3"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "node1",
+      "F3"
+    ]
+  ]
+}

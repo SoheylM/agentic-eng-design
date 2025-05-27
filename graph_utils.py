@@ -157,7 +157,8 @@ def visualize_design_state_func(design_graph: DesignState) -> str:
             principle=node.embodiment.principle,
             n_models=len(node.physics_models),
         )
-    for src, dst in design_graph.edges:
+    for edge in design_graph.edges:
+        src, dst = edge  # Unpack the list into source and destination
         if src in G and dst in G:
             G.add_edge(src, dst)
 
