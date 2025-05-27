@@ -1,0 +1,48 @@
+{
+  "nodes": {
+    "F001": {
+      "node_id": "F001",
+      "node_kind": "Function",
+      "name": "Solar Power Generation",
+      "description": "Generate power using solar panels to ensure the system operates entirely on solar energy.",
+      "embodiment": {
+        "principle": "Photovoltaic Conversion",
+        "description": "Utilizes solar panels to convert sunlight into electrical energy.",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "candidate"
+      },
+      "physics_models": [
+        {
+          "name": "Power Generation",
+          "equations": "P = \u03b7 * A * I",
+          "python_code": "P = efficiency * area * irradiance",
+          "assumptions": [
+            "\u03b7 is the efficiency of the solar panel",
+            "A is the area of the solar panel",
+            "I is the solar irradiance"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "R003",
+        "R004"
+      ],
+      "verification_plan": "Measurement of power output under standard test conditions.",
+      "maturity": "High",
+      "tags": [
+        "Solar",
+        "Power"
+      ],
+      "edges_in": [
+        "E001"
+      ],
+      "edges_out": [
+        "E002"
+      ]
+    }
+  },
+  "edges": []
+}

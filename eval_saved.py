@@ -18,22 +18,22 @@ except ImportError:
 from collections import OrderedDict
 
 # ------------------------------------------------------------------
-#  Human-readable metadata for every metric we emit
+#  Human-readable metadata for every metric we emit  (code-accurate)
 # ------------------------------------------------------------------
 _METRIC_INFO = OrderedDict([
     # ------------------------------------------------------------
     #  Requirement-centric
     # ------------------------------------------------------------
     ("req", (
-        "Requirement coverage (SR-01 ... SR-10)",
+        "Requirement coverage (SR-01 … SR-10)",
         (
-            "Scalar recall of top-level system requirements.\n"
-            " 1) For every SR code we look for a semantically similar sentence\n"
-            "    in any node payload (SBERT cosine >= 0.7).\n"
+            "Regex-based recall of the ten top-level system requirements.\n"
+            " 1) For each SR pattern in REQ_PATTS we scan every node payload\n"
+            "    (case-insensitive JSON dump).\n"
             " 2) Score = hits / 10.\n"
-            "    1.00 -> every requirement mentioned at least once.\n"
-            "    0.70 -> three of the ten SR codes never appear.\n"
-            " Raise by adding missing SR IDs or paraphrases."
+            "    1.00 → every requirement pattern matched at least once.\n"
+            "    0.70 → three of the ten SR patterns never match.\n"
+            " Raise by adding the missing requirement keywords/thresholds."
         ))),
 
     # ------------------------------------------------------------
@@ -42,26 +42,27 @@ _METRIC_INFO = OrderedDict([
     ("depth", (
         "Average graph depth",
         (
-            "Mean longest-path length from each root to its furthest leaf.\n"
-            " < 1.0  -> flat list, no decomposition.\n"
-            " 1-3    -> typical concept-design hierarchy.\n"
-            " > 5    -> very deep; risk of telephone-pole design."
+            "Mean longest-path length (edge count) from each root to its furthest\n"
+            "leaf.\n"
+            " 0      → flat list, no decomposition.\n"
+            " 1–3    → typical concept-design hierarchy.\n"
+            " >5     → very deep; risk of telephone-pole design."
         ))),
 
     ("branch", (
         "Average branching factor",
         (
             "Fan-out = outgoing edges per node (mean).\n"
-            " ~= 1   -> linear chain.\n"
-            " 2-4    -> balanced decomposition.\n"
-            " > 6    -> extremely broad; consider merging functions."
+            " ≃1     → linear chain.\n"
+            " 2–4    → balanced decomposition.\n"
+            " >6     → extremely broad; consider merging functions."
         ))),
 
     ("density", (
         "Edge density",
         (
             "|E| / |V|  (0 when no edges).\n"
-            " 0.05-0.30 is healthy; >0.50 often means spaghetti coupling."
+            " 0.05–0.30 is healthy; >0.50 often means spaghetti coupling."
         ))),
 
     # ------------------------------------------------------------
@@ -70,23 +71,24 @@ _METRIC_INFO = OrderedDict([
     ("embody", (
         "Embodiment ratio",
         (
-            "Fraction of all nodes whose embodiment.principle is not 'undefined'.\n"
+            "Fraction of all nodes whose `embodiment.principle` is not "
+            "'undefined'.\n"
             "Indicates how much of the concept space has concrete tech choices."
         ))),
 
     ("phys_model", (
         "Physics-model coverage",
         (
-            "Fraction of subsystem nodes that include one or more PhysicsModel.\n"
-            " 0.0 -> no predictive capability.\n"
-            " 1.0 -> every subsystem has code."
+            "Fraction of *subsystem* nodes that include ≥1 `PhysicsModel`.\n"
+            " 0.0 → no predictive capability.\n"
+            " 1.0 → every subsystem has code."
         ))),
 
     ("maturity", (
         "Maturity index",
         (
-            "Weighted mean over node.maturity:\n"
-            " draft = 0, reviewed = 0.5, validated = 1.\n"
+            "Weighted mean over `node.maturity`:\n"
+            "  draft = 0,  reviewed = 0.5,  validated = 1.\n"
             "Tracks progress through design reviews and V&V."
         ))),
 
@@ -96,8 +98,8 @@ _METRIC_INFO = OrderedDict([
     ("sympy", (
         "Equation parse rate",
         (
-            "Share of PhysicsModel.equations strings that SymPy can parse\n"
-            "without error.  High value hints at well-formatted algebra."
+            "Share of `PhysicsModel.equations` strings that SymPy can parse\n"
+            "without error.  Higher value ⇒ better-formatted algebra."
         ))),
 
     # ------------------------------------------------------------
@@ -106,33 +108,35 @@ _METRIC_INFO = OrderedDict([
     ("compile", (
         "Scripts compile",
         (
-            "Fraction of extracted *.py files that pass ast.parse().\n"
+            "Fraction of extracted *.py files that pass `ast.parse()`.\n"
             "Detects syntax errors and bad indentation."
         ))),
 
     ("execute", (
         "Scripts execute (--help)",
         (
-            "Fraction of scripts that run 'python script.py --help' without\n"
+            "Fraction of scripts that run `python script.py --help` without\n"
             "raising.  Catches missing imports or disallowed I/O."
         ))),
 
     ("phys_quality", (
         "Physics-quality composite",
         (
-            "0-1 normalised average of a 0-100 rubric:\n"
-            "  * 10 pts CLI + JSON I/O contract\n"
-            "  * 20 pts Units (pint, .to(), dimensional safety)\n"
-            "  * 25 pts Solver richness (ODE, PDE, FEM, optimisation)\n"
-            "  * 25 pts Verification hooks (asserts, residuals, pytest)\n"
-            "  * 20 pts Physics keyword depth (enthalpy, Reynolds, etc.)\n"
+            "0–1 normalised average of a 0-90 rubric:\n"
+            "  • 10 pts  CLI + JSON I/O contract\n"
+            "  • 20 pts  Units (pint, `.to()`, dimensional safety)\n"
+            "  • 25 pts  Solver richness (ODE, PDE, FEM, optimisation)\n"
+            "  • 15 pts  Verification hooks (asserts, residuals, pytest)\n"
+            "  • 20 pts  Physics keyword depth (enthalpy, Reynolds, …)\n"
             "\n"
+            "Total maximum = 90 pts ⇒ metric tops out at 0.90.\n"
             "Guide:\n"
-            " 0.80-1.00 -> production-ready simulation code\n"
-            " 0.40-0.79 -> partial physics, needs units/tests\n"
-            " < 0.40    -> stub or empirical placeholders"
+            " 0.72–0.90 → production-ready simulation code\n"
+            " 0.40–0.71 → partial physics, needs units/tests\n"
+            " < 0.40    → stub or empirical placeholders"
         ))),
 ])
+
 
 
 
