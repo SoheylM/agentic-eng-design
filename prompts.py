@@ -33,6 +33,7 @@ Your output **must be valid JSON** matching this schema:
 - If **finalized**, ensure `"open_questions": []` and **return 'FINALIZED'** in the response.  
 
 **ONLY** once **fully refined**, mark the response as **FINALIZED** so the system can proceed to the planner. Do not write **FINALIZED** in your response otherwise.
+If you are told to write **FINALIZED** in your response, do it.
 """
 
 SUPERVISOR_PROMPT = """
