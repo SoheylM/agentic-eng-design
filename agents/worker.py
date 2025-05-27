@@ -6,6 +6,7 @@ from prompts import BRA_PROMPT
 from llm_models import bra_model
 from IPython.display import display, Markdown
 from utils import process_tool_calls
+from utils import remove_think_tags
 
 
 
@@ -31,6 +32,7 @@ def worker_node(task: EngineeringTask) -> Command[Literal["generation","reflecti
 
     print("🟢 [DEBUG] Sending task to Worker Agent LLM...")
     bra_output = bra_model.invoke(messages)
+    bra_output.content = remove_think_tags(bra_output.content).strip()
 
     # Process any tool calls the worker may request (e.g., web search, Python REPL)
     tool_messages = process_tool_calls(bra_output)
