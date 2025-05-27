@@ -403,9 +403,8 @@ TASKS
    • "selected"        - best overall DSG to advance.
    • "rejected"        - fundamentally inadequate.
    • "needs iteration" - promising but still missing key items.
-3. Choose **at most ONE** DSG as the selected proposal.  
-   If none satisfy the requirements, set `selected_proposal_index` to **-1**.
-4. Provide `detailed_summary_for_graph` - concise instructions for the next step
+3. Choose what you deem be the best DSG as the selected proposal.  
+4. Provide `detailed_summary_for_graph` - concise instructions for the next step to improve the selected proposal
    (e.g. "validate mass-balance on Node B", "attach CFD model to Pump subsystem").
 5. Output must follow the schema already enforced by the system.
 
