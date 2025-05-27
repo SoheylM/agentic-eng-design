@@ -49,7 +49,6 @@ def meta_review_node(state: State) -> Command[Literal["supervisor"]]:
 
     recent_props: List[Proposal] = [
         p for p in state.proposals
-        if p.current_step_index        == state.current_step_index
         and p.generation_iteration_index == state.generation_iteration
     ]
 
@@ -123,7 +122,6 @@ Return your final decisions.
         out = save_dsg(
             dsg_now,
             thread_id = thread_id,
-            step_idx  = state.current_step_index,
             meta_iter = it_now,                               # current meta-iteration
         )
         print(f"💾 [Meta-Review] DSG snapshot saved → {out}")
