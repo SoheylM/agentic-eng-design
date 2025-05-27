@@ -20,13 +20,32 @@ def add_edges_to_state(design_graph: DesignState, edges: List[Tuple[str, str]]) 
     """
     for source_id, target_id in edges:
         if source_id in design_graph.nodes and target_id in design_graph.nodes:
-            design_graph.nodes[source_id].edges_out.append(target_id)
-            design_graph.nodes[target_id].edges_in.append(source_id)
-            # record in the global edge list, if not already present
-        if (source_id, target_id) not in design_graph.edges:
-            design_graph.edges.append((source_id, target_id))
+            # Add to the single source of truth
+            if [source_id, target_id] not in design_graph.edges:
+                design_graph.edges.append([source_id, target_id])
         else:
             print(f"⚠️ Warning: Edge ({source_id} -> {target_id}) could not be added. One or both nodes are missing.")
+
+
+def get_node_edges(design_graph: DesignState, node_id: str) -> Tuple[List[str], List[str]]:
+    """
+    Get incoming and outgoing edges for a node by filtering the edges list.
+    
+    Args:
+        design_graph: The design graph.
+        node_id: The ID of the node to get edges for.
+        
+    Returns:
+        Tuple of (incoming_edge_ids, outgoing_edge_ids)
+    """
+    incoming = []
+    outgoing = []
+    for edge in design_graph.edges:
+        if edge[1] == node_id:  # target is our node
+            incoming.append(edge[0])
+        if edge[0] == node_id:  # source is our node
+            outgoing.append(edge[1])
+    return incoming, outgoing
 
 
 def add_node_func(design_graph: DesignState, op: NodeOp) -> str:
@@ -233,9 +252,10 @@ def summarize_design_state_func(design_graph: DesignState) -> str:
     """
     lines = []
     for nid, node in design_graph.nodes.items():
-        # connectivity
-        incoming = ", ".join(node.edges_in) or "None"
-        outgoing = ", ".join(node.edges_out) or "None"
+        # Get connectivity from the single source of truth
+        incoming, outgoing = get_node_edges(design_graph, nid)
+        incoming_str = ", ".join(incoming) or "None"
+        outgoing_str = ", ".join(outgoing) or "None"
 
         # Embodiment block
         emb = node.embodiment
@@ -281,8 +301,8 @@ def summarize_design_state_func(design_graph: DesignState) -> str:
             + pm_block + "\n"
             f"  Maturity   : {node.maturity}\n"
             f"  Tags       : {tags}\n\n"
-            f"  Incoming Edges: {incoming}\n"
-            f"  Outgoing Edges: {outgoing}\n"
+            f"  Incoming Edges: {incoming_str}\n"
+            f"  Outgoing Edges: {outgoing_str}\n"
             + "-"*60
         )
         lines.append(block)
@@ -315,19 +335,20 @@ def analyze_node_func(design_graph: DesignState, node_id: str) -> str:
         return f"❌ Error: DesignNode '{node_id}' not found in the design graph."
     
     node = design_graph.nodes[node_id]
-    incoming = ", ".join(node.edges_in) if node.edges_in else "None"
-    outgoing = ", ".join(node.edges_out) if node.edges_out else "None"
+    incoming, outgoing = get_node_edges(design_graph, node_id)
+    incoming_str = ", ".join(incoming) if incoming else "None"
+    outgoing_str = ", ".join(outgoing) if outgoing else "None"
 
     summary = (
         f"🔍 **DesignNode Analysis:**\n"
         f"-----------------\n"
         f"🆔 **ID:** {node.node_id}\n"
         f"🏷️ **Name:** {node.name}\n"
-        f"🔹 **Type:** {node.node_type}\n"
-        f"📌 **Status:** {node.status}\n"
-        f"⬅️ **Incoming Edges (dependencies from):** {incoming}\n"
-        f"➡️ **Outgoing Edges (influences to):** {outgoing}\n"
-        f"🗃 **Payload:** {node.payload}\n"
+        f"🔹 **Type:** {node.node_kind}\n"
+        f"📌 **Status:** {node.maturity}\n"
+        f"⬅️ **Incoming Edges (dependencies from):** {incoming_str}\n"
+        f"➡️ **Outgoing Edges (influences to):** {outgoing_str}\n"
+        f"🗃 **Description:** {node.description}\n"
         "-------------------------------------"
     )
     

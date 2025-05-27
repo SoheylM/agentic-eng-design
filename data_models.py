@@ -78,12 +78,6 @@ class DesignNode(BaseModel):
     tags: List[str] = Field(default_factory=list,
         description="Free keywords.")
 
-    # ── connectivity ──────────────────────────────────────────────────────
-    edges_in:  List[str] = Field(default_factory=list,
-        description="Parent node IDs.")
-    edges_out: List[str] = Field(default_factory=list,
-        description="Child node IDs.")
-
 
 # ────────────────────────────────────────────────
 #  Whole DSG
@@ -93,7 +87,7 @@ class DesignState(BaseModel):
     nodes: Dict[str, DesignNode] = Field(default_factory=dict,
         description="Map node_id ➜ node data.")
     edges: List[List[str]] = Field(default_factory=list,
-        description="Each item = [source_id, target_id].")
+        description="Single source of truth for graph connectivity. Each item = [source_id, target_id]. The edges_in and edges_out lists in nodes are derived from this list.")
 
 
 # ────────────────────────────────────────────────

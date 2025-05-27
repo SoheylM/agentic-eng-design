@@ -17,6 +17,9 @@ def validate_dsg(dsg: DesignState) -> Tuple[bool, str]:
             return False, f"Invalid edge format: {edge}. Edges must be [source_id, target_id]"
         
         source_id, target_id = edge
+        if not isinstance(source_id, str) or not isinstance(target_id, str):
+            return False, f"Edge IDs must be strings: {edge}"
+            
         if source_id not in dsg.nodes:
             return False, f"Edge source node {source_id} not found in nodes"
         if target_id not in dsg.nodes:
@@ -32,6 +35,16 @@ def validate_dsg(dsg: DesignState) -> Tuple[bool, str]:
     orphaned = node_ids - connected_nodes
     if orphaned:
         return False, f"Found orphaned nodes: {orphaned}"
+    
+    # Check for duplicate edges
+    edge_set = set(tuple(edge) for edge in dsg.edges)
+    if len(edge_set) != len(dsg.edges):
+        return False, "Found duplicate edges in the graph"
+    
+    # Check for self-loops
+    for edge in dsg.edges:
+        if edge[0] == edge[1]:
+            return False, f"Found self-loop at node {edge[0]}"
     
     return True, ""
 
@@ -54,17 +67,33 @@ def sanitize_dsg(dsg: DesignState) -> Optional[DesignState]:
             node_id_map[old_id] = node.node_id
             sanitized.nodes[node.node_id] = node
         
-        # 2. Fix edges
+        # 2. Fix edges - remove duplicates and invalid edges
+        seen_edges = set()  # Track unique edges
         for edge in dsg.edges:
             if not isinstance(edge, list) or len(edge) != 2:
                 continue
+                
             source_id, target_id = edge
             if source_id in node_id_map and target_id in node_id_map:
-                sanitized.edges.append([node_id_map[source_id], node_id_map[target_id]])
+                new_source = node_id_map[source_id]
+                new_target = node_id_map[target_id]
+                
+                # Skip self-loops
+                if new_source == new_target:
+                    continue
+                    
+                # Skip duplicate edges
+                edge_tuple = (new_source, new_target)
+                if edge_tuple in seen_edges:
+                    continue
+                    
+                seen_edges.add(edge_tuple)
+                sanitized.edges.append([new_source, new_target])
         
         # 3. Validate the sanitized DSG
         is_valid, error_msg = validate_dsg(sanitized)
         if not is_valid:
+            print(f"Sanitization produced invalid DSG: {error_msg}")
             return None
             
         return sanitized
