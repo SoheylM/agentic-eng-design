@@ -11,21 +11,21 @@ from data_models import (
     State,
     Proposal,                 # long-term container (contains DesignState)
 )
-from prompts import ME_PROMPT, RESEARCH_PROMPT_META_REVIEW
-from llm_models import meta_reviewer_agent, base_model_reasoning
+from prompts import ME_PROMPT
+from llm_models import meta_reviewer_agent
 from graph_utils import (
     summarize_design_state_func,
     visualize_design_state_func,       # new utility; no LLM involved
 )
-from utils import remove_think_tags, save_dsg
+from utils import save_dsg
 
 # ─────────────────────────  M E T A - R E V I E W  N O D E  ──────────────────
-def meta_review_node(state: State) -> Command[Literal["orchestrator", "supervisor"]]:
+def meta_review_node(state: State) -> Command[Literal["supervisor"]]:
     """
-    • Chooses the best DSG proposal.
-    • Writes final statuses + rationale into proposals.
-    • Optionally requests extra research via Orchestrator.
-    • Appends the selected DSG to `design_graph_history`.
+    • Analyzes DSG proposals using their evaluation metrics
+    • Identifies Pareto-optimal solutions based on multiple objectives
+    • Selects the best overall solution considering all metrics
+    • Appends the selected DSG to `design_graph_history`
     """
     print("\n🔎 [META] Meta-Review node")
 
@@ -63,22 +63,15 @@ def meta_review_node(state: State) -> Command[Literal["orchestrator", "superviso
     print(f"   • reviewing {len(recent_props)} DSG proposals")
 
     # Compact summaries for the LLM
-    # ----- replace the existing dsg_summaries comprehension ------------------
     dsg_summaries = [
         {
             "index": idx,
             "title": p.title,
-            # ⚠️  use the *most recent* graph for the summary
-            "summary": summarize_design_state_func(
-                p.evolved_content if p.evolved_content is not None else p.content
-            ),
-            "reflection": p.feedback or "No reflection feedback.",
-            "grade": p.grade if p.grade is not None else "Not yet scored",
-            "is_evolved": bool(p.evolved_content),          # clearer flag
+            "summary": summarize_design_state_func(p.content),
+            "metrics": p.grade,  # Contains all evaluation metrics
         }
         for idx, p in enumerate(recent_props)
     ]
-
 
     # ── LLM call ────────────────────────────────────────────────────────────
     llm_resp = meta_reviewer_agent.invoke([
@@ -90,9 +83,10 @@ Supervisor instructions →
 Cahier des Charges →
 {cdc_text}
 
-Here are the DSG proposals (one block per proposal):
+Here are the DSG proposals with their evaluation metrics:
 {dsg_summaries}
 
+Analyze these proposals considering all metrics as objectives.
 Return your final decisions.
 """)
     ])
@@ -109,18 +103,10 @@ Return your final decisions.
             pr.meta_review_iteration_index = it_now
             print(f"     ↳ proposal {idx} → {dec.final_status}")
 
-    # ----- keep the loop that writes status unchanged ------------------------
-
     selected_idx = llm_resp.selected_proposal_index
     if 0 <= selected_idx < len(recent_props):
         chosen_prop = recent_props[selected_idx]
-
-        # ⚠️  pick evolved_content first, fall back to original
-        chosen_dsg = (
-            chosen_prop.evolved_content
-            if chosen_prop.evolved_content is not None
-            else chosen_prop.content
-        )
+        chosen_dsg = chosen_prop.content
 
         state.design_graph_history.append(chosen_dsg)
         print(f"   ✅ proposal {selected_idx} selected – DSG stored to history")
@@ -129,12 +115,9 @@ Return your final decisions.
         chosen_dsg = None
         print("   ⚠️  no proposal selected")
 
-    # ── after all meta-review logic, just before the normal return ──────────────
-    # save latest DSG snapshot ---------------------------------------------------
+    # ── Save latest DSG snapshot ───────────────────────────────────────────
     try:
         dsg_now = state.design_graph_history[-1]              # last graph
-
-        # ① thread-id is written into State once at workflow launch
         thread_id = getattr(state, "thread_id", "unnamed_run")
 
         out = save_dsg(
@@ -147,24 +130,6 @@ Return your final decisions.
     except Exception as e:
         print(f"⚠️  [Meta-Review] failed to save DSG: {e}")
 
-
-    # ── Extra research? ────────────────────────────────────────────────────
-    orch_req = _need_more_research_meta(state, chosen_dsg, dsg_summaries)
-
-    if orch_req:
-        preview = (orch_req[:77] + "…") if len(orch_req) > 80 else orch_req
-        print(f"   🧠 requesting research: {preview}")
-        return Command(
-            update={
-                "orchestrator_orders":      [orch_req],
-                "current_requesting_agent": "meta_review",
-                "current_tasks_count":      0,
-                "meta_review_iteration":    it_now + 1,
-                "meta_review_notes":        ["Research requested by meta-review"],
-            },
-            goto="orchestrator",
-        )
-
     # ── Normal exit ────────────────────────────────────────────────────────
     note = llm_resp.detailed_summary_for_graph
     print("   ✅ meta-review complete → supervisor")
@@ -176,42 +141,3 @@ Return your final decisions.
         },
         goto="supervisor",
     )
-
-
-# ───────────────────────  R E S E A R C H   C H E C K  ───────────────────────
-def _need_more_research_meta(
-    state: State,
-    chosen_dsg,                      # DesignState | None
-    summaries                         # list of dict (for context)
-) -> Optional[str]:
-    """Ask a reasoning model if the final choice needs extra validation."""
-    sup_instr = state.supervisor_instructions[-1] if state.supervisor_instructions else "No instructions."
-    cdc_text  = state.cahier_des_charges or "No Cahier des Charges."
-
-    question = f"""
-Supervisor instructions → {sup_instr}
-
-Cahier des Charges → {cdc_text}
-
-Chosen DSG summary →
-{summarize_design_state_func(chosen_dsg) if chosen_dsg else "None selected"}
-
-Other proposal overviews →
-{summaries}
-
-Do we need **additional web / simulation / data research** to confirm this final decision?
-If yes, output ONE clear task for the Orchestrator.
-If no, answer exactly: "No additional research is needed."
-"""
-
-    resp = base_model_reasoning.invoke([
-        SystemMessage(content=RESEARCH_PROMPT_META_REVIEW),
-        HumanMessage(content=question),
-    ]).content
-    resp_clean = remove_think_tags(resp).strip()
-
-    if resp_clean.lower().startswith("no additional research"):
-        print("   • no extra research required")
-        return None
-    print("   • extra research required")
-    return resp_clean
