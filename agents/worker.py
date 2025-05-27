@@ -10,7 +10,7 @@ from utils import remove_think_tags
 
 
 
-def worker_node(task: EngineeringTask) -> Command[Literal["generation","reflection","ranking","evolution","meta_review"]]:
+def worker_node(task: EngineeringTask) -> Command[Literal["generation"]]:
     """Engineering Worker Agent that can search the web and arxiv."""
 
     print("\n🔧 [DEBUG] Worker node invoked with task:")
