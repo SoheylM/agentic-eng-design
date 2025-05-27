@@ -1,0 +1,232 @@
+{
+  "nodes": {
+    "Function_1": {
+      "node_id": "Function_1",
+      "node_kind": "Function",
+      "name": "Water Intake",
+      "description": "The system will intake raw water from a natural source such as a river, lake, or well. This function is crucial for initiating the filtration process and ensuring a steady supply of water for treatment.",
+      "embodiment": {
+        "principle": "Direct Intake",
+        "description": "A submerged intake system with a coarse filter to prevent large debris from entering the system.",
+        "design_parameters": {},
+        "cost_estimate": 500.0,
+        "mass_estimate": 100.0,
+        "status": "candidate"
+      },
+      "physics_models": [
+        {
+          "name": "Hydraulic Flow Model",
+          "equations": "Q = A * v",
+          "python_code": "Q = A * v",
+          "assumptions": [
+            "Steady flow conditions.",
+            "Incompressible fluid."
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-03"
+      ],
+      "verification_plan": "Testing under controlled conditions to measure water production rate.",
+      "maturity": "Medium",
+      "tags": [
+        "Water Intake",
+        "Raw Water",
+        "Filtration Process"
+      ],
+      "edges_in": [],
+      "edges_out": [
+        "Function_2"
+      ]
+    },
+    "Function_2": {
+      "node_id": "Function_2",
+      "node_kind": "Function",
+      "name": "Filtration",
+      "description": "The system will filter the raw water to remove impurities and contaminants, ensuring the water meets WHO and ISO 14021 standards for potable water.",
+      "embodiment": {
+        "principle": "Multi-Stage Filtration",
+        "description": "A combination of sedimentation, activated carbon filtration, and UV treatment to remove suspended solids, organic compounds, and pathogens.",
+        "design_parameters": {},
+        "cost_estimate": 1500.0,
+        "mass_estimate": 300.0,
+        "status": "candidate"
+      },
+      "physics_models": [
+        {
+          "name": "Filtration Efficiency Model",
+          "equations": "Efficiency = (1 - (C_out / C_in))",
+          "python_code": "Efficiency = 1 - (C_out / C_in)",
+          "assumptions": [
+            "Steady state conditions.",
+            "Uniform particle distribution."
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-08"
+      ],
+      "verification_plan": "Testing of water quality and audit of environmental management practices.",
+      "maturity": "Medium",
+      "tags": [
+        "Filtration",
+        "Water Quality",
+        "Potable Water"
+      ],
+      "edges_in": [
+        "Function_1"
+      ],
+      "edges_out": [
+        "Function_4"
+      ]
+    },
+    "Function_3": {
+      "node_id": "Function_3",
+      "node_kind": "Function",
+      "name": "Solar Power Generation",
+      "description": "The system will generate electricity using solar panels to power the filtration and pumping processes, ensuring off-grid operation.",
+      "embodiment": {
+        "principle": "Photovoltaic Power Generation",
+        "description": "An array of solar panels connected to a charge controller and battery bank for energy storage.",
+        "design_parameters": {},
+        "cost_estimate": 2000.0,
+        "mass_estimate": 500.0,
+        "status": "candidate"
+      },
+      "physics_models": [
+        {
+          "name": "Power Generation Model",
+          "equations": "P = \u03b7 * A * G",
+          "python_code": "P = eta * A * G",
+          "assumptions": [
+            "Ideal operating conditions.",
+            "No shading or temperature effects."
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-02",
+        "SR-03"
+      ],
+      "verification_plan": "Inspection of the power source and energy storage components.",
+      "maturity": "Medium",
+      "tags": [
+        "Solar Power",
+        "Renewable Energy",
+        "Off-Grid"
+      ],
+      "edges_in": [],
+      "edges_out": [
+        "Function_5"
+      ]
+    },
+    "Function_4": {
+      "node_id": "Function_4",
+      "node_kind": "Function",
+      "name": "Water Storage",
+      "description": "The system will store the filtered water in a tank to ensure a consistent supply, even during periods of low sunlight or high demand.",
+      "embodiment": {
+        "principle": "Reservoir Storage",
+        "description": "A food-grade plastic or stainless steel tank with a capacity sufficient for at least one day's water supply.",
+        "design_parameters": {},
+        "cost_estimate": 1000.0,
+        "mass_estimate": 200.0,
+        "status": "candidate"
+      },
+      "physics_models": [
+        {
+          "name": "Storage Capacity Model",
+          "equations": "V = Q * t",
+          "python_code": "V = Q * t",
+          "assumptions": [
+            "Constant demand rate.",
+            "No leakage or evaporation."
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-06"
+      ],
+      "verification_plan": "Testing under controlled conditions to measure water production rate.",
+      "maturity": "Medium",
+      "tags": [
+        "Water Storage",
+        "Reservoir",
+        "Consistent Supply"
+      ],
+      "edges_in": [
+        "Function_2"
+      ],
+      "edges_out": [
+        "Function_5"
+      ]
+    },
+    "Function_5": {
+      "node_id": "Function_5",
+      "node_kind": "Function",
+      "name": "System Monitoring and Control",
+      "description": "The system will include sensors and a user-friendly interface to monitor water quality, power generation, and system performance, enabling real-time adjustments and maintenance scheduling.",
+      "embodiment": {
+        "principle": "SCADA System",
+        "description": "A Supervisory Control and Data Acquisition system with remote monitoring capabilities and alerts for system anomalies.",
+        "design_parameters": {},
+        "cost_estimate": 800.0,
+        "mass_estimate": 50.0,
+        "status": "candidate"
+      },
+      "physics_models": [
+        {
+          "name": "Monitoring System Model",
+          "equations": "Response Time = T_d + T_p",
+          "python_code": "Response_Time = T_d + T_p",
+          "assumptions": [
+            "Instantaneous data transmission.",
+            "No delays in processing."
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-10",
+        "SR-05"
+      ],
+      "verification_plan": "Usability testing with untrained users to assess interface effectiveness.",
+      "maturity": "Medium",
+      "tags": [
+        "System Monitoring",
+        "SCADA",
+        "User Interface"
+      ],
+      "edges_in": [
+        "Function_3",
+        "Function_4"
+      ],
+      "edges_out": []
+    }
+  },
+  "edges": [
+    [
+      "Function_1",
+      "Function_2"
+    ],
+    [
+      "Function_2",
+      "Function_4"
+    ],
+    [
+      "Function_3",
+      "Function_5"
+    ],
+    [
+      "Function_4",
+      "Function_5"
+    ]
+  ]
+}

@@ -168,7 +168,7 @@ GE_PROMPT_STRUCTURED = """
 You are the **Generation Agent** in a multi-agent systems-engineering workflow. This is the first step in the workflow.
 Take feedback from the Supervisor and the Cahier des Charges to generate five design proposals. You either create a new design graph or improve an existing one.
 
-Produce **exactly FIVE (5) fresh design proposals**, each encoded as a   
+Produce **exactly FIVE (5) different design proposals**, each encoded as a   
 **Design-State Graph (DSG)** that                                       
  • fulfils the current *Supervisor instructions*                       
  • respects the *Cahier-des-Charges (CDC)*                             
