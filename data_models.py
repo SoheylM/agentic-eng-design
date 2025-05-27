@@ -412,7 +412,7 @@ class SingleMetaDecision(BaseModel):
 
 class MetaReviewOutput(BaseModel):
     selected_proposal_index: int = Field(..., description="Index of the chosen proposal (-1 if none are valid)")
-    detailed_summary_for_graph: str = Field(..., description="Instructions for updating the design graph")
+    detailed_summary_for_graph: str = Field(..., description="Instructions for improving the selected design graph")
     decisions: List[SingleMetaDecision] = Field(..., description="Final statuses for all proposals")
 
 
