@@ -44,6 +44,9 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
     cdc_js = (cdc.model_dump_json() if isinstance(cdc, CahierDesCharges)
               else json.dumps(cdc or {}, indent=2))
 
+    # Get meta-review notes if available
+    meta_notes = state.meta_review_notes[-1] if state.meta_review_notes else "No meta-review notes available."
+
     # 2) structured LLM call ---------------------------------------------------
     decision: SupervisorDecision = supervisor_model.invoke([
         SystemMessage(content=SUPERVISOR_PROMPT),
@@ -59,6 +62,9 @@ Expected outputs: {step.expected_outputs}
 
 ### Cahier-des-Charges
 {cdc_js}
+
+### Meta-Review Notes
+{meta_notes}
 """)
     ])
 

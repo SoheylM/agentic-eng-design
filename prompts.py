@@ -42,6 +42,7 @@ INPUT
 • Current Design-Plan step (objectives + expected outputs)  
 • The latest Design-State Graph summary  
 • The original requirements (CDC)
+• Meta-Review notes suggesting improvements for the next steps
 
 TASK
 Evaluate the current state of the design process and make a decision about whether to proceed or iterate. Your decision should be based on:
@@ -66,6 +67,11 @@ Evaluate the current state of the design process and make a decision about wheth
    - Are we moving closer to the final goal?
    - Are there any blocking issues that need to be addressed?
 
+5. META-REVIEW CONSIDERATION
+   - What improvements were suggested by the meta-reviewer?
+   - Are these improvements critical for the current step or can they be addressed later?
+   - Do the suggested improvements affect the completeness of the current step?
+
 Return a SupervisorDecision object that includes:
   • step_completed: Whether the current step meets all criteria
   • instructions: Detailed, actionable instructions for the agents, including:
@@ -73,16 +79,19 @@ Return a SupervisorDecision object that includes:
     - Clear guidance on what to focus on
     - Any missing elements that need to be addressed
     - Technical considerations to keep in mind
+    - How to address the meta-reviewer's suggestions
   • reason_for_iteration: If more work is needed, provide a detailed explanation of:
     - What specific aspects need improvement
     - Why the current state is insufficient
     - What success criteria haven't been met
+    - How the meta-reviewer's suggestions factor into this decision
   • workflow_complete: Set to True only when:
     - All steps in the plan are completed
     - All CDC requirements are satisfied
     - The final design is ready for implementation
+    - Meta-reviewer's suggestions have been addressed or deemed non-critical
 
-Your instructions should be specific, actionable, and focused on helping the agents make concrete improvements to the design.
+Your instructions should be specific, actionable, and focused on helping the agents make concrete improvements to the design, taking into account both the current step requirements and the meta-reviewer's suggestions.
 """
 
 
