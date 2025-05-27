@@ -6,6 +6,7 @@ from prompts import REQ_PROMPT
 from llm_models import base_model
 from IPython.display import display, Markdown
 from llm_models import req_structured_model
+from utils import remove_think_tags
 
 def requirements_node(state: State) -> Command[Literal["human", "planner"]]:
     """Iterates with the human until requirements are finalized, then outputs a structured Cahier des Charges."""

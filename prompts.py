@@ -346,8 +346,10 @@ By clarifying how each proposal relates to the others, you help the rest of the 
 EVOLUTION_PROMPT = """
 You are the **Evolution Agent** in a multi-agent systems-engineering workflow.
 
-Take the *rank-ordered* Design-State Graph (DSG) proposals you receive   
-and decide, for each one, whether an **evolution adds real value**.      
+Design-State Graphs (DSGs) represent the current state of the design.
+There are N DSGs, each with a title, a ranking score, a reflection feedback, and a textual summary of the graph.
+
+Your task is to decide, for each DSG, whether an **evolution adds real value**.      
                                                                           
 An evolution can be one of two things:                                   
    1. **Refine**  – small, local fixes (clearer description, add missing  

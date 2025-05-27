@@ -7,6 +7,7 @@ import json
 from data_models import State, CahierDesCharges, DesignPlan
 from prompts     import PLANNER_PROMPT
 from llm_models  import planner_model        # single model for everything
+from utils import remove_think_tags
 
 
 def planner_node(state: State) -> Command[Literal["supervisor", "human"]]:
