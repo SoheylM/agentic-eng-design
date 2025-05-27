@@ -136,8 +136,8 @@ class Proposal(BaseModel):
     # Reflection agent's critique or suggestions. Could be a short text summary.
     feedback: Optional[str] = None
     
-    # Ranking agent's numeric or textual grade. E.g., "score: 8.5"
-    grade: Optional[float] = None
+    # Ranking agent's metrics from eval_saved.py evaluation
+    grade: Optional[Dict[str, Dict[str, float | str]]] = None
     ranking_justification: Optional[str] = None
 
     # Evolved content from the Evolution agent (could be combined or refined text).

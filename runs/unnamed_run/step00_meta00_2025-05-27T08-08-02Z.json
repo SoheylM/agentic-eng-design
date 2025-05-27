@@ -1,0 +1,58 @@
+{
+  "nodes": {
+    "Function_1": {
+      "node_id": "Function_1",
+      "node_kind": "Function",
+      "name": "Water Intake",
+      "description": "The system will intake raw water from a natural source such as a river, lake, or well. This function is crucial for initiating the filtration process and ensuring a steady supply of water for treatment.",
+      "embodiment": {
+        "principle": "Direct Intake",
+        "description": "A submerged intake system with a coarse filter to prevent large debris from entering the system.",
+        "design_parameters": {},
+        "cost_estimate": 800.0,
+        "mass_estimate": 150.0,
+        "status": "refined"
+      },
+      "physics_models": [
+        {
+          "name": "Hydraulic Flow Model",
+          "equations": "Q = A * v",
+          "python_code": "Q = A * v",
+          "assumptions": [
+            "Steady flow conditions.",
+            "Incompressible fluid."
+          ],
+          "status": "refined"
+        }
+      ],
+      "linked_reqs": [
+        "SN-01",
+        "SN-03",
+        "SN-04",
+        "SN-05",
+        "SN-06",
+        "SN-07",
+        "SN-08",
+        "SN-09",
+        "SN-10"
+      ],
+      "verification_plan": "Testing under controlled conditions to measure water production rate.",
+      "maturity": "High",
+      "tags": [
+        "Water Intake",
+        "Raw Water",
+        "Filtration Process"
+      ],
+      "edges_in": [],
+      "edges_out": [
+        "Function_2"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "Function_1",
+      "Function_2"
+    ]
+  ]
+}

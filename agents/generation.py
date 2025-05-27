@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from typing import List, Optional, Literal
+import tempfile
+from pathlib import Path
 
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.types import Command
@@ -17,6 +19,7 @@ from prompts import GE_PROMPT_STRUCTURED, GEN_RESEARCH_PROMPT
 from llm_models import generation_agent, base_model_reasoning
 from graph_utils import summarize_design_state_func
 from utils import remove_think_tags
+from eval_saved import evaluate_dsg  # Import the evaluation function
 
 
 def generation_node(state: State) -> Command[Literal["orchestrator", "reflection"]]:
@@ -100,6 +103,13 @@ Generate **brand-new DSG proposals** (no refinement loop).
     dsg_proposals: List[SingleProposal] = llm_out.proposals
     print(f"LLM returned {len(dsg_proposals)} DSGs")
 
+    # ── Evaluate each proposal using eval_saved ────────────────────────────
+    tmp = Path(tempfile.mkdtemp(prefix="eval_"))
+    evaluations = {}  # Store evaluations in a temporary dict
+    for i, prop in enumerate(dsg_proposals):
+        # Evaluate the DSG and store metrics
+        evaluations[i] = evaluate_dsg(prop.content, tmp)
+
     # ── Decide on extra research (optional orchestrator hop) ───────────────
     orch_request = _need_more_research(dsg_proposals, state)
 
@@ -115,8 +125,9 @@ Generate **brand-new DSG proposals** (no refinement loop).
             ranking_iteration_index=state.ranking_iteration,
             evolution_iteration_index=state.evolution_iteration,
             meta_review_iteration_index=state.meta_review_iteration,
+            grade=evaluations[i]               # ← use stored evaluation metrics
         )
-        for p in dsg_proposals
+        for i, p in enumerate(dsg_proposals)
     ]
 
     if orch_request:

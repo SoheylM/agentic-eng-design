@@ -1,0 +1,186 @@
+{
+  "nodes": {
+    "Function_1": {
+      "node_id": "Function_1",
+      "node_kind": "Function",
+      "name": "Water Intake",
+      "description": "The system will intake raw water from a natural source such as a river, lake, or well. This function is crucial for initiating the filtration process and ensuring a steady supply of water for treatment.",
+      "embodiment": {
+        "principle": "Direct Intake",
+        "description": "A submerged intake system with a coarse filter to prevent large debris from entering the system.",
+        "design_parameters": {},
+        "cost_estimate": 800.0,
+        "mass_estimate": 150.0,
+        "status": "refined"
+      },
+      "physics_models": [
+        {
+          "name": "Hydraulic Flow Model",
+          "equations": "Q = A * v",
+          "python_code": "Q = A * v",
+          "assumptions": [
+            "Steady flow conditions.",
+            "Incompressible fluid."
+          ],
+          "status": "refined"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-04"
+      ],
+      "verification_plan": "T",
+      "maturity": "High",
+      "tags": [
+        "Water Intake",
+        "Raw Water",
+        "Filtration Process"
+      ],
+      "edges_in": [],
+      "edges_out": [
+        "Function_2"
+      ]
+    },
+    "Function_2": {
+      "node_id": "Function_2",
+      "node_kind": "Function",
+      "name": "Filtration Unit",
+      "description": "This function involves the actual filtration of the raw water to remove impurities and contaminants, ensuring the water meets WHO and ISO 14021 standards.",
+      "embodiment": {
+        "principle": "Multi-Stage Filtration",
+        "description": "A multi-stage filtration system including coarse filters, activated carbon, and UV treatment to ensure high water quality.",
+        "design_parameters": {},
+        "cost_estimate": 1200.0,
+        "mass_estimate": 300.0,
+        "status": "refined"
+      },
+      "physics_models": [
+        {
+          "name": "Filtration Efficiency Model",
+          "equations": "Efficiency = (Contaminants Removed) / (Total Contaminants)",
+          "python_code": "efficiency = (contaminants_removed) / (total_contaminants)",
+          "assumptions": [
+            "Consistent contaminant concentration.",
+            "Steady-state operation."
+          ],
+          "status": "refined"
+        }
+      ],
+      "linked_reqs": [
+        "SR-08",
+        "SR-04"
+      ],
+      "verification_plan": "T",
+      "maturity": "High",
+      "tags": [
+        "Filtration",
+        "Water Quality",
+        "Treatment"
+      ],
+      "edges_in": [
+        "Function_1"
+      ],
+      "edges_out": [
+        "Function_3"
+      ]
+    },
+    "Function_3": {
+      "node_id": "Function_3",
+      "node_kind": "Function",
+      "name": "Solar Power System",
+      "description": "This function involves the generation and storage of solar power to ensure the filtration system operates continuously in off-grid locations.",
+      "embodiment": {
+        "principle": "Photovoltaic Panels with Battery Storage",
+        "description": "A solar panel array with a battery storage system to provide consistent power supply during periods of low sunlight.",
+        "design_parameters": {},
+        "cost_estimate": 1500.0,
+        "mass_estimate": 400.0,
+        "status": "refined"
+      },
+      "physics_models": [
+        {
+          "name": "Power Generation Model",
+          "equations": "Power = Efficiency * Solar Irradiance * Panel Area",
+          "python_code": "power = efficiency * solar_irradiance * panel_area",
+          "assumptions": [
+            "Average solar irradiance.",
+            "Panel efficiency remains constant."
+          ],
+          "status": "refined"
+        }
+      ],
+      "linked_reqs": [
+        "SR-02",
+        "SR-03"
+      ],
+      "verification_plan": "I",
+      "maturity": "High",
+      "tags": [
+        "Solar Power",
+        "Renewable Energy",
+        "Off-Grid"
+      ],
+      "edges_in": [
+        "Function_2"
+      ],
+      "edges_out": [
+        "Function_4"
+      ]
+    },
+    "Function_4": {
+      "node_id": "Function_4",
+      "node_kind": "Function",
+      "name": "Water Storage and Distribution",
+      "description": "This function involves the storage of filtered water and its distribution to the end-users, ensuring a reliable and consistent water supply.",
+      "embodiment": {
+        "principle": "Water Tank with Distribution Pumps",
+        "description": "A water storage tank with distribution pumps to supply water to the community, including taps and connections for public use.",
+        "design_parameters": {},
+        "cost_estimate": 1000.0,
+        "mass_estimate": 250.0,
+        "status": "refined"
+      },
+      "physics_models": [
+        {
+          "name": "Storage and Distribution Model",
+          "equations": "Supply Rate = Demand Rate",
+          "python_code": "supply_rate = demand_rate",
+          "assumptions": [
+            "Steady demand rate.",
+            "No significant storage losses."
+          ],
+          "status": "refined"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-06"
+      ],
+      "verification_plan": "D",
+      "maturity": "High",
+      "tags": [
+        "Water Storage",
+        "Distribution",
+        "Supply Chain"
+      ],
+      "edges_in": [
+        "Function_3"
+      ],
+      "edges_out": []
+    }
+  },
+  "edges": [
+    [
+      "Function_1",
+      "Function_2"
+    ],
+    [
+      "Function_2",
+      "Function_3"
+    ],
+    [
+      "Function_3",
+      "Function_4"
+    ]
+  ]
+}
