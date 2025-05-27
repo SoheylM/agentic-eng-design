@@ -119,16 +119,6 @@ Generate **brand-new DSG proposals** (no refinement loop).
                 goto="generation",
             )
 
-    # ── Evaluate each proposal using eval_saved ────────────────────────────
-    tmp = Path(tempfile.mkdtemp(prefix="eval_"))
-    evaluations = {}  # Store evaluations in a temporary dict
-    for i, prop in enumerate(dsg_proposals):
-        # Evaluate the DSG and store metrics
-        evaluations[i] = evaluate_dsg(prop.content, tmp)
-
-    # ── Decide on extra research (optional orchestrator hop) ───────────────
-    orch_request = _need_more_research(dsg_proposals, state)
-
     # ── Wrap into long-term `Proposal` objects and update State ────────────
     new_entries: List[Proposal] = [
         Proposal(
@@ -140,11 +130,13 @@ Generate **brand-new DSG proposals** (no refinement loop).
             reflection_iteration_index=state.reflection_iteration,
             ranking_iteration_index=state.ranking_iteration,
             evolution_iteration_index=state.evolution_iteration,
-            meta_review_iteration_index=state.meta_review_iteration,
-            grade=evaluations[i]               # ← use stored evaluation metrics
+            meta_review_iteration_index=state.meta_review_iteration
         )
         for i, p in enumerate(dsg_proposals)
     ]
+
+    # ── Decide on extra research (optional orchestrator hop) ───────────────
+    orch_request = _need_more_research(dsg_proposals, state)
 
     if orch_request:
         # Ask Orchestrator, bump counters so the loop calls us again later
