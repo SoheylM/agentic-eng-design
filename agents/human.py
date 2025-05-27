@@ -6,7 +6,7 @@ import streamlit as st
 
 
 
-def human_node(state: State) -> Command[Literal["requirements", "planner"]]:
+def human_node(state: State) -> Command[Literal["requirements", "supervisor"]]:
     """Handles user interaction and dynamically routes to the next agent."""
     print("📝 [DEBUG] HUMAN NODE ACCESSED")
 
@@ -27,9 +27,9 @@ def human_node(state: State) -> Command[Literal["requirements", "planner"]]:
         return Command(
             update={
                 "messages": [HumanMessage(content=user_input)],
-                "active_agent": "planner"
+                "active_agent": "supervisor"
             },
-            goto="planner"
+            goto="supervisor"
         )
 
     return Command(

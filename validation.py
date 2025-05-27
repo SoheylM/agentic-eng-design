@@ -1,5 +1,5 @@
 from typing import List, Dict, Optional, Tuple
-from data_models import DesignState, DesignNode
+from data_models import DesignState, DesignNode, SingleProposal
 import uuid
 
 def validate_dsg(dsg: DesignState) -> Tuple[bool, str]:
