@@ -170,18 +170,6 @@ class WorkerAnalysis(BaseModel):
     step_index: int = Field(..., description="Design step in which this was created")
     called_by_agent: str = Field(..., description="Which agent requested this analysis")
 
-class PlanStep(BaseModel):
-    step_id: int = Field(..., description="Unique sequential ID for this design step.")
-    name: str = Field(..., description="Descriptive title of the step.")
-    description: str = Field(..., description="Explanation of what this step entails.")
-    objectives: str = Field(..., description="Goals and deliverables for this step.")
-    prerequisites: List[int] = Field(..., description="Step IDs that must be completed first.")
-    expected_outputs: str = Field(..., description="Expected deliverables for this step.")
-
-class DesignPlan(BaseModel):
-    plan_overview: str = Field(..., description="Summary of the overall engineering design process.")
-    steps: List[PlanStep] = Field(..., description="Ordered list of design steps.")
-
 @dataclass
 class State:
     """Graph state for the full engineering design workflow."""
@@ -191,7 +179,6 @@ class State:
 
     # **🔹 Key Engineering Artifacts**
     cahier_des_charges: Optional[CahierDesCharges] = None  # The structured requirements document
-    design_plan: Optional[DesignPlan] = None  # The structured multi-step design plan
     supervisor_instructions: Annotated[List[str], operator.add] = field(default_factory=list)  # Step-wise instructions
 
     # **🔹 Supervisor Agent Tracking**
@@ -202,7 +189,6 @@ class State:
 
     # **🔹 Step Execution & Control**
     active_agent: str = "human"  # Tracks the currently active agent
-    current_step_index: int = 0  # Which step in the design plan we are executing
     current_tasks_count: int = 0  # Number of worker tasks dispatched
 
     # **🔹 Flags for Workflow Iteration**

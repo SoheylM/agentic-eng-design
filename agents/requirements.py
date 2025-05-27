@@ -8,7 +8,7 @@ from IPython.display import display, Markdown
 from llm_models import req_structured_model
 from utils import remove_think_tags
 
-def requirements_node(state: State) -> Command[Literal["human", "planner"]]:
+def requirements_node(state: State) -> Command[Literal["human", "supervisor"]]:
     """Iterates with the human until requirements are finalized, then outputs a structured Cahier des Charges."""
     print("📝 [DEBUG] REQUIREMENTS NODE ACCESSED")
 
@@ -36,9 +36,9 @@ def requirements_node(state: State) -> Command[Literal["human", "planner"]]:
         return Command(
             update={
                 "cahier_des_charges": structured_output,  # ✅ Store the structured output
-                "active_agent": "planner"  # ✅ Move to Planner
+                "active_agent": "supervisor"  # ✅ Move to Supervisor
             },
-            goto="planner"
+            goto="supervisor"
         )
 
     # **Step 3: Continue Iteration with Human**

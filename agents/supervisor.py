@@ -20,27 +20,18 @@ from utils        import remove_think_tags
 # ─────────────────────────────────────────────────────────────────────────────
 def supervisor_node(state: State) -> Command[Literal["generation", END]]:
     """
-    Decide whether the current Design-Plan step is complete.
-    *No* second refinement pass; counters behave exactly like the
-    original long version you had.
+    Decide whether the current Design-State Graph is complete and meets requirements.
     """
 
     print("\n🔎  [Supervisor] invoked")
 
-    # 1) plan + step ------------------------------------------------------------
-    if not state.design_plan:
-        print("⚠️  no DesignPlan → END")
+    # 1) Check CDC and DSG ------------------------------------------------------------
+    if not state.cahier_des_charges:
+        print("⚠️  no Cahier des Charges → END")
         return Command(goto=END)
 
-    steps = state.design_plan.steps
-    idx   = state.current_step_index
-    if idx >= len(steps):
-        print("🎉 all steps done")
-        return Command(goto=END)
-
-    step   = steps[idx]
-    dsg    = state.design_graph_history[-1] if state.design_graph_history else DesignState()
-    cdc    = state.cahier_des_charges
+    dsg = state.design_graph_history[-1] if state.design_graph_history else DesignState()
+    cdc = state.cahier_des_charges
     cdc_js = (cdc.model_dump_json() if isinstance(cdc, CahierDesCharges)
               else json.dumps(cdc or {}, indent=2))
 
@@ -51,13 +42,7 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
     decision: SupervisorDecision = supervisor_model.invoke([
         SystemMessage(content=SUPERVISOR_PROMPT),
         HumanMessage(content=f"""
-### Current step
-ID: {step.step_id}
-Name: {step.name}
-Objectives: {step.objectives}
-Expected outputs: {step.expected_outputs}
-
-### Design-State Graph (summary)
+### Current Design State
 {summarize_design_state_func(dsg)}
 
 ### Cahier-des-Charges
@@ -70,13 +55,12 @@ Expected outputs: {step.expected_outputs}
 
     # Print concise decision summary
     status = "✅" if decision.step_completed else "🔄"
-    print(f"{status} Step {step.step_id} ({step.name}): {'Completed' if decision.step_completed else 'Needs iteration'}")
+    print(f"{status} Design State: {'Complete' if decision.step_completed else 'Needs iteration'}")
     if not decision.step_completed:
         print(f"   Reason: {decision.reason_for_iteration}")
 
     # 3) counter / flag maintenance --------------------------------------------
-    next_idx   = idx + 1 if decision.step_completed else idx
-    redo_flag  = not decision.step_completed
+    redo_flag = not decision.step_completed
 
     # keep max_iterations monotonically increasing so other agents
     # never see 0/0
@@ -90,13 +74,12 @@ Expected outputs: {step.expected_outputs}
 
     update = {
         "supervisor_instructions": [decision.instructions],
-        "current_step_index": next_idx,
         "redo_work": redo_flag,
         "redo_reason": decision.reason_for_iteration,
         "max_iterations": new_max_iter,
         # trace for debugging
-        "supervisor_status": f"step{idx}_decided_{datetime.utcnow().isoformat(timespec='seconds')}",
+        "supervisor_status": f"supervised_{datetime.utcnow().isoformat(timespec='seconds')}",
     }
 
-    goto = "generation" if next_idx < len(steps) and not decision.workflow_complete else END
+    goto = "generation" if not decision.workflow_complete else END
     return Command(update=update, goto=goto)
