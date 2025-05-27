@@ -820,7 +820,7 @@ A detailed Requirements Verification Matrix (RVM) will be developed during the d
 
 Design decisions must explicitly trace to stakeholder needs and system requirements, with a documented engineering process supporting validation, sustainability, usability, and cost compliance.
 
-Implement this cahier des charges and write 'FINALIZED' at the end of it.
+Implement this cahier des charges and **write 'FINALIZED' at the end of it** IT IS AN IMPORTANT TRIGGER.
 """
 
 
