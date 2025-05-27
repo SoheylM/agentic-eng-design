@@ -37,7 +37,7 @@ def planner_node(state: State) -> Command[Literal["supervisor", "human"]]:
 
     try:
         plan: DesignPlan = planner_model.invoke(llm_messages)  # already validated
-        plan = remove_think_tags(plan).strip()
+        plan.content = remove_think_tags(plan.content).strip()
     except Exception as e:
         err = f"❌  [Planner] LLM failed → {e}"
         print(err)

@@ -15,7 +15,7 @@ def requirements_node(state: State) -> Command[Literal["human", "planner"]]:
     # **Step 1: Base LLM for Interactive Discussion**
     messages = [SystemMessage(content=REQ_PROMPT), *state.messages]
     req_output = base_model.invoke(messages)
-    req_output = remove_think_tags(req_output).strip()
+    req_output.content = remove_think_tags(req_output.content).strip()
 
     display(Markdown(f"### 📜 Requirements Agent Response:\n\n{req_output.content}"))
 

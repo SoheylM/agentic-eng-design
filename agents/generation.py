@@ -96,7 +96,7 @@ Generate **brand-new DSG proposals** (no refinement loop).
         SystemMessage(content=GE_PROMPT_STRUCTURED),
         HumanMessage(content=human_msg.strip()),
     ])
-    llm_out = remove_think_tags(llm_out).strip()
+    llm_out.content = remove_think_tags(llm_out.content).strip()
 
     dsg_proposals: List[SingleProposal] = llm_out.proposals
     print(f"LLM returned {len(dsg_proposals)} DSGs")

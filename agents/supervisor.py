@@ -61,7 +61,7 @@ Expected outputs: {step.expected_outputs}
 {cdc_js}
 """)
     ])
-    decision = remove_think_tags(decision).strip()
+    decision.content = remove_think_tags(decision.content).strip()
 
     # Print concise decision summary
     status = "✅" if decision.step_completed else "🔄"

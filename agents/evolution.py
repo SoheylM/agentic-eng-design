@@ -82,7 +82,7 @@ Ranked proposal briefs →
 Produce refined DSG proposal for each ranked proposal.
 """)
     ])
-    evo_out = remove_think_tags(evo_out).strip()
+    evo_out.content = remove_think_tags(evo_out.content).strip()
 
     print(f"   • LLM produced {len(evo_out.evolutions)} evolutions")
 

@@ -78,7 +78,7 @@ Proposal briefs →
 {prop_briefs}
 """)
     ])
-    rk_out = remove_think_tags(rk_out).strip()
+    rk_out.content = remove_think_tags(rk_out.content).strip()
 
     print(f"   • LLM produced {len(rk_out.rankings)} ranking items")
 

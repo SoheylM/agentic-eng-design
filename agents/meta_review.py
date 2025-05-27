@@ -96,7 +96,7 @@ Here are the DSG proposals (one block per proposal):
 Return your final decisions.
 """)
     ])
-    llm_resp = remove_think_tags(llm_resp).strip()
+    llm_resp.content = remove_think_tags(llm_resp.content).strip()
 
     print(f"   • LLM returned decisions for {len(llm_resp.decisions)} proposals")
 

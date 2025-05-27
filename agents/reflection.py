@@ -93,7 +93,7 @@ def reflection_node(state: State) -> Command[Literal["orchestrator", "ranking"]]
             ),
         ]
     )
-    llm_resp = remove_think_tags(llm_resp).strip()
+    llm_resp.content = remove_think_tags(llm_resp.content).strip()
 
     print(f"   • LLM returned {len(llm_resp.reflections)} feedback items")
 
