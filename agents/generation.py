@@ -20,6 +20,7 @@ from llm_models import generation_agent, base_model_reasoning
 from graph_utils import summarize_design_state_func
 from utils import remove_think_tags
 from eval_saved import evaluate_dsg  # Import the evaluation function
+from validation import filter_valid_proposals  # Import our validation functions
 
 
 def generation_node(state: State) -> Command[Literal["orchestrator", "meta_review"]]:
@@ -102,6 +103,21 @@ Generate **brand-new DSG proposals** (no refinement loop).
 
     dsg_proposals: List[SingleProposal] = llm_out.proposals
     print(f"LLM returned {len(dsg_proposals)} DSGs")
+    
+    # Validate and sanitize proposals
+    valid_proposals = filter_valid_proposals(dsg_proposals)
+    if len(valid_proposals) < len(dsg_proposals):
+        print(f"⚠️  Filtered out {len(dsg_proposals) - len(valid_proposals)} invalid proposals")
+        dsg_proposals = valid_proposals
+        if not dsg_proposals:
+            print("❌ No valid proposals remaining after filtering")
+            return Command(
+                update={
+                    "generation_notes": ["No valid proposals generated. Retrying..."],
+                    "generation_iteration": iter_now + 1,
+                },
+                goto="generation",
+            )
 
     # ── Evaluate each proposal using eval_saved ────────────────────────────
     tmp = Path(tempfile.mkdtemp(prefix="eval_"))

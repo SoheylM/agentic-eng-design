@@ -1,5 +1,5 @@
 # synthesizer.py  ────────────────────────────────────────────────────────────
-from typing import Literal, List
+from typing import Literal, List, Optional
 
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.types import Command
@@ -15,6 +15,7 @@ from data_models  import (
 from prompts     import SY_PROMPT, SUMMARY_REFINEMENT_PROMPT
 from utils       import remove_think_tags
 from graph_utils import summarize_design_state_func
+from validation import validate_dsg  # Import our validation function
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -35,18 +36,27 @@ def synthesizer_node(state: State) -> Command[Literal["graph_designer"]]:
     )
     cahier_des_charges_summary = state.cahier_des_charges or "No formal constraints provided."
 
-    # Locate the **selected** proposal in the current step
-    recent: List[Proposal] = [
-        p for p in state.proposals
-        if p.current_step_index       == state.current_step_index
-        and p.generation_iteration_index == state.generation_iteration
-    ]
-    selected = next((p for p in recent if p.status == "selected"), None)
+    # Get the selected proposal
+    selected = next(
+        (p for p in state.proposals if p.status == "selected"),
+        None
+    )
 
     if not selected:
         print("⚠️  [DEBUG] No selected proposal found – skipping synthesis.")
         return Command(
             update={"synthesizer_notes": ["No selected proposal for synthesis."]},
+            goto="graph_designer",
+        )
+        
+    # Validate the selected proposal
+    is_valid, error_msg = validate_dsg(selected.content)
+    if not is_valid:
+        print(f"⚠️  [DEBUG] Selected proposal is invalid: {error_msg}")
+        return Command(
+            update={
+                "synthesizer_notes": [f"Selected proposal is invalid: {error_msg}"],
+            },
             goto="graph_designer",
         )
 

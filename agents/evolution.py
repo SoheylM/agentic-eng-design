@@ -5,11 +5,12 @@ from typing import List, Optional, Literal
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.types import Command
 
-from data_models  import State, Proposal
+from data_models  import State, Proposal, DesignState
 from prompts      import EVOLUTION_PROMPT, RESEARCH_PROMPT_EVOLUTION
 from llm_models   import evolution_agent, base_model_reasoning
 from graph_utils  import summarize_design_state_func
 from utils        import remove_think_tags
+from validation   import filter_valid_proposals
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -86,21 +87,41 @@ Produce refined DSG proposal for each ranked proposal.
     print(f"   • LLM produced {len(evo_out.evolutions)} evolutions")
 
     # ── Apply evolutions back into Proposal objects ────────────────────────
+    valid_evolutions = []
     for ev in evo_out.evolutions:
         idx = ev.proposal_index
         if 0 <= idx < len(recent_props):
             prop = recent_props[idx]
-            prop.evolved_content          = ev.new_content        # DesignState!
-            prop.evolution_justification  = ev.evolution_justification
-            prop.evolution_iteration_index = iter_now
-            # overwrite DSG with evolved version
-            prop.content = ev.new_content
-            print(f"     ↳ proposal {idx} evolved")
+            # Validate the evolved content before accepting it
+            is_valid, error_msg = validate_dsg(ev.new_content)
+            if is_valid:
+                prop.evolved_content = ev.new_content
+                prop.evolution_justification = ev.evolution_justification
+                prop.evolution_iteration_index = iter_now
+                # overwrite DSG with evolved version
+                prop.content = ev.new_content
+                valid_evolutions.append(prop)
+                print(f"     ↳ proposal {idx} evolved")
+            else:
+                print(f"     ⚠️  rejected invalid evolution for proposal {idx}: {error_msg}")
+                # Keep the original content
+                prop.evolution_justification = f"Evolution rejected: {error_msg}"
+                valid_evolutions.append(prop)
         else:
             print(f"     ⚠️  invalid proposal index {idx} ignored")
+    
+    if not valid_evolutions:
+        print("❌ No valid evolutions produced")
+        return Command(
+            update={
+                "evolution_notes": ["No valid evolutions generated. Skipping to meta-review."],
+                "evolution_iteration": iter_now,
+            },
+            goto="meta_review",
+        )
 
     # ── Need more research? ────────────────────────────────────────────────
-    orch_request = _need_more_research_evolution(recent_props, state)
+    orch_request = _need_more_research_evolution(valid_evolutions, state)
 
     if orch_request:
         preview = (orch_request[:77] + "…") if len(orch_request) > 80 else orch_request
