@@ -31,26 +31,42 @@ def process_tool_calls(ai_msg) -> List[ToolMessage]:
         # Handle both dictionary and list formats
         if isinstance(parsed_content, dict):
             if parsed_content.get("type") == "function":
-                # Safely get name and parameters with defaults
-                name = parsed_content.get("name")
+                # Handle nested function structure
+                function_data = parsed_content.get("function", {})
+                name = function_data.get("name")
                 if not name:
                     print("🚨 [DEBUG] Function call missing name field, skipping...")
                 else:
                     tool_calls = [{
                         "name": name,
-                        "args": parsed_content.get("parameters", {}),
+                        "args": function_data.get("parameters", {}),
                         "id": str(uuid.uuid4())
                     }]
         elif isinstance(parsed_content, list):
             # Assume each item in the list is a tool call
             tool_calls = []
             for item in parsed_content:
-                if isinstance(item, dict) and item.get("name") and item.get("args"):
-                    tool_calls.append({
-                        "name": item["name"],
-                        "args": item["args"],
-                        "id": str(uuid.uuid4())
-                    })
+                if isinstance(item, dict):
+                    # Handle both direct and nested function structures
+                    name = None
+                    args = {}
+                    
+                    if "function" in item:
+                        # Nested structure
+                        function_data = item.get("function", {})
+                        name = function_data.get("name")
+                        args = function_data.get("parameters", {})
+                    else:
+                        # Direct structure
+                        name = item.get("name")
+                        args = item.get("args", {})
+                    
+                    if name:
+                        tool_calls.append({
+                            "name": name,
+                            "args": args,
+                            "id": str(uuid.uuid4())
+                        })
     except (json.JSONDecodeError, TypeError) as e:
         print(f"🔍 [DEBUG] JSON parsing error: {e}")
         pass
