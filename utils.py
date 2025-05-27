@@ -63,71 +63,79 @@ def process_tool_calls(ai_msg) -> List[ToolMessage]:
     new_messages = []
 
     for call in tool_calls:
-        tool_name = call["name"].lower()
-        tool_args = call["args"]
-        tool_id = call.get("id", str(uuid.uuid4()))
-
-        print("🟡 [DEBUG] Processing tool call:")
-        print(f"   🔹 Tool Name: {tool_name}")
-        print(f"   🔹 Arguments: {tool_args}")
-        print(f"   🔹 Tool Call ID: {tool_id}")
-
-        # Wrap the invocation in try-except to catch errors.
         try:
-            if tool_name == "python_repl_tool":
-                print("🟠 [DEBUG] Invoking Python REPL Tool...")
-                tool_output = python_repl_tool.invoke(tool_args)
+            # Safely get the tool name and args with defaults
+            tool_name = call.get("name", "").lower()
+            if not tool_name:
+                print("🚨 [DEBUG] Tool call missing name field, skipping...")
+                continue
+                
+            tool_args = call.get("args", {})
+            tool_id = call.get("id", str(uuid.uuid4()))
 
-            elif tool_name == "tavily_search_results_json":
-                print("🟠 [DEBUG] Invoking Web Search Tool (Tavily)...")
-                tool_output = tavily_tool.invoke(tool_args)
-                # Extract relevant content from search results
-                if isinstance(tool_output, list):
-                    tool_output = " ".join(
-                        [f"{i+1}) {item.get('content', 'No Content')}" for i, item in enumerate(tool_output)]
-                    )
+            print("🟡 [DEBUG] Processing tool call:")
+            print(f"   🔹 Tool Name: {tool_name}")
+            print(f"   🔹 Arguments: {tool_args}")
+            print(f"   🔹 Tool Call ID: {tool_id}")
 
-            elif tool_name == "duckduckgo_results_json":
-                print("🟠 [DEBUG] Invoking Web Search Tool (DuckDuckGo)...")
-                tool_output = duckduckgo_tool.invoke(tool_args)
-                # Extract relevant content from search results
-                if isinstance(tool_output, list):
-                    tool_output = " ".join(
-                        [f"{i+1}) {item.get('content', 'No Content')}" for i, item in enumerate(tool_output)]
-                    )
+            # Wrap the invocation in try-except to catch errors.
+            try:
+                if tool_name == "python_repl_tool":
+                    print("🟠 [DEBUG] Invoking Python REPL Tool...")
+                    tool_output = python_repl_tool.invoke(tool_args)
 
-            elif tool_name == "arxiv_search":
-                print("🟠 [DEBUG] Invoking Arxiv Search Tool...")
-                tool_output = arxiv_search_tool.invoke(tool_args)
+                elif tool_name == "tavily_search_results_json":
+                    print("🟠 [DEBUG] Invoking Web Search Tool (Tavily)...")
+                    tool_output = tavily_tool.invoke(tool_args)
+                    # Extract relevant content from search results
+                    if isinstance(tool_output, list):
+                        tool_output = " ".join(
+                            [f"{i+1}) {item.get('content', 'No Content')}" for i, item in enumerate(tool_output)]
+                        )
 
-            elif tool_name == "add_node":
-                print("🟠 [DEBUG] Invoking Add Node Tool...")
-                tool_output = add_node_tool.invoke(tool_args)
+                elif tool_name == "duckduckgo_results_json":
+                    print("🟠 [DEBUG] Invoking Web Search Tool (DuckDuckGo)...")
+                    tool_output = duckduckgo_tool.invoke(tool_args)
+                    # Extract relevant content from search results
+                    if isinstance(tool_output, list):
+                        tool_output = " ".join(
+                            [f"{i+1}) {item.get('content', 'No Content')}" for i, item in enumerate(tool_output)]
+                        )
 
-            elif tool_name == "delete_node":
-                print("🟠 [DEBUG] Invoking Delete Node Tool...")
-                tool_output = delete_node_tool.invoke(tool_args)
+                elif tool_name == "arxiv_search":
+                    print("🟠 [DEBUG] Invoking Arxiv Search Tool...")
+                    tool_output = arxiv_search_tool.invoke(tool_args)
 
-            elif tool_name == "summarize_design_state":
-                print("🟠 [DEBUG] Invoking Summarize Design State Tool...")
-                tool_output = summarize_design_state_tool.invoke(tool_args)
+                elif tool_name == "add_node":
+                    print("🟠 [DEBUG] Invoking Add Node Tool...")
+                    tool_output = add_node_tool.invoke(tool_args)
 
-            elif tool_name == "visualize_design_state":
-                print("🟠 [DEBUG] Invoking Visualize Design State Tool...")
-                tool_output = visualize_design_state_tool.invoke(tool_args)
+                elif tool_name == "delete_node":
+                    print("🟠 [DEBUG] Invoking Delete Node Tool...")
+                    tool_output = delete_node_tool.invoke(tool_args)
 
-            else:
-                tool_output = f"❌ Error: Unrecognized tool '{tool_name}'"
-                print(f"🚨 [DEBUG] Unknown tool call received: {tool_name}")
+                elif tool_name == "summarize_design_state":
+                    print("🟠 [DEBUG] Invoking Summarize Design State Tool...")
+                    tool_output = summarize_design_state_tool.invoke(tool_args)
+
+                elif tool_name == "visualize_design_state":
+                    print("🟠 [DEBUG] Invoking Visualize Design State Tool...")
+                    tool_output = visualize_design_state_tool.invoke(tool_args)
+
+                else:
+                    tool_output = f"❌ Error: Unrecognized tool '{tool_name}'"
+                    print(f"🚨 [DEBUG] Unknown tool call received: {tool_name}")
+            except Exception as e:
+                tool_output = f"❌ Error invoking tool '{tool_name}': {repr(e)}"
+                print(f"🚨 [DEBUG] Exception during tool call: {tool_output}")
+
+            print(f"🟢 [DEBUG] Tool Output: {tool_output}\n")
+
+            new_messages.append(
+                ToolMessage(content=tool_output, tool_call_id=tool_id)
+            )
         except Exception as e:
-            tool_output = f"❌ Error invoking tool '{tool_name}': {repr(e)}"
-            print(f"🚨 [DEBUG] Exception during tool call: {tool_output}")
-
-        print(f"🟢 [DEBUG] Tool Output: {tool_output}\n")
-
-        new_messages.append(
-            ToolMessage(content=tool_output, tool_call_id=tool_id)
-        )
+            print(f"🚨 [DEBUG] Error processing tool call: {e}")
 
     print("🟡 [DEBUG] Finished processing tool calls.")
     return new_messages
