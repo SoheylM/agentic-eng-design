@@ -21,12 +21,11 @@ class PhysicsModel(BaseModel):
         description=(
             "Fully developed and runnable Python script **with default-value arguments** so"
             "`python model.py --help` succeeds without external inputs."
-            "The imputs are design parameters such as geometry and operating conditions."
-            "The outputs are performance metrics such as efficiency, power, or pressure drop and so on."))
+            "The inputs are design parameters such as geometry and operating conditions."
+            "The outputs are performance metrics such as efficiency, power, or pressure drop and so on."
+            "The script should act as a high-fidelity model of the system to be used in simulation and optimization."))
     assumptions: List[str] = Field(default_factory=list,
         description="Simplifying assumptions (steady-state, incompressible…).")
-    status: str = Field("draft",
-        description="'draft' | 'validated' | 'deprecated'.")
 
 
 class Embodiment(BaseModel):
@@ -41,8 +40,6 @@ class Embodiment(BaseModel):
         description="USD (−1.0 → not yet estimated).")
     mass_estimate: float = Field(-1.0,
         description="kg (−1.0 → not yet estimated).")
-    status: str = Field("candidate",
-        description="'candidate' | 'selected' | 'rejected'.")
 
 
 # ────────────────────────────────────────────────
@@ -54,7 +51,7 @@ class DesignNode(BaseModel):
     """
     # ── identity ──────────────────────────────────────────────────────────
     node_id: str = Field(default_factory=lambda: str(uuid.uuid4()),
-        description="Immutable UUID v4.")
+        description="Node identifier.")
     node_kind: str = Field(default_factory=lambda: str(uuid.uuid4()),
         description="Type of node.")
     name: str = Field(..., description="Short label shown in diagrams.")
@@ -64,9 +61,9 @@ class DesignNode(BaseModel):
     # ── engineering payload ───────────────────────────────────────────────
     embodiment: Embodiment = Field(
         default_factory=Embodiment,
-        description="Current embodiment (may be placeholder for requirements).")
+        description="Current physical embodiment of the node, meaning the physical realisation of the node, a system.")
     physics_models: List[PhysicsModel] = Field(default_factory=list,
-        description="Zero or more predictive models.")
+        description="The physics models that are used to describe the node with the high-fidelity numericalmodel.")
 
     # ── traceability & maturity ───────────────────────────────────────────
     linked_reqs: List[str] = Field(default_factory=list,
@@ -85,7 +82,7 @@ class DesignNode(BaseModel):
 class DesignState(BaseModel):
     """Snapshot of the complete directed graph."""
     nodes: Dict[str, DesignNode] = Field(default_factory=dict,
-        description="Map node_id ➜ node data.")
+        description="Map node_id to node data.")
     edges: List[List[str]] = Field(default_factory=list,
         description="Single source of truth for graph connectivity. Each item = [source_id, target_id]. The edges_in and edges_out lists in nodes are derived from this list.")
 
