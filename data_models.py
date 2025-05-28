@@ -19,7 +19,7 @@ class PhysicsModel(BaseModel):
         description="LaTeX / plain-text governing equations for documentation.")
     python_code: str = Field("",
         description=(
-            "Fully developed and runnable Python script **with default-value arguments** so "
+            "Fully developed and runnable Python script **with default-value arguments** so"
             "`python model.py --help` succeeds without external inputs."
             "The imputs are design parameters such as geometry and operating conditions."
             "The outputs are performance metrics such as efficiency, power, or pressure drop and so on."))
