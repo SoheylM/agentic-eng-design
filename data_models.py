@@ -7,25 +7,50 @@ import uuid
 from dataclasses import dataclass, field
 
 
-
 # ────────────────────────────────────────────────
 #  Leaves
 # ────────────────────────────────────────────────
 class PhysicsModel(BaseModel):
     """Analytical / empirical model attached to a design element."""
     name: str = Field(...,
-        description="Unique identifier, e.g. 'MeanLineCompressor_v2'.")
+        description="<Unique model name, e.g. 'HeatExchanger1D'.")
     equations: str = Field("",
-        description="LaTeX / plain-text governing equations for documentation.")
+        description="LaTeX / plain-text governing equations, e.g., 'Q = m_dot * Cp * (T_in - T_out)'.")
     python_code: str = Field("",
         description=(
-            "Fully developed and runnable Python script **with default-value arguments** so"
-            "`python model.py --help` succeeds without external inputs."
-            "The inputs are design parameters such as geometry and operating conditions."
-            "The outputs are performance metrics such as efficiency, power, or pressure drop and so on."
-            "The script should act as a high-fidelity model of the system to be used in simulation and optimization."))
+            """
+            A complete, runnable Python application (**1500–3000 lines, NOT SOME TOY CODE**) that:
+            1. **Defines geometry & mesh** entirely in code:
+            - Builds 2D/3D domains via primitives or parametric surfaces.
+            - Generates an unstructured mesh using pure-Python algorithms or wrappers (no external executables).
+            2. **Loads material & model data** from built-in JSON or YAML files:
+            - Parses material properties (density, conductivity, etc.) into Python data classes.
+            3. **Implements core numerical methods** from first principles:
+            - Spatial discretization via finite-difference, finite-volume, or finite-element assembled with NumPy/SciPy.
+            - Time integration (Euler, RK4, BDF2) coded by hand, with adaptive step control.
+            - Linear/nonlinear solvers (Jacobi, Gauss-Seidel, Newton-Raphson) implemented in Python.
+            4. **Couples multiphysics** by hand-rolling data transfers:
+            - Explicit loops for mapping field variables (e.g., power → temperature → stress).
+            5. **Provides a command-line interface** via `argparse`:
+            - All simulation parameters (mesh size, time steps, tolerances) exposed as flags.
+            - `--help` prints descriptions for every flag.
+            6. **Structures code modularly**:
+            - Separate modules/files: `mesh.py`, `materials.py`, `solvers.py`, `coupling.py`, `main.py`.
+            7. **Handles I/O & visualization** without external tools:
+            - Writes CSV and VTK (using pure-Python routines) for ParaView.
+            - Exports key arrays as NumPy `.npy` files.
+            8. **Instrumentation & logging**:
+            - Uses Python’s `logging` module for solver progress, residuals, performance timers.
+            9. **Verification & validation** built in:
+            - A `tests/` directory with `pytest` cases for canonical problems (e.g., manufactured solutions).
+            10. **Documentation & type hints**:
+            - Full module, class, and function docstrings.
+            - Complete type annotations everywhere.
+            11. **Example default scenario** in `main()`:
+            - Defines a realistic baseline case, runs end‐to‐end, prints energy balance, convergence info, and saves outputs.
+            """))
     assumptions: List[str] = Field(default_factory=list,
-        description="Simplifying assumptions (steady-state, incompressible…).")
+        description="Simplifying assumptions, e.g., [one-dimensional, steady-state, no fouling].")
 
 
 class Embodiment(BaseModel):

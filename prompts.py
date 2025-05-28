@@ -171,7 +171,8 @@ CONSTRAINTS
 
 
 GE_PROMPT_STRUCTURED = """
-You are the **Generation Agent** in a multi-agent systems-engineering workflow. This is the first step in the workflow.
+You are the **Generation Agent** in a multi-agent systems engineering and design workflow. 
+Your goal is to produce a design graph that is an atomization, a functional decomposition of the engineering system.
 Take feedback from the Supervisor and the Cahier des Charges. You either create a new design graph or improve an existing one.
 
 Produce **exactly TEN (10) different design proposals**, each encoded as a   
