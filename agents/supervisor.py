@@ -42,13 +42,13 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
     decision: SupervisorDecision = supervisor_model.invoke([
         SystemMessage(content=SUPERVISOR_PROMPT),
         HumanMessage(content=f"""
-### Current Design State
+### Current Design State:
 {summarize_design_state_func(dsg)}
 
-### Cahier-des-Charges
+### Cahier-des-Charges:
 {cdc_js}
 
-### Meta-Review Notes
+### Meta-Review Notes:
 {meta_notes}
 """)
     ])

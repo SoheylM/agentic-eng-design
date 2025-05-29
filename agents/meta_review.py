@@ -22,9 +22,8 @@ from utils import save_dsg
 # ─────────────────────────  M E T A - R E V I E W  N O D E  ──────────────────
 def meta_review_node(state: State) -> Command[Literal["supervisor"]]:
     """
-    • Analyzes DSG proposals using their evaluation metrics
-    • Identifies Pareto-optimal solutions based on multiple objectives
-    • Selects the best overall solution considering all metrics
+    • Analyzes DSG proposals from the Generation agent
+    • Selects the best overall solution from the list of proposals
     • Appends the selected DSG to `design_graph_history`
     """
     print("\n🔎 [META] Meta-Review node")
@@ -78,16 +77,16 @@ def meta_review_node(state: State) -> Command[Literal["supervisor"]]:
     llm_resp = meta_reviewer_agent.invoke([
         SystemMessage(content=ME_PROMPT),
         HumanMessage(content=f"""
-Supervisor instructions →
+Supervisor instructions:
 {sup_instr}
 
-Cahier des Charges →
+Cahier des Charges:
 {cdc_text}
 
-Here are the DSG proposals with their evaluation metrics, rankings, and reflection feedback:
+Here are the DSG proposals with their rankings and reflection feedback:
 {dsg_summaries}
 
-Analyze these proposals considering all metrics, rankings, and feedback as objectives.
+Analyze these proposals considering the rankings and the feedback as objectives.
 Return your final decisions.
 """)
     ])
