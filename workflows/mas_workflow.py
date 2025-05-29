@@ -20,6 +20,7 @@ from agents.supervisor    import supervisor_node
 from agents.orchestrator  import orchestrator_node
 from agents.worker        import worker_node
 from agents.generation    import generation_node
+from agents.coder         import coder_node
 from agents.reflection    import reflection_node
 from agents.ranking       import ranking_node
 from agents.evolution     import evolution_node
@@ -42,10 +43,10 @@ def build_app() -> "langgraph.App":
     g.add_node("orchestrator",   orchestrator_node)
     g.add_node("worker",         worker_node)
     g.add_node("generation",     generation_node)
+    g.add_node("coder",          coder_node)
     g.add_node("reflection",     reflection_node)
     g.add_node("ranking",        ranking_node)
     g.add_node("meta_review",    meta_review_node)
-
 
     return g.compile(checkpointer=MemorySaver())
 

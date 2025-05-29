@@ -40,7 +40,7 @@ class PhysicsModel(BaseModel):
             - Writes CSV and VTK (using pure-Python routines) for ParaView.
             - Exports key arrays as NumPy `.npy` files.
             8. **Instrumentation & logging**:
-            - Uses Python’s `logging` module for solver progress, residuals, performance timers.
+            - Uses Python's `logging` module for solver progress, residuals, performance timers.
             9. **Verification & validation** built in:
             - A `tests/` directory with `pytest` cases for canonical problems (e.g., manufactured solutions).
             10. **Documentation & type hints**:
@@ -236,6 +236,9 @@ class State:
     reflection_notes: Annotated[List[str], operator.add] = field(default_factory=list)
     reflection_iteration: int = 0  
 
+    coder_notes: Annotated[List[str], operator.add] = field(default_factory=list)
+    coder_iteration: int = 0  
+
     ranking_notes: Annotated[List[str], operator.add] = field(default_factory=list)
     ranking_iteration: int = 0  
 
@@ -376,6 +379,10 @@ class SingleProposal(BaseModel):
 class ProposalsOutput(BaseModel):
     proposals: List[SingleProposal]
 
+
+class CoderOutput(BaseModel):
+    """Output from the coder agent for a single physics model."""
+    python_code: str = Field(..., description="Complete Python implementation following the 11-point specification.")
 
 
 class SingleReflection(BaseModel):

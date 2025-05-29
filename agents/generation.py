@@ -23,7 +23,7 @@ from eval_saved import evaluate_dsg  # Import the evaluation function
 from validation import filter_valid_proposals  # Import our validation functions
 
 
-def generation_node(state: State) -> Command[Literal["orchestrator", "reflection"]]:
+def generation_node(state: State) -> Command[Literal["orchestrator", "coder"]]:
     """
     • Generates *N* DSG proposals (defined in GE_PROMPT_STRUCTURED).
     • Decides if extra research is needed.
@@ -40,14 +40,14 @@ def generation_node(state: State) -> Command[Literal["orchestrator", "reflection
     print(f"   • iteration {iter_now + 1}/{max_iter}")
 
     if iter_now >= max_iter:
-        # Bail-out protection → go straight to reflection
+        # Bail-out protection → go straight to coder
         print("   ⚠️  max-iterations reached; skipping generation.")
         return Command(
             update={
                 "generation_notes": [f"Stopped after {max_iter} generation loops."],
                 "generation_iteration": iter_now - 1,   # ← keep last valid index
             },
-            goto="reflection",
+            goto="coder",
         )
 
     # ── Context strings for the LLM ────────────────────────────────────────
@@ -151,15 +151,15 @@ Generate **brand-new DSG proposals** (no refinement loop).
             goto="orchestrator",
         )
 
-    # Otherwise go straight to reflection
-    print(" ✅ generation complete → reflection")
+    # Otherwise go straight to coder
+    print(" ✅ generation complete → coder")
     return Command(
         update={
             "proposals":          new_entries,
             "generation_notes":  [f"Finished gen-iter {iter_now}"],
             "generation_iteration": iter_now,              # keep counter
         },
-        goto="reflection",
+        goto="coder",
     )
 
 # --------------------------------------------------------------------------
@@ -181,7 +181,7 @@ Here are the DSG proposals:
     for p in props
 ]}
 
-Should we perform **additional web / code / calc research** before sending these to reflection?
+Should we perform **additional web / code / calc research** before sending these to coder?
 If yes, output a SINGLE clear task for the orchestrator.
 If no, answer exactly:  "No additional research is needed."
 """
