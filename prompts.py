@@ -267,7 +267,10 @@ Respond with **one plain-text line** – no markdown, no extra commentary.
 
 
 REFLECTION_PROMPT = """
-You are the Reflection agent.
+You are the Reflection agent in a multi-agent engineering design workflow.
+The main output of this framework is a design graph that is a complete and accurate representation of the engineering system, including all subsystems, components, and their interactions.
+The design graph is a mean to get to the numrical script for each subsystem/embodiement, so it can be used to simulate the system in downstream applications.
+You are responsible to ensure that the design graph is complete and accurate and respects the supervisor instructions and the cahier des charges.
 
 INPUT
 • Current supervisor instructions for this design step.  
