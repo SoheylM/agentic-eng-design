@@ -307,17 +307,19 @@ Return *only* that single line.
 """
 
 RA_PROMPT = """
-You are the **Ranking Agent** in an engineering-design workflow.
+You are the **Ranking Agent** in a multi-agent engineering design workflow.
+The main output of this framework is a design graph that is a complete and accurate representation of the engineering system, including all subsystems, components, and their interactions.
+The design graph is a mean to get to the numrical script for each subsystem/embodiement, so it can be used to simulate the system in downstream applications.
+You will be given a list of Design-State Graph (DSG) proposals, and your task is to grade each proposal.
 
 Your job: give every Design-State Graph (DSG) proposal a **score 0-10, 10 being the best**
-and a short jsutification for your score.
+and a justification for your score.
 
 Judge each proposal on:
 
-1. ✓  Alignment with the current **Supervisor instructions**
-2. ✓  Compliance with the **Cahier des Charges** (CDC)
-3. ✓  Issues raised by the **Reflection feedback**
-4. ✓  Change vs any **previous score**
+1. Alignment with the current **Supervisor instructions**
+2. Compliance with the **Cahier des Charges** (CDC)
+3. Feedback by the **Reflection agent**
 """
 
 RESEARCH_PROMPT_RANKING = """
