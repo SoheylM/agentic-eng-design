@@ -88,7 +88,7 @@ class DesignNode(BaseModel):
         default_factory=Embodiment,
         description="Current physical embodiment of the node, meaning the physical realisation of the node, a system.")
     physics_models: List[PhysicsModel] = Field(default_factory=list,
-        description="The physics models that are used to describe the node with the high-fidelity numericalmodel.")
+        description="The physics models that are used to describe the node with the high-fidelity numerical model.")
 
     # ── traceability & maturity ───────────────────────────────────────────
     linked_reqs: List[str] = Field(default_factory=list,
