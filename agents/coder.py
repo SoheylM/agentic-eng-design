@@ -25,19 +25,6 @@ def coder_node(state: State) -> Command[Literal["reflection"]]:
     """
     print("\n💻 [CODE] Coder node")
 
-    iter_now = state.coder_iteration
-    max_iter = state.max_iterations
-    print(f"   • iteration {iter_now + 1}/{max_iter}")
-
-    if iter_now >= max_iter:
-        print("   ⚠️  max-iterations reached; skipping coding.")
-        return Command(
-            update={
-                "coder_notes": [f"Stopped after {max_iter} coding loops."],
-                "coder_iteration": iter_now - 1,
-            },
-            goto="reflection",
-        )
 
     # Get proposals from the most recent Generation loop
     recent_props: List[Proposal] = [
@@ -89,15 +76,11 @@ Current Python Code:
                 
                 # Update the model's python code
                 model.python_code = new_code
-                
-                # Update iteration tracking
-                proposal.coder_iteration_index = iter_now
 
     print("   ✅ coding complete → reflection")
     return Command(
         update={
-            "coder_iteration": iter_now,
-            "coder_notes": [f"Completed code-iter {iter_now}"],
+            "coder_notes": [f"Completed code-iter"],
         },
         goto="reflection",
     ) 
