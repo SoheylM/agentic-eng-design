@@ -38,6 +38,9 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
     # Get meta-review notes if available
     meta_notes = state.meta_review_notes[-1] if state.meta_review_notes else "No meta-review notes available."
 
+    # Get last supervisor instructions if available
+    last_instructions = state.supervisor_instructions[-1] if len(state.supervisor_instructions) > 1 else "No previous instructions."
+
     # 2) structured LLM call ---------------------------------------------------
     decision: SupervisorDecision = supervisor_model.invoke([
         SystemMessage(content=SUPERVISOR_PROMPT),
@@ -50,6 +53,9 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
 
 ### Meta-Review Notes:
 {meta_notes}
+
+### Your Last Instructions:
+{last_instructions}
 """)
     ])
 
