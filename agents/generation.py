@@ -25,7 +25,7 @@ from validation import filter_valid_proposals  # Import our validation functions
 
 def generation_node(state: State) -> Command[Literal["orchestrator", "reflection"]]:
     """
-    • Generates *N* DSG proposals (2 by default, defined in GE_PROMPT_STRUCTURED).
+    • Generates *N* DSG proposals (defined in GE_PROMPT_STRUCTURED).
     • Decides if extra research is needed.
     • Updates State counters so the Supervisor / Orchestrator loops work identically
       to the previous implementation.
