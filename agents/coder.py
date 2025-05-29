@@ -84,8 +84,11 @@ Current Python Code:
                     HumanMessage(content=context)
                 ])
                 
+                # Extract code from the LLM response content
+                new_code = llm_resp.content.strip()
+                
                 # Update the model's python code
-                model.python_code = llm_resp.python_code
+                model.python_code = new_code
                 
                 # Update iteration tracking
                 proposal.coder_iteration_index = iter_now
