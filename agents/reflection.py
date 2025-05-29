@@ -84,8 +84,8 @@ def reflection_node(state: State) -> Command[Literal["orchestrator", "ranking"]]
             SystemMessage(content=REFLECTION_PROMPT),
             HumanMessage(
                 content=(
-                    f"Supervisor instructions → {sup_instr}\n\n"
-                    f"Cahier des Charges → {cdc_text}\n\n"
+                    f"Supervisor instructions: {sup_instr}\n\n"
+                    f"Cahier des Charges: {cdc_text}\n\n"
                     "# Design-State Graph proposals\n\n"
                     + "\n\n".join(full_summaries)
                     + "\n\nProvide structured feedback for **each** proposal."
@@ -149,9 +149,9 @@ def _need_more_research_reflection(
     cdc_text = state.cahier_des_charges or "No Cahier des Charges."
 
     question = f"""
-Supervisor instructions → {sup_instr}
+Supervisor instructions: {sup_instr}
 
-Cahier des Charges → {cdc_text}
+Cahier des Charges: {cdc_text}
 
 Current critiques (truncated):
 {[
