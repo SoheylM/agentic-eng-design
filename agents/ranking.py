@@ -70,11 +70,11 @@ def ranking_node(state: State) -> Command[Literal["orchestrator", "meta_review"]
     rk_out = ranking_agent.invoke([
         SystemMessage(content=RA_PROMPT),
         HumanMessage(content=f"""
-Supervisor instructions → {sup_instr}
+Supervisor instructions: {sup_instr}
 
-Cahier des Charges → {cdc_text}
+Cahier des Charges: {cdc_text}
 
-Proposal briefs →
+Proposal briefs:
 {prop_briefs}
 """)
     ])
@@ -141,11 +141,11 @@ def _need_more_research_ranking(
     ]
 
     question = f"""
-Supervisor instructions → {sup_instr}
+Supervisor instructions: {sup_instr}
 
-Cahier des Charges → {cdc_text}
+Cahier des Charges: {cdc_text}
 
-Current ranking overview →
+Current ranking overview:
 {critique_overview}
 
 Should we commission **additional web / code / calc research** to improve the validity of these rankings?
