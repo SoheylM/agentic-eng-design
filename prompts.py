@@ -325,7 +325,7 @@ Judge each proposal on:
 RESEARCH_PROMPT_RANKING = """
 You are the **Research-Need advisor** for the Ranking stage.
 
-Task → Decide if extra data / simulation / web research is required
+Task: Decide if extra data / simulation / web research is required
 to strengthen the current ranking justifications.
 
 If more research is clearly worthwhile, reply with **one concise task
