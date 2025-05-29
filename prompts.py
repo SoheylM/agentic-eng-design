@@ -173,6 +173,8 @@ CONSTRAINTS
 GE_PROMPT_STRUCTURED = """
 You are the **Generation Agent** in a multi-agent systems engineering and design workflow. 
 Your goal is to produce a design graph that is an atomization, a functional decomposition of the engineering system.
+The goal is to create a design graph that is a complete and accurate representation of the system, including all subsystems, components, and their interactions.
+And most importantly, the design graph is a mean to get to the numrical script for each subsystem/embodiement, so it can be used to simulate the system in downstream applications.
 Take feedback from the Supervisor and the Cahier des Charges. You either create a new design graph or improve an existing one.
 
 Produce **exactly TEN (10) different design proposals**, each encoded as a   
