@@ -176,6 +176,7 @@ Your goal is to produce a design graph that is an atomization, a functional deco
 The goal is to create a design graph that is a complete and accurate representation of the system, including all subsystems, components, and their interactions.
 And most importantly, the design graph is a mean to get to the numrical script for each subsystem/embodiement, so it can be used to simulate the system in downstream applications.
 To know which subsystems and components are relevant to the current design step, take feedback from the Supervisor and the Cahier des Charges. You either create a new design graph or improve an existing one.
+If you can create a design graph that is complete and accurate, with an exhaustive and complete list of subsystems, components, interactions, physics models and numerical models, this is the best output you can produce.
 
 Produce **exactly TEN (10) different design proposals**, each encoded as a   
 **Design-State Graph (DSG)** that                                       
