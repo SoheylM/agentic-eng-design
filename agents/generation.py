@@ -68,28 +68,26 @@ def generation_node(state: State) -> Command[Literal["orchestrator", "reflection
             f"From *{a.from_task}*:\n{a.content}" for a in analyses
         )
         human_msg = f"""
-Supervisor → {sup_instr}
+Supervisor instructions: {sup_instr}
 
-Cahier des Charges →
-{cdc_text}
+Cahier des Charges: {cdc_text}
 
-Current DSG summary →
-{graph_sum}
+Current DSG summary: {graph_sum}
 
-Worker analyses →
+Worker analyses:
 {analysis_block}
 
 Please (re)generate **precise DSG proposals** accordingly.
 """
     else:
         human_msg = f"""
-Cahier des Charges →
+Cahier des Charges:
 {cdc_text}
 
-Supervisor instructions →
+Supervisor instructions:
 {sup_instr}
 
-Current DSG summary →
+Current DSG summary:
 {graph_sum}
 
 Generate **brand-new DSG proposals** (no refinement loop).
@@ -171,16 +169,15 @@ def _need_more_research(props: List[SingleProposal], state: State) -> Optional[s
     cdc_text  = state.cahier_des_charges or "No Cahier des Charges."
 
     question = f"""
-Supervisor instructions → {sup_instr}
+Supervisor instructions: {sup_instr}
 
-Cahier des Charges → {cdc_text}
+Cahier des Charges: {cdc_text}
 
-Here are the DSG proposals (titles + node counts):
+Here are the DSG proposals:
 
 {[
     {"title": p.title,
-     "n_nodes": len(p.content.nodes),
-     "n_edges": len(p.content.edges)}
+     "content": p.content}
     for p in props
 ]}
 

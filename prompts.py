@@ -246,8 +246,8 @@ GEN_RESEARCH_PROMPT = """
 You are the **Research-Need Checker** in a multi-agent engineering workflow.
 
 INPUT
-• A small list (≤ 2) of **DSG proposals** – each is a JSON object with
-  `title`, and a Design-State Graph containing `nodes` + `edges`.
+• A list of **DSG proposals** – each is a JSON object with
+  `title`, and a Design-State Graph.
 • Supervisor instructions and the Cahier des Charges context.
 
 OUTPUT (one line only)
@@ -257,9 +257,8 @@ OUTPUT (one line only)
 • OR exactly the sentence **"No additional research is needed."**
 
 EVALUATION CRITERIA
-1. Does each DSG already include all functions, embodiments and at least one
-   physics-model stub that the current step requires?
-2. Would external information (performance data, state-of-the-art figures,
+1. Does each DSG already include all functions, embodiments, physics models and numerical models that the current step requires?
+2. Would external information (scientific papers, performance data, state-of-the-art figures,
    physical properties, etc.) materially improve decision-making at the next
    stage?
 
