@@ -57,7 +57,7 @@ def add_node_func(design_graph: DesignState, op: NodeOp) -> str:
         design_graph: The DesignState to modify.
         op: A NodeOp with op=="add", containing:
             - op.node: the DesignNode to insert
-            - op.edges_to_add: optional list of (src_id, dst_id) to connect
+            - op.updates: optional dict containing 'edges_to_add' as a list of (src_id, dst_id) tuples
 
     Returns:
         A confirmation message.
@@ -73,9 +73,9 @@ def add_node_func(design_graph: DesignState, op: NodeOp) -> str:
     # 1) Insert node
     add_node_to_state(design_graph, new_node)
 
-    # 2) Wire up any initial edges (this also records them in design_graph.edges)
-    if op.edges_to_add:
-        add_edges_to_state(design_graph, op.edges_to_add)
+    # 2) Wire up any initial edges from the updates dict
+    if op.updates and 'edges_to_add' in op.updates:
+        add_edges_to_state(design_graph, op.updates['edges_to_add'])
 
     return f"✅ DesignNode '{new_node.name}' ({new_node.node_id}) added successfully."
 
@@ -96,22 +96,19 @@ def delete_node_func(design_graph: DesignState, node_id: str, recursive: bool = 
         if nid not in design_graph.nodes:
             return
         
-        node = design_graph.nodes[nid]
-
-        # Remove all outgoing edges (disconnect from children)
-        for target_id in list(node.edges_out):
-            if target_id in design_graph.nodes:
-                design_graph.nodes[target_id].edges_in.remove(nid)
+        # Get all edges connected to this node
+        incoming, outgoing = get_node_edges(design_graph, nid)
         
-        # Remove all incoming edges (disconnect from parents)
-        for source_id in list(node.edges_in):
-            if source_id in design_graph.nodes:
-                design_graph.nodes[source_id].edges_out.remove(nid)
+        # Remove all edges connected to this node
+        design_graph.edges = [edge for edge in design_graph.edges 
+                            if edge[0] != nid and edge[1] != nid]
         
         # Recursively delete nodes that have no other parents
         if rec:
-            for target_id in list(node.edges_out):
-                if target_id in design_graph.nodes and not design_graph.nodes[target_id].edges_in:
+            for target_id in outgoing:
+                # Check if target has any remaining incoming edges
+                remaining_incoming = [edge[0] for edge in design_graph.edges if edge[1] == target_id]
+                if not remaining_incoming:
                     _delete(design_graph, target_id, rec)
 
         # Remove node from the design graph
@@ -119,6 +116,7 @@ def delete_node_func(design_graph: DesignState, node_id: str, recursive: bool = 
 
     _delete(design_graph, node_id, recursive)
     return f"✅ DesignNode {node_id} deleted successfully."
+
 
 def update_node_func(design_graph: DesignState, op: NodeOp) -> str:
     """
@@ -142,18 +140,11 @@ def update_node_func(design_graph: DesignState, op: NodeOp) -> str:
     if node_id not in design_graph.nodes:
         return f"❌ Error: DesignNode '{node_id}' not found in the design graph."
 
-    # Grab the old node so we can hang on to its edges
-    old_node = design_graph.nodes[node_id]
-
     # The new node from the NodeOp
     new_node: DesignNode = op.node
 
     # Enforce the same ID
     new_node.node_id = node_id
-
-    # Preserve graph connectivity
-    new_node.edges_in  = list(old_node.edges_in)
-    new_node.edges_out = list(old_node.edges_out)
 
     # Swap it in
     design_graph.nodes[node_id] = new_node
