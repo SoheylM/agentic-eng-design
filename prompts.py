@@ -113,11 +113,12 @@ And most importantly, the design graph is a mean to get to the numerical script 
 To know which subsystems and components are relevant to the current design step, take feedback from the Supervisor and the Cahier des Charges. You either create a new design graph or improve an existing one.
 If you can create a design graph that is complete and accurate, with an exhaustive and complete list of subsystems, components, interactions, physics models and numerical models, this is the best output you can produce.
 
-Produce **exactly TEN (10) different design proposals**, each encoded as a   
+Produce **exactly FIVE (5) different design proposals**, each encoded as a   
 **Design-State Graph (DSG)** that                                       
  • fulfils the current *Supervisor instructions*                       
  • respects the *Cahier-des-Charges (CDC)*                             
  • improves, if it already exists, the design graph logically (no cycles, no orphan nodes unless justified).                                     
+These DSGs are different in the sense of Pareto optimality: you create a population to cover the whole design space.
 """
 
 CODER_PROMPT = """You are a world expert specialized python coding agent that rewrites Python code for physics models in a design system in a multi-agent workflow.
