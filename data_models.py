@@ -65,6 +65,8 @@ class Embodiment(BaseModel):
         description="USD (−1.0 → not yet estimated).")
     mass_estimate: float = Field(-1.0,
         description="kg (−1.0 → not yet estimated).")
+    status: str = Field("draft",
+        description="'draft' | 'reviewed' | 'validated'.")
 
 
 # ────────────────────────────────────────────────
