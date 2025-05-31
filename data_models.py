@@ -51,6 +51,8 @@ class PhysicsModel(BaseModel):
             """))
     assumptions: List[str] = Field(default_factory=list,
         description="Simplifying assumptions, e.g., [one-dimensional, steady-state, no fouling].")
+    status: str = Field("draft",
+        description="'draft' | 'reviewed' | 'validated'.")
 
 
 class Embodiment(BaseModel):
