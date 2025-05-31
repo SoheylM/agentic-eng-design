@@ -170,14 +170,16 @@ def save_dsg(
 ) -> Path:
     """
     Dump one Design-State Graph to
-        runs/<thread_id>/step<nn>_meta<nn>.json
+        runs/<timestamp>_<uuid>/DSG_<index>.json
     and return the file path.
     """
-    ts   = datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
-    root = Path("runs") / thread_id
-    root.mkdir(parents=True, exist_ok=True)
+    # Create base directory with timestamp and UUID
+    ts = datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
+    base_dir = Path("runs") / f"{ts}_{thread_id}"
+    base_dir.mkdir(parents=True, exist_ok=True)
 
-    fname = f"step{step_idx:02d}_meta{meta_iter:02d}_{ts}.json"
-    path  = root / fname
+    # Simple sequential naming
+    fname = f"DSG_{step_idx}.json"
+    path = base_dir / fname
     path.write_text(json.dumps(json.loads(dsg.model_dump_json()), indent=2))
     return path

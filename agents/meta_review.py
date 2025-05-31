@@ -14,10 +14,8 @@ from data_models import (
 from prompts import ME_PROMPT
 from llm_models import meta_reviewer_agent
 from graph_utils import (
-    summarize_design_state_func,
-    visualize_design_state_func,       # new utility; no LLM involved
+    summarize_design_state_func,     # new utility; no LLM involved
 )
-from utils import save_dsg
 
 # ─────────────────────────  M E T A - R E V I E W  N O D E  ──────────────────
 def meta_review_node(state: State) -> Command[Literal["supervisor"]]:
@@ -110,24 +108,9 @@ Return your final decisions.
 
         state.design_graph_history.append(chosen_dsg)
         print(f"   ✅ proposal {selected_idx} selected – DSG stored to history")
-        visualize_design_state_func(chosen_dsg)
     else:
         chosen_dsg = None
         print("   ⚠️  no proposal selected")
-
-    # ── Save latest DSG snapshot ───────────────────────────────────────────
-    try:
-        dsg_now = state.design_graph_history[-1]              # last graph
-        thread_id = getattr(state, "thread_id", "unnamed_run")
-
-        out = save_dsg(
-            dsg_now,
-            thread_id = thread_id,
-            meta_iter = it_now,                               # current meta-iteration
-        )
-        print(f"💾 [Meta-Review] DSG snapshot saved → {out}")
-    except Exception as e:
-        print(f"⚠️  [Meta-Review] failed to save DSG: {e}")
 
     # ── Normal exit ────────────────────────────────────────────────────────
     note = llm_resp.detailed_summary_for_graph

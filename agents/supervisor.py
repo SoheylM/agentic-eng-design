@@ -13,8 +13,8 @@ from data_models  import ( State, DesignState, CahierDesCharges,
                            SupervisorDecision )
 from prompts      import SUPERVISOR_PROMPT
 from llm_models   import supervisor_model
-from graph_utils  import summarize_design_state_func
-from utils        import remove_think_tags
+from graph_utils  import summarize_design_state_func, visualize_design_state_func
+from utils        import remove_think_tags, save_dsg
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -24,6 +24,25 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
     """
 
     print("\n🔎  [Supervisor] invoked")
+
+    # Increment supervisor visit counter
+    state.supervisor_visit_counter += 1
+
+    # Save current DSG if we have one
+    if state.design_graph_history:
+        try:
+            dsg_now = state.design_graph_history[-1]
+            out = save_dsg(
+                dsg_now,
+                thread_id=str(state.supervisor_visit_counter),
+                step_idx=state.supervisor_visit_counter,
+                meta_iter=0,
+            )
+            print(f"💾 [Supervisor] DSG snapshot saved → {out}")
+            # Visualize the current DSG
+            visualize_design_state_func(dsg_now)
+        except Exception as e:
+            print(f"⚠️  [Supervisor] failed to save/visualize DSG: {e}")
 
     # 1) Check CDC and DSG ------------------------------------------------------------
     if not state.cahier_des_charges:
