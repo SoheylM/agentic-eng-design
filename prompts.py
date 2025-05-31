@@ -58,7 +58,7 @@ INPUT
 
 TASK
 Evaluate the current state and provide clear, actionable direction. You are in control of the design process: as long as the task is not satisfactory for you, it will continue to be done, and you will be revisited.
-Once the Design-State Graph (DSG) is complete and accurate, stop the process.
+If and only if the Design-State Graph (DSG) is complete and accurate, stop the process. Otherwise, continue the process.
 """
 
 
