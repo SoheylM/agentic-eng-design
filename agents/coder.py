@@ -53,7 +53,7 @@ def coder_node(state: State) -> Command[Literal["reflection"]]:
                 if not model.python_code:
                     continue
                     
-                print(f"     ↳ coding model {model.name} in node {node.name}")
+                print(f"     ↳ coding model {model.name} in node {node.name} in proposal {proposal.title}")
                 
                 # Prepare context for the LLM
                 context = f"""
