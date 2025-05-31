@@ -1,7 +1,8 @@
 # agents/supervisor.py  – counter-safe, no refinement
 from __future__ import annotations
 from typing  import Literal
-from datetime import datetime
+from datetime import datetime, UTC
+import uuid
 
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langgraph.types          import Command
@@ -25,9 +26,6 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
 
     print("\n🔎  [Supervisor] invoked")
 
-    # Increment supervisor visit counter
-    state.supervisor_visit_counter += 1
-
     # Save current DSG if we have one
     if state.design_graph_history:
         try:
@@ -36,6 +34,7 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
                 dsg_now,
                 thread_id=str(state.supervisor_visit_counter),
                 step_idx=state.supervisor_visit_counter,
+                save_folder=state.dsg_save_folder,
             )
             print(f"💾 [Supervisor] DSG snapshot saved → {out}")
             # Visualize the current DSG
@@ -101,12 +100,20 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
     if decision.step_completed and not decision.workflow_complete:
         new_step_index += 1
 
+    # Create folder name on first visit
+    new_folder = state.dsg_save_folder
+    if state.supervisor_visit_counter == 0:
+        ts = datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
+        new_folder = f"{ts}_{str(uuid.uuid4())}"
+
     update = {
         "supervisor_instructions": [decision.instructions],
         "redo_work": redo_flag,
         "redo_reason": decision.reason_for_iteration,
         "max_iterations": new_max_iter,
         "current_step_index": new_step_index,
+        "supervisor_visit_counter": state.supervisor_visit_counter + 1,
+        "dsg_save_folder": new_folder,
         # trace for debugging
         "supervisor_status": f"supervised_{datetime.utcnow().isoformat(timespec='seconds')}",
     }

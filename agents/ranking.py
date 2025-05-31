@@ -43,7 +43,7 @@ def ranking_node(state: State) -> Command[Literal["orchestrator", "meta_review"]
     # proposals produced in the latest Generation pass (and critiqued in Reflection)
     recent_props: List[Proposal] = [
         p for p in state.proposals
-        if p.current_step_index          == state.current_step_index
+        if p.current_step_index          == state.supervisor_visit_counter
         and p.generation_iteration_index == state.generation_iteration
     ]
 

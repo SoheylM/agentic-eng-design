@@ -46,7 +46,8 @@ def meta_review_node(state: State) -> Command[Literal["supervisor"]]:
 
     recent_props: List[Proposal] = [
         p for p in state.proposals
-        if p.generation_iteration_index == state.generation_iteration
+        if p.current_step_index          == state.supervisor_visit_counter
+        and p.generation_iteration_index == state.generation_iteration
     ]
 
     if not recent_props:

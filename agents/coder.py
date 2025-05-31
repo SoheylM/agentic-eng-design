@@ -29,7 +29,7 @@ def coder_node(state: State) -> Command[Literal["reflection"]]:
     # Get proposals from the most recent Generation loop
     recent_props: List[Proposal] = [
         p for p in state.proposals
-        if p.current_step_index == state.current_step_index
+        if p.current_step_index == state.supervisor_visit_counter
         and p.generation_iteration_index == state.generation_iteration
     ]
 

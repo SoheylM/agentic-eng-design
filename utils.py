@@ -2,7 +2,7 @@ import re
 import json
 import uuid
 from langchain_core.messages import ToolMessage  # Ensure correct import
-from typing import List
+from typing import List, Optional
 from tools import python_repl_tool, tavily_tool, duckduckgo_tool, arxiv_search_tool, summarize_design_state_tool, visualize_design_state_tool, add_node_tool, delete_node_tool
 
 from pathlib import Path
@@ -166,15 +166,21 @@ def save_dsg(
     dsg: DesignState,
     thread_id: str,
     step_idx: int,
+    save_folder: Optional[str] = None,
 ) -> Path:
     """
     Dump one Design-State Graph to
         runs/<timestamp>_<uuid>/DSG_<index>.json
     and return the file path.
     """
-    # Create base directory with timestamp and UUID
-    ts = datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
-    base_dir = Path("runs") / f"{ts}_{thread_id}"
+    if save_folder is None:
+        # Create new folder with timestamp and UUID
+        ts = datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
+        base_dir = Path("runs") / f"{ts}_{thread_id}"
+    else:
+        # Use existing folder
+        base_dir = Path("runs") / save_folder
+
     base_dir.mkdir(parents=True, exist_ok=True)
 
     # Simple sequential naming
