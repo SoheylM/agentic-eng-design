@@ -166,7 +166,6 @@ def save_dsg(
     dsg: DesignState,
     thread_id: str,
     step_idx: int,
-    meta_iter: int,
 ) -> Path:
     """
     Dump one Design-State Graph to

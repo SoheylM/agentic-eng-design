@@ -36,7 +36,6 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
                 dsg_now,
                 thread_id=str(state.supervisor_visit_counter),
                 step_idx=state.supervisor_visit_counter,
-                meta_iter=0,
             )
             print(f"💾 [Supervisor] DSG snapshot saved → {out}")
             # Visualize the current DSG
