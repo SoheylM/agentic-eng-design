@@ -17,12 +17,9 @@ class PhysicsModel(BaseModel):
     equations: str = Field("",
         description="LaTeX / plain-text governing equations, e.g., 'Q = m_dot * Cp * (T_in - T_out)'.")
     python_code: str = Field("",
-        description=(
-            """
-            Python code to simulate the physics model.
-            """))
+        description=("Directives for the coder agent to generate the Python code to simulate the physics model."))
     assumptions: List[str] = Field(default_factory=list,
-        description="Simplifying assumptions, e.g., [one-dimensional, steady-state, no fouling].")
+        description="Assumptions, e.g., [one-dimensional, steady-state, no fouling].")
     status: str = Field("draft",
         description="'draft' | 'reviewed' | 'validated'.")
 
