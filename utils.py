@@ -13,6 +13,21 @@ from data_models import DesignState
 def remove_think_tags(text):
     return re.sub(r'^.*?</think>\s*', '', text, flags=re.DOTALL)
 
+def separate_think_tags(text):
+    """
+    Separates content within think tags from the rest of the text.
+    Returns a tuple of (think_content, rest_content) where:
+    - think_content is the text within <think> tags
+    - rest_content is everything else
+    """
+    think_pattern = r'<think>(.*?)</think>'
+    think_match = re.search(think_pattern, text, flags=re.DOTALL)
+    
+    think_content = think_match.group(1) if think_match else ""
+    rest_content = re.sub(think_pattern, '', text, flags=re.DOTALL).strip()
+    
+    return think_content, rest_content
+
 def remove_think_tags_ollama(text):
     return re.sub(r'<think>.*?</think>\s*', '', text, flags=re.DOTALL)
 
