@@ -14,7 +14,7 @@ from data_models import (
 from prompts import CODER_PROMPT
 from llm_models import coder_agent
 from graph_utils import summarize_design_state_func
-from utils import remove_think_tags
+from utils import remove_think_tags, separate_think_tags
 
 
 def coder_node(state: State) -> Command[Literal["reflection"]]:
