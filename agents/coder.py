@@ -72,10 +72,11 @@ Current Python Code:
                 ])
                 
                 # Extract code from the LLM response content
-                new_code = llm_resp.content.strip()
+                think_content, new_code = separate_think_tags(llm_resp.content)
                 
                 # Update the model's python code
                 model.python_code = new_code
+                model.coder_notes = think_content
 
     print("   ✅ coding complete → reflection")
     return Command(

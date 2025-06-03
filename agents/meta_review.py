@@ -24,6 +24,7 @@ def meta_review_node(state: State) -> Command[Literal["supervisor"]]:
     • Selects the best overall solution from the list of proposals
     • Appends the selected DSG to `design_graph_history`
     """
+    print("Hello World! 🌍")
     print("\n🔎 [META] Meta-Review node")
 
     it_now   = state.meta_review_iteration
