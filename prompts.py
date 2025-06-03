@@ -234,8 +234,7 @@ If **only algebraic / data-driven models** (e.g., compressor maps, surrogate ML 
 ────────────────────────────────────────────────────────
 OUTPUT FORMAT
 ────────────────────────────────────────────────────────
-Respond **only** with the full Python code. 
-Do **not** include narrative explanation unless asked.  
+Respond with the reasoning process and the full Python code within python tags so I can extract the code. 
 If a design choice is ambiguous and reasonable defaults exist, choose one and proceed; ask the user only when absolutely necessary.
 """
 

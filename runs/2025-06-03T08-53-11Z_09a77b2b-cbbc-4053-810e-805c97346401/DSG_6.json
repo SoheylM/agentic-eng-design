@@ -1,0 +1,141 @@
+{
+  "nodes": {
+    "1": {
+      "node_id": "1",
+      "node_kind": "Subsystem",
+      "name": "Solar Power System",
+      "description": "High-efficiency solar panels with tracking system and smart monitoring.",
+      "embodiment": {
+        "principle": "Monocrystalline Solar Panels",
+        "description": "High-efficiency panels with solar tracking and IoT connectivity for real-time monitoring.",
+        "design_parameters": {
+          "power_output": 400.0,
+          "efficiency": 0.35
+        },
+        "cost_estimate": 800.0,
+        "mass_estimate": 30.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Solar Power Model",
+          "equations": "P = A * \\eta * G",
+          "python_code": "Here's a complete implementation of the solar power system model adhering to the specified requirements:\n\n```python\nimport numpy as np\nimport logging\nimport argparse\nimport os\nimport matplotlib.pyplot as plt\n\n# Set up logging\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s - %(levelname)s - %(message)s'\n)\nlogger = logging.getLogger(__name__)\n\ndef calculate_power(area: float, efficiency: float, irradiance: float) -> float:\n    \"\"\"\n    Calculate the power output of a solar panel.\n\n    Args:\n        area (float): The area of the solar panel in m\u00b2.\n        efficiency (float): The efficiency of the solar panel (0 to 1).\n        irradiance (float): The incident irradiance in W/m\u00b2.\n\n    Returns:\n        float: The power output of the solar panel in Watts.\n    \"\"\"\n    return area * efficiency * irradiance\n\ndef simulate_power_output(\n    area: float,\n    efficiency: float,\n    irradiance_profile: np.ndarray\n) -> np.ndarray:\n    \"\"\"\n    Simulate power output over a given irradiance profile.\n\n    Args:\n        area (float): The area of the solar panel in m\u00b2.\n        efficiency (float): The efficiency of the solar panel (0 to 1).\n        irradiance_profile (np.ndarray): Array of irradiance values in W/m\u00b2.\n\n    Returns:\n        np.ndarray: Array of power output values in Watts corresponding to the irradiance profile.\n    \"\"\"\n    return np.vectorize(calculate_power)(area, efficiency, irradiance_profile)\n\ndef main():\n    # Parse command line arguments\n    parser = argparse.ArgumentParser(description='Solar Power System Model')\n    parser.add_argument('--area', type=float, default=1.0, help='Panel area in m\u00b2')\n    parser.add_argument('--efficiency', type=float, default=0.2, help='Panel efficiency (0-1)')\n    parser.add_argument('--irradiance', type=float, default=1000.0, help='Irradiance in W/m\u00b2')\n    parser.add_argument('--verbose', action='store_true', help='Increase logging verbosity')\n    args = parser.parse_args()\n\n    if args.verbose:\n        logger.setLevel(logging.DEBUG)\n        logger.debug('Verbose mode activated')\n\n    # Create output directory if it doesn't exist\n    output_dir = './outputs'\n    os.makedirs(output_dir, exist_ok=True)\n\n    # Example usage with a sample irradiance profile\n    time_points = np.linspace(0, 24, 100)  # 100 points over 24 hours\n    irradiance_profile = 1000.0 * np.sin(np.pi * time_points / 24) ** 2  # Simple diurnal profile\n\n    power_profile = simulate_power_output(args.area, args.efficiency, irradiance_profile)\n\n    # Save results\n    np.save(os.path.join(output_dir, 'power_profile.npy'), power_profile)\n    np.save(os.path.join(output_dir, 'irradiance_profile.npy'), irradiance_profile)\n    np.save(os.path.join(output_dir, 'time_points.npy'), time_points)\n\n    # Generate a quick-look plot\n    plt.figure(figsize=(10, 6))\n    plt.plot(time_points, power_profile, label='Power Output')\n    plt.xlabel('Time (hours)')\n    plt.ylabel('Power (Watts)')\n    plt.title('Solar Power Output Over Time')\n    plt.legend()\n    plt.grid(True)\n    plt.savefig(os.path.join(output_dir, 'power_plot.png'))\n    plt.close()\n\n    logger.info(f'Power output simulation completed. Results saved to {output_dir}')\n\nif __name__ == '__main__':\n    main()\n\n# Coupling stub\ndef send_data_to_next_node(data: np.ndarray) -> None:\n    \"\"\"\n    Stub function to send data to the next node in the Design-State Graph.\n    \"\"\"\n    logger.info('Sending data to next node')\n    # Implement actual data transfer logic here\n    pass\n\n# Testing\ndef test_calculate_power():\n    area = 1.0\n    efficiency = 0.2\n    irradiance = 1000.0\n    expected_power = area * efficiency * irradiance\n    assert np.isclose(calculate_power(area, efficiency, irradiance), expected_power)\n\ndef test_simulate_power_output():\n    area = 1.0\n    efficiency = 0.2\n    irradiance = np.array([1000.0, 500.0])\n    expected_power = np.array([200.0, 100.0])\n    assert np.allclose(simulate_power_output(area, efficiency, irradiance), expected_power)\n```\n\nTo run this code, you'll need to have Python installed along with the required libraries. You can install the dependencies using pip:\n\n```bash\npip install numpy matplotlib\n```\n\nOnce the dependencies are installed, you can run the script using:\n\n```bash\npython solar_power_model.py\n```\n\nThis will execute the main function, simulate the power output over a 24-hour period with a sample irradiance profile, and save the results to the `./outputs` directory. The script includes logging, command-line argument parsing, and a simple test suite to verify the calculations.\n\nThe model calculates the power output using the formula \\( P = A \\times \\eta \\times G \\), where:\n- \\( P \\) is the power output in Watts,\n- \\( A \\) is the area of the solar panel in square meters,\n- \\( \\eta \\) is the efficiency of the solar panel (as a decimal),\n- \\( G \\) is the incident irradiance in Watts per square meter.\n\nThe code includes a function to simulate power output over time given an irradiance profile, saves the results in NumPy format, and generates a quick-look plot of the power output over time. It also includes stub functions for coupling with other nodes in a larger design system and a test suite to verify the correctness of the calculations.\n\nTo run the tests, you can use pytest:\n\n```bash\npytest solar_power_model.py\n```\n\nThis will execute the test functions and report any failures or errors.",
+          "coder_notes": "",
+          "assumptions": [
+            "steady-state",
+            "no temperature effects"
+          ],
+          "status": "draft"
+        }
+      ],
+      "linked_reqs": [
+        "SR-1",
+        "SR-3"
+      ],
+      "verification_plan": "Test in lab under 300 K, measure output",
+      "maturity": "draft",
+      "tags": [
+        "Solar",
+        "Power",
+        "Smart"
+      ]
+    },
+    "2": {
+      "node_id": "2",
+      "node_kind": "Subsystem",
+      "name": "Water Filtration System",
+      "description": "Advanced filtration system with multiple stages and real-time quality monitoring.",
+      "embodiment": {
+        "principle": "Reverse Osmosis",
+        "description": "Multi-stage filtration including pre-treatment and UV disinfection with smart sensors.",
+        "design_parameters": {
+          "flow_rate": 30.0,
+          "efficiency": 0.99999
+        },
+        "cost_estimate": 500.0,
+        "mass_estimate": 25.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Filtration Model",
+          "equations": "V = Q * t",
+          "python_code": "Alright, so I need to help the user by developing a Python script for a water filtration system model. The user provided a basic code snippet and some initial information. Let me break down what I need to do step by step.\n\nFirst, I'll start by understanding the problem. The node is called \"Water Filtration System\" and the model is \"Filtration Model\". The governing equation given is V = Q * t, which makes sense because volume equals flow rate multiplied by time. The assumptions are steady-state and constant flow rate, which simplifies things.\n\nLooking at the current code, it's a simple function that calculates volume. But the user wants this to be a high-fidelity node in a larger system, so I need to expand on this. The code needs to be correct, runnable, and self-contained, with minimal dependencies.\n\nI'll think about the key components that need to be added. The user mentioned using argparse for CLI, logging with verbosity, and outputting results. Also, a testing suite and a coupling stub are required.\n\nI'll start by enhancing the calculate_volume function. Maybe add input validation to ensure flow_rate and time are positive numbers. That way, the function is more robust.\n\nNext, I'll add a main function to handle command-line arguments. Using argparse, I can let users specify flow_rate and time when running the script. I'll also include a verbosity flag for logging, which will help in debugging or seeing the output level.\n\nLogging is important, so I'll set up the logging module. The user can choose how much information they want to see by adjusting the verbosity. This makes the script more user-friendly.\n\nFor output, I'll create an outputs directory if it doesn't exist. The results will be saved as a JSON file for easy readability and a NumPy file for further processing. Including a timestamp in the filename ensures that each run's data is unique and can be tracked.\n\nVisualization is another aspect. I'll add a quick plot using matplotlib to show the volume over time. This helps in quickly understanding the filtration process.\n\nTesting is crucial. I'll write a pytest function to check if the calculate_volume function behaves as expected. Testing edge cases, like zero flow rate or time, ensures the function handles unexpected inputs gracefully.\n\nThe coupling stub is a placeholder for integrating this node with others. It shows how data can be passed to or received from other parts of the system, promoting modularity.\n\nI'll also make sure the script is well-documented. A module docstring explains what the script does, and inline comments clarify each part. The usage block at the end guides the user on how to run the script with different options.\n\nConsidering performance, since the calculations are straightforward, there's no need for heavy optimizations. But using NumPy for data handling ensures efficiency if the data size grows.\n\nFinally, I'll structure the script so that it can be run as a standalone program or imported as a module. This flexibility is useful for integration into larger systems.\n\nPutting it all together, I'll write the code, making sure each part is modular and adheres to best practices. I'll test each component to ensure everything works as expected before finalizing the script.\n</think>\n\n```python\nimport numpy as np\nimport argparse\nimport logging\nimport json\nimport os\nimport matplotlib.pyplot as plt\nimport pytest\n\n# Set up logging\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s - %(levelname)s - %(message)s'\n)\n\ndef calculate_volume(flow_rate: float, time: float) -> float:\n    \"\"\"\n    Calculate the volume of filtered water based on flow rate and time.\n    \n    Args:\n        flow_rate (float): Flow rate in m\u00b3/s\n        time (float): Time in seconds\n        \n    Returns:\n        float: Volume in m\u00b3\n    \"\"\"\n    if flow_rate < 0 or time < 0:\n        raise ValueError(\"Flow rate and time must be non-negative\")\n    return flow_rate * time\n\ndef main():\n    # Parse command line arguments\n    parser = argparse.ArgumentParser(description='Water filtration volume calculator')\n    parser.add_argument('--flow_rate', type=float, default=0.1, help='Flow rate in m\u00b3/s')\n    parser.add_argument('--time', type=float, default=3600, help='Time in seconds')\n    parser.add_argument('--verbose', '-v', action='count', default=0, help='Increase verbosity')\n    args = parser.parse_args()\n    \n    # Set logging level based on verbosity\n    logger = logging.getLogger()\n    if args.verbose >= 2:\n        logger.setLevel(logging.DEBUG)\n    elif args.verbose == 1:\n        logger.setLevel(logging.INFO)\n    else:\n        logger.setLevel(logging.WARNING)\n        \n    # Calculate volume\n    volume = calculate_volume(args.flow_rate, args.time)\n    logger.info(f\"Calculated volume: {volume} m\u00b3\")\n    \n    # Create outputs directory if it doesn't exist\n    outputs_dir = \"outputs\"\n    os.makedirs(outputs_dir, exist_ok=True)\n    \n    # Save results to JSON file\n    results = {\n        \"flow_rate\": args.flow_rate,\n        \"time\": args.time,\n        \"volume\": volume,\n        \"timestamp\": \"2024-01-01T12:00:00\"\n    }\n    filename = os.path.join(outputs_dir, \"filtration_results.json\")\n    with open(filename, 'w') as f:\n        json.dump(results, f, indent=2)\n    logger.info(f\"Results saved to {filename}\")\n    \n    # Save numpy array\n    np.save(os.path.join(outputs_dir, \"filtration_results.npy\"), results)\n    \n    # Generate quick-look plot\n    times = np.linspace(0, args.time, 100)\n    volumes = calculate_volume(args.flow_rate, times)\n    plt.plot(times, volumes)\n    plt.xlabel(\"Time (s)\")\n    plt.ylabel(\"Volume (m\u00b3)\")\n    plt.title(\"Filtration Volume Over Time\")\n    plt.grid(True)\n    plt.savefig(os.path.join(outputs_dir, \"filtration_plot.png\"))\n    plt.close()\n    logger.info(\"Quick-look plot generated\")\n\ndef coupling_stub():\n    \"\"\"Stub for coupling with other system components\"\"\"\n    # Example of how to receive/send data\n    def send_data(data):\n        \"\"\"Send data to another system component\"\"\"\n        return data\n        \n    def receive_data():\n        \"\"\"Receive data from another system component\"\"\"\n        return {\"default_flow_rate\": 0.1, \"default_time\": 3600}\n    \n    return send_data, receive_data\n\n# Testing\ndef test_calculate_volume():\n    \"\"\"Test the volume calculation with known values\"\"\"\n    assert calculate_volume(0.1, 3600) == 360, \"Basic calculation failed\"\n    assert calculate_volume(0, 100) == 0, \"Zero flow rate test failed\"\n    assert calculate_volume(1, 0) == 0, \"Zero time test failed\"\n    with pytest.raises(ValueError):\n        calculate_volume(-0.1, 100), \"Negative flow rate failed\"\n    with pytest.raises(ValueError):\n        calculate_volume(0.1, -100), \"Negative time failed\"\n\nif __name__ == \"__main__\":\n    main()\n\n# Usage example:\n\"\"\"\npython water_filtration.py --flow_rate 0.2 --time 7200 -v\n\"\"\"\n\n# Requirements:\n\"\"\"\nnumpy\njson\nmatplotlib\npytest\n\"\"\"\n```",
+          "coder_notes": "",
+          "assumptions": [
+            "steady-state",
+            "constant flow rate"
+          ],
+          "status": "draft"
+        }
+      ],
+      "linked_reqs": [
+        "SR-2",
+        "SR-4"
+      ],
+      "verification_plan": "Laboratory testing of filtered water samples",
+      "maturity": "draft",
+      "tags": [
+        "Filtration",
+        "Water",
+        "Smart"
+      ]
+    },
+    "3": {
+      "node_id": "3",
+      "node_kind": "Subsystem",
+      "name": "Energy Storage System",
+      "description": "High-capacity lithium-ion batteries with advanced management and smart controls.",
+      "embodiment": {
+        "principle": "Lithium-Ion Battery",
+        "description": "High-capacity, long-life batteries with advanced management system and IoT integration.",
+        "design_parameters": {
+          "capacity": 400.0,
+          "voltage": 24.0
+        },
+        "cost_estimate": 600.0,
+        "mass_estimate": 40.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Battery Model",
+          "equations": "E = C * V",
+          "python_code": "Okay, so the user wants me to create a Python script for a battery model node. The given code is a simple function that calculates energy as capacity multiplied by voltage. But the user expects a more comprehensive solution that meets specific guidelines.\n\nFirst, I need to understand the requirements. The script should be correct, runnable, and high-fidelity. It should include a CLI, logging, output to a file, and have a test suite. Also, it should be self-documented and handle coupling with other nodes.\n\nI'll start by enhancing the calculate_energy function. Since the model is E = C * V, I'll keep that but add type hints and a docstring for clarity. Then, I'll create a BatteryModel class to encapsulate the data and methods. This class will store capacity, voltage, and energy, and include a method to save data to a CSV file.\n\nNext, I'll add logging. The user mentioned using Python's logging module with a verbosity flag. I'll set up the logger and integrate it into the script so that different levels of logging can be controlled via command-line arguments.\n\nFor the CLI, I'll use argparse to accept parameters like capacity, voltage, and verbosity. This makes the script flexible and user-friendly. I'll also include a function to parse these arguments and configure the logging level based on the verbosity.\n\nOutput is another important aspect. The script should save results in an 'outputs' directory. I'll make sure the directory is created if it doesn't exist and then write the energy data to a CSV file. Additionally, I'll include a quick validation check to ensure the calculated energy is positive, which adds a layer of verification.\n\nTesting is crucial. I'll write a pytest function that checks if the energy calculation matches the expected result. This ensures that the script works correctly and catches any regressions.\n\nI also need to consider performance, but since this is a simple model, vectorization isn't necessary here. However, using NumPy for future scalability is a good idea, so I'll import it even though it's not heavily used in this case.\n\nFinally, I'll include a coupling stub function, though it's just a placeholder for now. This shows how the node can interact with others in a larger system.\n\nPutting it all together, I'll structure the script with clear sections: imports, functions, class, argument parsing, main execution, and testing. I'll make sure everything is self-contained and runs smoothly with minimal dependencies.\n\nI think that covers all the user's requirements. Now, I'll write the code, ensuring it's clean, well-documented, and meets all the specified guidelines.\n</think>\n\n```python\nimport numpy as np\nimport argparse\nimport logging\nimport os\nimport pytest\n\n# Configure logging\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s - %(levelname)s - %(message)s'\n)\nlogger = logging.getLogger(__name__)\n\ndef calculate_energy(capacity: float, voltage: float) -> float:\n    \"\"\"\n    Calculate battery energy based on capacity and voltage.\n    \n    Args:\n        capacity (float): Battery capacity in Ah (Ampere-hours)\n        voltage (float): Battery voltage in V (Volts)\n    \n    Returns:\n        float: Energy in Wh (Watt-hours)\n    \"\"\"\n    return capacity * voltage\n\nclass BatteryModel:\n    def __init__(self, capacity: float, voltage: float):\n        self.capacity = capacity\n        self.voltage = voltage\n        self.energy = calculate_energy(capacity, voltage)\n        \n    def save_results(self, filename: str = 'battery_energy.csv'):\n        \"\"\"Save energy results to CSV file\"\"\"\n        output_dir = './outputs'\n        os.makedirs(output_dir, exist_ok=True)\n        \n        results = np.array([[self.capacity, self.voltage, self.energy]])\n        header = ['Capacity (Ah)', 'Voltage (V)', 'Energy (Wh)']\n        \n        np.savetxt(\n            os.path.join(output_dir, filename),\n            results,\n            delimiter=',',\n            header=','.join(header),\n            comments=''\n        )\n        \n        logger.info(f\"Results saved to {os.path.join(output_dir, filename)}\")\n\ndef parse_args():\n    \"\"\"Parse command line arguments\"\"\"\n    parser = argparse.ArgumentParser(description='Battery Energy Calculator')\n    parser.add_argument('--capacity', type=float, default=1.0, help='Battery capacity in Ah')\n    parser.add_argument('--voltage', type=float, default=1.0, help='Battery voltage in V')\n    parser.add_argument('-v', '--verbosity', action='count', default=0, \n                       help='Increase output verbosity')\n    return parser.parse_args()\n\ndef main():\n    \"\"\"Main execution function\"\"\"\n    args = parse_args()\n    \n    # Set logging level based on verbosity\n    logger.setLevel(logging.INFO if args.verbosity == 1 else logging.DEBUG if args.verbosity >= 2 else logging.WARNING)\n    \n    # Create battery model instance\n    battery = BatteryModel(args.capacity, args.voltage)\n    \n    # Log results\n    logger.info(f\"Calculated Energy: {battery.energy} Wh\")\n    logger.debug(f\"Capacity: {battery.capacity} Ah, Voltage: {battery.voltage} V\")\n    \n    # Save results to file\n    battery.save_results()\n    \n    # Quick validation\n    assert battery.energy > 0, \"Energy calculation failed (non-positive value)\"\n    logger.info(\"Validation passed: Energy is positive\")\n\ndef coupling_stub():\n    \"\"\"Stub function for coupling with other system components\"\"\"\n    # TODO: Implement actual coupling logic here\n    pass\n\n# Testing\ndef test_calculate_energy():\n    \"\"\"Test energy calculation with known values\"\"\"\n    capacity = 2.0  # Ah\n    voltage = 3.0   # V\n    expected_energy = 6.0  # Wh\n    \n    assert np.isclose(calculate_energy(capacity, voltage), expected_energy, rtol=1e-9)\n\nif __name__ == \"__main__\":\n    main()\n```",
+          "coder_notes": "",
+          "assumptions": [
+            "steady-state",
+            "no losses"
+          ],
+          "status": "draft"
+        }
+      ],
+      "linked_reqs": [
+        "SR-5",
+        "SR-6"
+      ],
+      "verification_plan": "Performance testing under varying solar irradiance",
+      "maturity": "draft",
+      "tags": [
+        "Battery",
+        "Storage",
+        "Smart"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "1"
+    ]
+  ]
+}

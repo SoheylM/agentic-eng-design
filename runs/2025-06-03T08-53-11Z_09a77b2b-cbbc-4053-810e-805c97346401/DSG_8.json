@@ -1,0 +1,141 @@
+{
+  "nodes": {
+    "1": {
+      "node_id": "1",
+      "node_kind": "Subsystem",
+      "name": "Solar Power System",
+      "description": "High-efficiency solar panels with advanced tracking and monitoring.",
+      "embodiment": {
+        "principle": "Monocrystalline Solar Panels",
+        "description": "High-efficiency panels with advanced tracking and monitoring.",
+        "design_parameters": {
+          "power_output": 500.0,
+          "efficiency": 0.35
+        },
+        "cost_estimate": 1000.0,
+        "mass_estimate": 30.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Solar Power Model",
+          "equations": "P = A * \\eta * G",
+          "python_code": "Here's a complete implementation of a solar power system model that adheres to the specified requirements:\n\n```python\nimport numpy as np\nimport argparse\nimport logging\nfrom datetime import datetime\n\ndef calculate_power(area: float, efficiency: float, irradiance: float) -> float:\n    \"\"\"\n    Calculate the power output of a solar panel.\n\n    Args:\n        area (float): The surface area of the solar panel in m\u00b2.\n        efficiency (float): The efficiency of the solar panel (0 < efficiency < 1).\n        irradiance (float): The incident irradiance in W/m\u00b2.\n\n    Returns:\n        float: The power output of the solar panel in Watts.\n    \"\"\"\n    return area * efficiency * irradiance\n\ndef model_solar_system(area, efficiency, irradiance, time_steps=1, output_file=\"solar_output\"):\n    \"\"\"\n    Model the power output of a solar system over time.\n\n    Args:\n        area (float): The surface area of the solar panel in m\u00b2.\n        efficiency (float): The efficiency of the solar panel (0 < efficiency < 1).\n        irradiance (float): The incident irradiance in W/m\u00b2.\n        time_steps (int, optional): Number of time steps to simulate. Defaults to 1.\n        output_file (str, optional): Output file name for results. Defaults to \"solar_output\".\n\n    Returns:\n        np.ndarray: Array of power outputs over time steps.\n    \"\"\"\n    # Generate a simple time array\n    time = np.linspace(0, time_steps, time_steps)\n    \n    # Calculate power for each time step (assuming constant irradiance for simplicity)\n    power_output = np.zeros(time_steps)\n    for i in range(time_steps):\n        power_output[i] = calculate_power(area, efficiency, irradiance)\n    \n    # Save results to file\n    np.save(f\"./outputs/{output_file}.npy\", power_output)\n    \n    return power_output\n\ndef main():\n    # Set up logging\n    logging.basicConfig(level=logging.INFO)\n    \n    # Parse command line arguments\n    parser = argparse.ArgumentParser(description='Solar Power System Model')\n    parser.add_argument('--area', type=float, default=1.0, help='Surface area of the solar panel in m\u00b2')\n    parser.add_argument('--efficiency', type=float, default=0.2, help='Efficiency of the solar panel')\n    parser.add_argument('--irradiance', type=float, default=1000.0, help='Incident irradiance in W/m\u00b2')\n    parser.add_argument('--time_steps', type=int, default=1, help='Number of time steps to simulate')\n    parser.add_argument('--output_file', type=str, default=\"solar_output\", help='Output file name')\n    parser.add_argument('--verbosity', type=int, default=2, help='Verbosity level: 0=silent, 1=info, 2=debug')\n    \n    args = parser.parse_args()\n    \n    # Set logging level based on verbosity\n    if args.verbosity == 0:\n        logging.basicConfig(level=logging.ERROR)\n    elif args.verbosity == 1:\n        logging.basicConfig(level=logging.INFO)\n    elif args.verbosity >= 2:\n        logging.basicConfig(level=logging.DEBUG)\n    \n    # Run the model\n    logging.info(\"Starting solar power system simulation\")\n    start_time = datetime.now()\n    \n    power_output = model_solar_system(\n        area=args.area,\n        efficiency=args.efficiency,\n        irradiance=args.irradiance,\n        time_steps=args.time_steps,\n        output_file=args.output_file\n    )\n    \n    end_time = datetime.now()\n    logging.info(f\"Simulation completed in {(end_time - start_time).total_seconds():.2f} seconds\")\n    \n    # Print results\n    logging.info(f\"Final power output: {power_output[-1]:.2f} W\")\n\ndef test_calculate_power():\n    # Test case with known values\n    area = 1.0  # m\u00b2\n    efficiency = 0.2  # 20% efficiency\n    irradiance = 1000.0  # W/m\u00b2\n    expected_power = area * efficiency * irradiance\n    \n    assert np.isclose(calculate_power(area, efficiency, irradiance), expected_power, rtol=1e-9), \\\n        f\"Power calculation failed: expected {expected_power}, got {calculate_power(area, efficiency, irradiance)}\"\n\nif __name__ == \"__main__\":\n    main()\n```\n\nThis implementation includes:\n\n1. A `calculate_power` function that computes the instantaneous power output\n2. A `model_solar_system` function that models power output over time\n3. Command-line argument parsing with `argparse`\n4. Logging system with adjustable verbosity\n5. Output saved to an `./outputs` directory\n6. A test function `test_calculate_power` for verification\n7. Type hints and docstrings for all functions\n8. Support for both single time step and multiple time steps\n\nTo use this code:\n\n1. Save it as `solar_power_model.py`\n2. Install required packages with `pip install numpy`\n3. Run with `python solar_power_model.py --help` to see options\n4. Example run: `python solar_power_model.py --area 2.0 --efficiency 0.25 --irradiance 800.0 --time_steps 10`\n\nThe model assumes steady-state conditions and doesn't account for temperature effects as per the problem statement. The power output is calculated using the formula \\( P = A \\times \\eta \\times G \\).\n\nTo test the code, run `pytest solar_power_model.py -v` in the terminal.",
+          "coder_notes": "",
+          "assumptions": [
+            "steady-state",
+            "no temperature effects"
+          ],
+          "status": "draft"
+        }
+      ],
+      "linked_reqs": [
+        "SR-1",
+        "SR-3"
+      ],
+      "verification_plan": "Performance testing under specified conditions.",
+      "maturity": "draft",
+      "tags": [
+        "Solar",
+        "Power",
+        "Advanced"
+      ]
+    },
+    "2": {
+      "node_id": "2",
+      "node_kind": "Subsystem",
+      "name": "Water Filtration System",
+      "description": "Advanced filtration system with multiple stages and real-time quality monitoring.",
+      "embodiment": {
+        "principle": "Reverse Osmosis",
+        "description": "Multi-stage filtration including pre-treatment and UV disinfection with smart sensors.",
+        "design_parameters": {
+          "flow_rate": 30.0,
+          "efficiency": 0.99999
+        },
+        "cost_estimate": 600.0,
+        "mass_estimate": 25.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Filtration Model",
+          "equations": "V = Q * t",
+          "python_code": "Alright, so I need to help the user by expanding their existing Python code for a water filtration system into a full-fledged, high-fidelity model. Let me break down what needs to be done.\n\nFirst, the user provided a simple function to calculate volume as V = Q * t. But they want this to be a node in a larger Design-State Graph, which means it needs to be more robust and integrated with other potential systems.\n\nI should start by considering the key components of a water filtration system. Filtration isn't just about the volume; it's also about how contaminants are removed. So, I'll need to model contaminant removal, which depends on factors like the filtration rate and the system's efficiency.\n\nNext, I'll think about the flow rates. The user's initial code assumes a constant flow rate, but in reality, flow rates can vary. I'll include both constant and variable flow rate calculations. For variable rates, I'll use time steps to integrate over time, which makes the model more flexible and accurate.\n\nThen, I'll add logging and command-line interfaces. The user mentioned using argparse for CLI, so I'll set up parameters like total time, initial and average flow rates, contaminant concentration, and filtration efficiency. Logging will help track the simulation's progress and any issues that arise.\n\nFor output, the results should be saved in a standard format. I'll use NumPy's savez for its simplicity and portability. Additionally, including a quick plot using matplotlib will allow users to visualize the results without extra steps.\n\nTesting is crucial. I'll write a pytest function to check if the calculated volume matches the expected value when given a constant flow rate. This ensures the core functionality works as intended.\n\nI also need to consider how this node might integrate with others. So, I'll add a coupling function that can pass data to other nodes, like a pump or storage system. This makes the model modular and ready for larger applications.\n\nFinally, I'll structure the code with clear sections: functions for volume and contaminant removal, main simulation logic, CLI setup, and output handling. This makes the code organized and easy to follow.\n\nPutting it all together, I'll expand the initial function into a comprehensive script that includes all these features, ensuring it's self-contained and ready to run with minimal dependencies.\n</think>\n\n```python\nimport numpy as np\nimport argparse\nimport logging\nimport matplotlib.pyplot as plt\n\ndef calculate_volume(flow_rate, time):\n    \"\"\"Calculate the volume of water filtered.\n    \n    Args:\n        flow_rate (float): Flow rate in m\u00b3/s\n        time (float): Time in seconds\n        \n    Returns:\n        float: Volume in cubic meters (m\u00b3)\n    \"\"\"\n    return flow_rate * time\n\ndef calculate_contaminant_removal(initial_concentration, filtration_efficiency, volume):\n    \"\"\"Calculate the amount of contaminant removed.\n    \n    Args:\n        initial_concentration (float): Initial concentration in mg/L\n        filtration_efficiency (float): Efficiency as a decimal (0-1)\n        volume (float): Volume in liters (L)\n        \n    Returns:\n        float: Mass of contaminant removed in milligrams (mg)\n    \"\"\"\n    # Convert volume from m\u00b3 to liters (1 m\u00b3 = 1000 L)\n    volume_liters = volume * 1000\n    return initial_concentration * volume_liters * filtration_efficiency\n\ndef main():\n    # Set up logging\n    logging.basicConfig(level=logging.INFO)\n    \n    # Parse command line arguments\n    parser = argparse.ArgumentParser(description='Water Filtration System Model')\n    parser.add_argument('--total_time', type=float, default=3600, help='Total time in seconds')\n    parser.add_argument('--flow_rate', type=float, default=0.1, help='Flow rate in m\u00b3/s')\n    parser.add_argument('--initial_concentration', type=float, default=100, help='Initial contaminant concentration in mg/L')\n    parser.add_argument('--filtration_efficiency', type=float, default=0.95, help='Filtration efficiency (0-1)')\n    args = parser.parse_args()\n    \n    # Time parameters\n    dt = 60  # Time step in seconds\n    t_steps = int(args.total_time / dt)\n    time_values = np.linspace(0, args.total_time, t_steps + 1)\n    \n    # Calculate volume and contaminant removal\n    volumes = np.zeros(t_steps + 1)\n    contaminant_removed = np.zeros(t_steps + 1)\n    \n    for i, t in enumerate(time_values):\n        volumes[i] = calculate_volume(args.flow_rate, t)\n        contaminant_removed[i] = calculate_contaminant_removal(args.initial_concentration, \n                                                               args.filtration_efficiency, \n                                                               volumes[i])\n        \n    # Save results\n    np.savez('outputs/filtration_results.npz',\n             time=time_values,\n             volume=volumes,\n             contaminant_removed=contaminant_removed)\n    \n    # Generate quick-look plot\n    plt.figure(figsize=(10, 6))\n    plt.plot(time_values / 3600, volumes, label='Volume')\n    plt.plot(time_values / 3600, contaminant_removed, label='Contaminant Removed')\n    plt.xlabel('Time (hours)')\n    plt.ylabel('Volume (m\u00b3) and Contaminant Mass (mg)')\n    plt.title('Water Filtration System Performance')\n    plt.legend()\n    plt.savefig('outputs/filtration_performance.png')\n    plt.close()\n\ndef coupling_stub(time_values, volume_data):\n    \"\"\"Stub function for coupling with other system nodes.\n    \n    Args:\n        time_values (numpy.ndarray): Array of time points\n        volume_data (numpy.ndarray): Array of volume data\n        \n    Returns:\n        tuple: Time values and volume data for downstream systems\n    \"\"\"\n    # This function would typically send data to other nodes\n    # For now, return the data as is\n    return time_values, volume_data\n\ndef test_calculate_volume():\n    \"\"\"Test the volume calculation with known values.\"\"\"\n    flow_rate = 0.1  # m\u00b3/s\n    time = 3600      # seconds\n    expected_volume = 3600 * 0.1  # 360 m\u00b3\n    assert np.isclose(calculate_volume(flow_rate, time), expected_volume)\n\nif __name__ == '__main__':\n    main()\n```",
+          "coder_notes": "",
+          "assumptions": [
+            "steady-state",
+            "constant flow rate"
+          ],
+          "status": "draft"
+        }
+      ],
+      "linked_reqs": [
+        "SR-1",
+        "SR-2"
+      ],
+      "verification_plan": "Performance testing under specified conditions.",
+      "maturity": "draft",
+      "tags": [
+        "Filtration",
+        "Water",
+        "Advanced"
+      ]
+    },
+    "3": {
+      "node_id": "3",
+      "node_kind": "Subsystem",
+      "name": "Energy Storage System",
+      "description": "High-capacity lithium-ion batteries with advanced management and smart controls.",
+      "embodiment": {
+        "principle": "Lithium-Ion Battery",
+        "description": "High-capacity, long-life batteries with advanced management system and IoT integration.",
+        "design_parameters": {
+          "capacity": 500.0,
+          "voltage": 24.0
+        },
+        "cost_estimate": 800.0,
+        "mass_estimate": 40.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Battery Model",
+          "equations": "E = C * V",
+          "python_code": "Okay, so I need to create a Python script for a battery model node in an engineering system. The user provided a basic function that calculates energy as E = C * V. My task is to expand this into a full-fledged, high-fidelity node that meets all the specified requirements.\n\nFirst, I'll consider the governing equations and assumptions. The equation E = C * V is straightforward, but I should also include more realistic aspects like state of charge (SOC) dynamics. The assumption is steady-state and no losses, so I don't need to model complex losses or transients right now.\n\nI'll start by structuring the module. It needs a class-based approach to encapsulate the battery's properties and behavior. The class should initialize with parameters like capacity, voltage, and initial SOC. I'll include a method to calculate the current energy based on SOC, which adds a layer of realism.\n\nNext, I need to handle logging. Using Python's logging module, I'll set up a logger with different levels based on the verbosity argument. This will help in debugging and monitoring the script's execution.\n\nFor the command-line interface (CLI), I'll use argparse to expose key parameters. Users should be able to specify capacity, voltage, initial SOC, verbosity, and whether to plot results. This makes the script flexible and user-friendly.\n\nOutput is crucial. I'll create an 'outputs' directory where I'll save the results. The results will be saved in both NumPy and CSV formats for portability. Additionally, I'll include an optional quick-look plot using matplotlib to visualize the energy over time.\n\nTesting is another important aspect. I'll write a pytest function that checks if the calculated energy matches the expected value based on the given capacity and voltage. This ensures the core functionality works correctly.\n\nI also need to include a coupling stub. This function will allow the battery model to integrate with other nodes in the system. It can return the current state of the battery, which other components can use.\n\nConsidering performance, the calculations are straightforward and vectorized operations aren't necessary here. However, using NumPy for data handling ensures efficiency when dealing with larger datasets.\n\nFinally, I'll make sure the script is self-documenting with clear docstrings and a usage example. This helps anyone using the script to understand its functionality and parameters without digging into the code.\n\nPutting it all together, I'll structure the script with the class, CLI parsing, logging, output handling, and testing. I'll ensure that all dependencies are minimal, using only standard libraries and NumPy, SciPy, matplotlib, and pytest, which are widely accepted and easy to install.\n\nI should also handle edge cases, like ensuring SOC stays within valid bounds. This prevents errors and makes the model more robust.\n\nOverall, the script should be modular, easy to run, and integrate smoothly into a larger system. By following the guidelines and expanding the initial code thoughtfully, I can create a reliable and useful battery model node.\n</think>\n\n```python\nimport numpy as np\nimport logging\nimport argparse\nimport os\nimport matplotlib.pyplot as plt\n\n# Create outputs directory if it doesn't exist\nif not os.path.exists('outputs'):\n    os.makedirs('outputs')\n\nclass BatteryModel:\n    \"\"\"\n    A high-fidelity battery model that calculates energy storage and tracks state of charge.\n    \n    Parameters:\n    capacity (float): Maximum capacity of the battery in Ah\n    voltage (float): Nominal voltage of the battery in V\n    initial_soc (float): Initial state of charge (0 to 1)\n    \"\"\"\n    \n    def __init__(self, capacity: float, voltage: float, initial_soc: float = 0.0):\n        self.capacity = capacity  # Maximum capacity in Ah\n        self.voltage = voltage    # Nominal voltage in V\n        self.soc = initial_soc    # Current state of charge (0 to 1)\n        \n    def calculate_energy(self) -> float:\n        \"\"\"\n        Calculate the current energy in the battery based on state of charge.\n        Returns:\n        float: Current energy in Wh\n        \"\"\"\n        return self.capacity * self.voltage * self.soc\n    \n    def update_soc(self, current: float, time: float):\n        \"\"\"\n        Update the state of charge based on current draw over time.\n        Parameters:\n        current (float): Current in A\n        time (float): Time in hours\n        \"\"\"\n        # Calculate energy change in Ah\n        energy_change = current * time\n        # Update SOC (clamped between 0 and 1)\n        self.soc = max(0.0, min(1.0, self.soc - (energy_change / self.capacity)))\n        \ndef main():\n    # Set up logging\n    logging.basicConfig(level=logging.INFO)\n    \n    # Parse command line arguments\n    parser = argparse.ArgumentParser(description='Battery Model Simulator')\n    parser.add_argument('--capacity', type=float, default=10.0, help='Battery capacity in Ah')\n    parser.add_argument('--voltage', type=float, default=12.0, help='Battery voltage in V')\n    parser.add_argument('--initial_soc', type=float, default=1.0, help='Initial state of charge')\n    parser.add_argument('--verbosity', type=int, default=2, \n                       help='Verbosity level: 0=DEBUG, 1=INFO, 2=WARNING, 3=ERROR, 4=CRITICAL')\n    parser.add_argument('--plot', action='store_true', help='Generate a quick-look plot')\n    args = parser.parse_args()\n    \n    # Set logging level based on verbosity\n    logging.getLogger().setLevel(50 - args.verbosity * 10)\n    \n    # Initialize battery model\n    battery = BatteryModel(args.capacity, args.voltage, args.initial_soc)\n    \n    # Simulate energy calculation\n    energy = battery.calculate_energy()\n    logging.info(f\"Current energy in battery: {energy} Wh\")\n    \n    # Save results\n    np.save(f'outputs/battery_energy.npy', energy)\n    \n    # Optional CSV output for quick analysis\n    with open('outputs/battery_results.csv', 'w') as f:\n        f.write(f\"Capacity (Ah),Voltage (V),SOC,Energy (Wh)\\n\")\n        f.write(f\"{args.capacity},{args.voltage},{args.initial_soc},{energy}\\n\")\n    \n    # Generate quick-look plot if requested\n    if args.plot:\n        plt.figure(figsize=(8, 6))\n        plt.plot([args.initial_soc], [energy], 'bo', markersize=10)\n        plt.xlabel('State of Charge', fontsize=12)\n        plt.ylabel('Energy (Wh)', fontsize=12)\n        plt.title('Battery Energy vs State of Charge', fontsize=14)\n        plt.grid(True)\n        plt.savefig('outputs/battery_plot.png')\n        plt.close()\n        \ndef test_calculate_energy():\n    # Test case with known values\n    capacity = 10.0  # Ah\n    voltage = 12.0   # V\n    initial_soc = 0.5\n    \n    battery = BatteryModel(capacity, voltage, initial_soc)\n    energy = battery.calculate_energy()\n    \n    expected_energy = capacity * voltage * initial_soc\n    assert np.isclose(energy, expected_energy, rtol=1e-5), \\\n        f\"Expected energy {expected_energy} Wh, got {energy} Wh\"\n\nif __name__ == \"__main__\":\n    main()\n```\n\nThis implementation:\n1. Creates a `BatteryModel` class with SOC tracking\n2. Implements energy calculation and SOC updates\n3. Includes logging with adjustable verbosity\n4. Provides command-line interface with parameter customization\n5. Saves results in both NumPy and CSV formats\n6. Includes an optional quick-look plot\n7. Contains unit test coverage\n8. Is fully self-contained with minimal dependencies\n\nTo run:\n```bash\npython battery_model.py [--plot] [--verbosity X]\n```\n\nExample usage:\n```bash\npython battery_model.py --capacity 20 --voltage 24 --initial_soc 0.8 --plot\n```\n\nThe model can be extended with additional physics like:\n- Peukert's law for capacity based on discharge rate\n- Temperature effects\n- Aging models\n- Round-trip efficiency\n- More sophisticated SOC estimation",
+          "coder_notes": "",
+          "assumptions": [
+            "steady-state",
+            "no losses"
+          ],
+          "status": "draft"
+        }
+      ],
+      "linked_reqs": [
+        "SR-3",
+        "SR-4"
+      ],
+      "verification_plan": "Performance testing under specified conditions.",
+      "maturity": "draft",
+      "tags": [
+        "Battery",
+        "Storage",
+        "Advanced"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "1"
+    ]
+  ]
+}
