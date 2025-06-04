@@ -377,6 +377,8 @@ class SingleReflectionPair(BaseModel):
     proposal_index: int = Field(..., description="Index of the proposal to which this reflection applies")
     feedback: str = Field(..., description="Critical review or suggestions about the proposal")
     workflow_complete: bool = Field(False, description="Indicates whether the workflow is complete. Only trigger True when the workflow is complete.")
+    final_status: str = Field(..., description="Final decision (selected, rejected, or needs more iteration)")
+    reason: str = Field(..., description="Rationale for the decision")
 
 class ReflectionPairOutput(BaseModel):
     reflections: List[SingleReflectionPair] = Field(..., description="List of reflection items for each proposal")
