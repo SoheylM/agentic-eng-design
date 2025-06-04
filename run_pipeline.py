@@ -18,6 +18,8 @@ Fire-and-forget launcher for MAS or 2-Agent workflows.
   - Any errors encountered
   - Wall time
   - Random seed used
+
+• You can run all combinations or specify a single combination for debugging.
 """
 
 from __future__ import annotations
@@ -27,10 +29,10 @@ import json
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from prompts import CAHIER_DES_CHARGES_REV_C
-from experiment_config import ExperimentConfig, generate_experiment_configs
+from experiment_config import ExperimentConfig, generate_experiment_configs, LLM_TYPES, TEMPERATURES, WORKFLOW_TYPES
 from llm_models import configure_models
 
 # --------------------------------------------------------------------------- helpers
@@ -93,11 +95,34 @@ def _run_once(config: ExperimentConfig, request: str) -> Dict[str, Any]:
 
     return run_metadata
 
+def generate_specific_configs(llm_type: str, temperature: float, workflow_type: str, runs: int = 10) -> List[ExperimentConfig]:
+    """Generate configurations for a specific experiment combination."""
+    return [
+        ExperimentConfig(
+            llm_type=llm_type,
+            temperature=temperature,
+            workflow_type=workflow_type,
+            run_id=i
+        )
+        for i in range(runs)
+    ]
+
 # --------------------------------------------------------------------------- CLI
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--request", default=default_request(),
                     help="Initial user request (default embeds Rev-C CDC)")
+    
+    # Options for running specific combinations
+    ap.add_argument("--llm", choices=LLM_TYPES,
+                    help="Run only experiments with this LLM type")
+    ap.add_argument("--temp", type=float, choices=TEMPERATURES,
+                    help="Run only experiments with this temperature")
+    ap.add_argument("--workflow", choices=WORKFLOW_TYPES,
+                    help="Run only experiments with this workflow type")
+    ap.add_argument("--runs", type=int, default=10,
+                    help="Number of runs for the specific combination (default: 10)")
+    
     args = ap.parse_args()
 
     # Create experiment log directory
@@ -108,11 +133,18 @@ if __name__ == "__main__":
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_file = log_dir / f"experiment_log_{timestamp}.jsonl"
     
-    # Run all experiment combinations
-    configs = generate_experiment_configs()
-    total = len(configs)
+    # Generate configurations based on arguments
+    if args.llm and args.temp and args.workflow:
+        # Run specific combination
+        configs = generate_specific_configs(args.llm, args.temp, args.workflow, args.runs)
+        print(f"Running specific combination: {args.llm}, t={args.temp}, {args.workflow}")
+    else:
+        # Run all combinations
+        configs = generate_experiment_configs()
+        print("Running all experiment combinations")
     
-    print(f"Starting experiment batch with {total} runs...")
+    total = len(configs)
+    print(f"Total runs: {total}")
     
     with log_file.open("w") as f:
         for i, config in enumerate(configs, 1):
