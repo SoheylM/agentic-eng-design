@@ -4,7 +4,7 @@ from langgraph.types import Command
 from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage
 from data_models import PairState
 from llm_models import pair_generation_agent
-from prompts import GE_PROMPT_STRUCTURED
+from prompts import GE_PAIR_PROMPT
 from IPython.display import display, Markdown
 from graph_utils import summarize_design_state_func
 from utils import remove_think_tags
@@ -41,7 +41,7 @@ def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]
     """
 
     base_model_output = pair_generation_agent.invoke([
-        SystemMessage(content=GE_PROMPT_STRUCTURED),
+        SystemMessage(content=GE_PAIR_PROMPT),
         HumanMessage(content=generation_user_message)
     ])
 
