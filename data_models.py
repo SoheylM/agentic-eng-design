@@ -439,6 +439,6 @@ class PairState(BaseModel):
     generation_iteration: int = 0
     reflection_iteration: int = 0
     max_iterations: int = 5  # Default max iterations
-    cahier_des_charges: str = None  # The CdC as a string
+    cahier_des_charges: str = ""  # The CdC as a string
     design_graph_history: Annotated[List[DesignState], operator.add] = field(default_factory=list)
 
