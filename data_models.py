@@ -85,6 +85,8 @@ class DesignState(BaseModel):
         description="Map node_id to node data.")
     edges: List[List[str]] = Field(default_factory=list,
         description="Single source of truth for graph connectivity. Each item = [source_id, target_id]. The edges_in and edges_out lists in nodes are derived from this list.")
+    workflow_complete: bool = Field(False,
+        description="Indicates whether the workflow is complete. Leave it to False as only the Supervisor can set it to True.")
 
 
 # ────────────────────────────────────────────────

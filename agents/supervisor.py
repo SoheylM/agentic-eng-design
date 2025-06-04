@@ -25,22 +25,7 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
     """
 
     print("\n🔎  [Supervisor] invoked")
-
-    # Save current DSG if we have one
-    if state.design_graph_history:
-        try:
-            dsg_now = state.design_graph_history[-1]
-            out = save_dsg(
-                dsg_now,
-                thread_id=str(state.supervisor_visit_counter),
-                step_idx=state.supervisor_visit_counter,
-                save_folder=state.dsg_save_folder,
-            )
-            print(f"💾 [Supervisor] DSG snapshot saved → {out}")
-            # Visualize the current DSG
-            visualize_design_state_func(dsg_now)
-        except Exception as e:
-            print(f"⚠️  [Supervisor] failed to save/visualize DSG: {e}")
+    
 
     # 1) Check CDC and DSG ------------------------------------------------------------
     if not state.cahier_des_charges:
@@ -105,6 +90,27 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
     if state.supervisor_visit_counter == 0:
         ts = datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
         new_folder = f"{ts}_{str(uuid.uuid4())}"
+
+    if state.design_graph_history and decision.workflow_complete:
+        dsg = state.design_graph_history[-1]
+        dsg.workflow_complete = True
+        state.design_graph_history[-1] = dsg
+    
+     # Save current DSG if we have one
+    if state.design_graph_history:
+        try:
+            dsg_now = state.design_graph_history[-1]
+            out = save_dsg(
+                dsg_now,
+                thread_id=str(state.supervisor_visit_counter),
+                step_idx=state.supervisor_visit_counter,
+                save_folder=state.dsg_save_folder,
+            )
+            print(f"💾 [Supervisor] DSG snapshot saved → {out}")
+            # Visualize the current DSG
+            visualize_design_state_func(dsg_now)
+        except Exception as e:
+            print(f"⚠️  [Supervisor] failed to save/visualize DSG: {e}")
 
     update = {
         "supervisor_instructions": [decision.instructions],
