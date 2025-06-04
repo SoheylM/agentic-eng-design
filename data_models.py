@@ -16,8 +16,10 @@ class PhysicsModel(BaseModel):
         description="<Unique model name, e.g. 'HeatExchanger1D'.")
     equations: str = Field("",
         description="LaTeX / plain-text governing equations, e.g., 'Q = m_dot * Cp * (T_in - T_out)'.")
+    coding_directives: str = Field("",
+        description="Coding directives for the coder agent to generate the Python code to simulate the physics model.")
     python_code: str = Field("",
-        description=("Directives for the coder agent to generate the Python code to simulate the physics model."))
+        description=("The Python code to simulate the physics model."))
     coder_notes: str = Field("",
         description="Notes from the coder agent about the code generation process.")
     assumptions: List[str] = Field(default_factory=list,
