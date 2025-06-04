@@ -10,13 +10,14 @@ Fire-and-forget launcher for MAS or 2-Agent workflows.
   - LLM type (reasoning vs non-reasoning)
   - Temperature (0.0, 0.3, 0.5, 0.7)
   - Workflow type (MAS vs 2-agent pair)
-  - 10 runs per combination
+  - 10 runs per combination with seeds 0-9
 
 • For each run, it logs:
   - Success/failure status
   - Number of DSGs generated
   - Any errors encountered
   - Wall time
+  - Random seed used
 """
 
 from __future__ import annotations
@@ -51,7 +52,8 @@ def _run_once(config: ExperimentConfig, request: str) -> Dict[str, Any]:
             "llm_type": config.llm_type,
             "temperature": config.temperature,
             "workflow_type": config.workflow_type,
-            "run_id": config.run_id
+            "run_id": config.run_id,
+            "seed": config.run_id  # Using run_id as seed (0-9)
         },
         "start_time": datetime.now().isoformat(),
         "success": False,
@@ -62,7 +64,7 @@ def _run_once(config: ExperimentConfig, request: str) -> Dict[str, Any]:
 
     try:
         # Configure all agent models for this experiment
-        configure_models(config.llm_type, config.temperature)
+        configure_models(config.llm_type, config.temperature, config.run_id)
         
         # Import and run appropriate workflow
         if config.workflow_type == "mas":
@@ -126,5 +128,6 @@ if __name__ == "__main__":
             else:
                 print(f"  Generated {metadata['n_dsgs']} DSGs")
                 print(f"  Wall time: {metadata['wall_time']:.1f}s")
+                print(f"  Seed: {metadata['config']['seed']}")
     
     print(f"\nExperiment batch complete. Log written to {log_file}")
