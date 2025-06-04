@@ -122,40 +122,7 @@ Each DSG must be:
    • The top-level design graph must show how each SR (and each SN, if applicable) is covered. If a requirement (e.g. “SR-3: X must do Y”) maps to multiple nodes, list them all.
 
 3. **Complete Node Definitions Using the DSG Dataclasses**  
-   For **each** `DesignNode`, you must fill in all of the following fields **completely**:
-   ```python
-   class PhysicsModel(BaseModel):
-       name: str                             # Unique model name (e.g. "HeatExchanger1D")
-       equations: str                        # Governing equations in LaTeX/plain text (e.g. "Q = m_dot Cp (T_in - T_out)")
-       python_code: str                      # A stub or complete Python implementation for this physics model
-       assumptions: List[str]                # Simplifying assumptions (e.g. ["steady-state", "no friction losses"])
-       status: str                           # One of: 'draft' | 'reviewed' | 'validated'
-
-   class Embodiment(BaseModel):
-       principle: str                        # Technology keyword (e.g. "Reverse Osmosis", "Airfoil NACA0012")
-       description: str                      # 1–3 sentence narrative of how the embodiment works
-       design_parameters: Dict[str, float]   # Key parameters with units (e.g. {"area_m2": 2.5, "efficiency": 0.85})
-       cost_estimate: float                  # USD (use -1.0 if not yet estimated)
-       mass_estimate: float                  # kg (use -1.0 if not yet estimated)
-       status: str                           # One of: 'draft' | 'reviewed' | 'validated'
-
-   class DesignNode(BaseModel):
-       node_id: str                          # Unique ID (e.g. UUID or short string)
-       node_kind: str                        # Type of node (e.g. 'Subsystem', 'Component', 'Assembly')
-       name: str                             # Short label (e.g. "Pump", "Combustion_Chamber")
-       description: str                      # 1–3 sentence narrative of purpose, behavior, interfaces
-
-       embodiment: Embodiment                # Fill in as above
-       physics_models: List[PhysicsModel]    # List at least one PhysicsModel for this node
-       linked_reqs: List[str]                # List requirements this node satisfies (e.g. ["SR-1", "SR-3"])
-       verification_plan: str                # How to verify (e.g. "Test in lab under 300 K, measure output")
-       maturity: str                         # One of: 'draft' | 'reviewed' | 'validated'
-       tags: List[str]                       # Free-form keywords (e.g. ["Thermal", "Hydraulics"])
-
-In addition, produce a top-level DesignState object containing:
-class DesignState(BaseModel):
-    nodes: Dict[str, DesignNode]         # Map from node_id to each DesignNode
-    edges: List[List[str]]               # Each edge is [source_node_id, target_node_id]
+   For **each** `DesignNode` in a DSG, you must fill in all of the fields **completely**.
 
 4. **No Orphan Nodes or Cycles**
 • Every node must be connected—no completely isolated components unless you explicitly justify why it is a standalone leaf (e.g. “Reflector” is purely decorative and has no downstream interactions).
