@@ -6,14 +6,27 @@ from data_models import PairState
 from llm_models import pair_generation_agent
 from prompts import GE_PROMPT_STRUCTURED
 from IPython.display import display, Markdown
+from graph_utils import summarize_design_state_func
+from utils import remove_think_tags
+from eval_saved import evaluate_dsg  # Import the evaluation function
+from validation import filter_valid_proposals  # Import our validation functions
 
 def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]]:
+    """
+    • Generates *N* DSG proposals (defined in GE_PROMPT_STRUCTURED).
+    """
+    print("\n🔧 [GEN] Generation pair node")
 
     first_pass = state.first_pass
     if first_pass: 
         user_request = state.messages[-1]
     else:
         user_request = state.user_request
+
+    # ── Context strings for the LLM ────────────────────────────────────────
+    cdc_text    = state.cahier_des_charges or "No Cahier des Charges."
+    graph_now   = state.design_graph_history[-1] if state.design_graph_history else DesignState()
+    graph_sum   = summarize_design_state_func(graph_now)
     
 
     generation_user_message = f"""

@@ -373,6 +373,14 @@ class SingleReflection(BaseModel):
 class ReflectionOutput(BaseModel):
     reflections: List[SingleReflection] = Field(..., description="List of reflection items for each proposal")
 
+class SingleReflectionPair(BaseModel):
+    proposal_index: int = Field(..., description="Index of the proposal to which this reflection applies")
+    feedback: str = Field(..., description="Critical review or suggestions about the proposal")
+    workflow_complete: bool = Field(False, description="Indicates whether the workflow is complete. Only trigger True when the workflow is complete.")
+
+class ReflectionPairOutput(BaseModel):
+    reflections: List[SingleReflectionPair] = Field(..., description="List of reflection items for each proposal")
+
 
 class SingleRanking(BaseModel):
     proposal_index: int = Field(..., description="Index of the proposal being ranked")
