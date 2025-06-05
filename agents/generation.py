@@ -90,7 +90,7 @@ Supervisor instructions:
 Current DSG summary:
 {graph_sum}
 
-Generate **brand-new DSG proposals** (no refinement loop).
+Generate **DSG proposals**.
 """
 
     # ── LLM call (structured) ──────────────────────────────────────────────
