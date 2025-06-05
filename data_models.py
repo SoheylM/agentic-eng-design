@@ -453,4 +453,4 @@ class PairState(BaseModel):
     max_iterations: int = 5  # Default max iterations
     cahier_des_charges: str = ""  # The CdC as a string
     design_graph_history: Annotated[List[DesignState], operator.add] = field(default_factory=list)
-
+    detailed_summary_for_graph: Annotated[List[BaseMessage], operator.add] = Field(default_factory=list)

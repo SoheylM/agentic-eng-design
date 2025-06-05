@@ -32,13 +32,17 @@ def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]
     # ── Context strings for the LLM ────────────────────────────────────────
     graph_now   = state.design_graph_history[-1] if state.design_graph_history else DesignState()
     graph_sum   = summarize_design_state_func(graph_now)
+    note_to_improve = state.detailed_summary_for_graph[-1] if state.detailed_summary_for_graph else ""
 
     human_msg = f"""
         User request:
         {user_request}
 
-        Current DSG summary:
+        If iterating on DSGs, current DSG summary:
         {graph_sum}
+
+        If iterating on DSGs, note to improve the current DSG:
+        {note_to_improve}
 
         Generate **DSG proposals**.
         """
