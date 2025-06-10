@@ -23,6 +23,9 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
     • Critiques each DSG proposal produced by Generation.
     """
     print("\n🔎 [REF] Reflection pair node")
+    print(f"   • Current state: {state.model_dump_json(indent=2)}")
+    print(f"   • Number of proposals in state: {len(state.proposals)}")
+    print(f"   • Current generation iteration: {state.generation_iteration}")
 
     iter_now = state.reflection_iteration
     print(f"   • iteration {iter_now + 1}")

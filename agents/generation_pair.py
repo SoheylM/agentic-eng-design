@@ -69,7 +69,7 @@ def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]
                     "generation_notes": ["No valid proposals generated. Retrying..."],
                     "generation_iteration": iter_now + 1,
                 },
-                goto="generation",
+                goto="generation_pair",
             )
 
     # ── Wrap into long-term `Proposal` objects and update State ────────────
@@ -83,12 +83,16 @@ def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]
         )
         for i, p in enumerate(dsg_proposals)
     ]
+    
+    print(f"   • Created {len(new_entries)} new proposal entries")
+    print(f"   • First proposal title: {new_entries[0].title if new_entries else 'None'}")
+    print(f"   • First proposal status: {new_entries[0].status if new_entries else 'None'}")
 
     # Otherwise go straight to reflection
     print(" ✅ generation complete → reflection")
     return Command(
         update={
-            "proposals":          new_entries,
+            "proposals": new_entries,
             "user_request": user_request,
             "first_pass": False,
             "generation_iteration": iter_now + 1,              # keep counter
