@@ -67,7 +67,7 @@ def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]
             return Command(
                 update={
                     "generation_notes": ["No valid proposals generated. Retrying..."],
-                    "generation_iteration": iter_now + 1,
+                    "generation_iteration": iter_now,
                 },
                 goto="generation_pair",
             )
