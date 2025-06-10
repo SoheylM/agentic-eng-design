@@ -19,7 +19,6 @@ from prompts import GE_PROMPT_STRUCTURED, GEN_RESEARCH_PROMPT
 from llm_models import generation_agent, base_model_reasoning
 from graph_utils import summarize_design_state_func
 from utils import remove_think_tags
-from eval_saved import evaluate_dsg  # Import the evaluation function
 from validation import filter_valid_proposals  # Import our validation functions
 
 

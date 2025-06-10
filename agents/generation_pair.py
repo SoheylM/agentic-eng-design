@@ -2,15 +2,14 @@
 from typing import List, Literal
 from langgraph.types import Command
 from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage
-from data_models import PairState
+from data_models import PairState, DesignState
 from llm_models import pair_generation_agent
 from prompts import GE_PAIR_PROMPT
 from IPython.display import display, Markdown
 from graph_utils import summarize_design_state_func
 from utils import remove_think_tags
-from eval_saved import evaluate_dsg  # Import the evaluation function
-from validation import filter_valid_proposals  # Import our validation functions
-from data_models import Proposal
+from validation import filter_valid_proposals
+from data_models import Proposal, SingleProposal  # Added SingleProposal import
 
 def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]]:
     """
