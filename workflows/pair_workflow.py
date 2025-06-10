@@ -22,5 +22,8 @@ def build_app() -> "langgraph.App":
 def run_once(request: str, thread_id: str = "0") -> PairState:
     app = build_app()
     cfg = {"configurable": {"thread_id": f"pair-{thread_id}"}, "recursion_limit": 500}
-    app.invoke({"messages": [HumanMessage(content=request)]}, config=cfg)
+    app.invoke({
+        "messages": [HumanMessage(content=request)],
+        "dsgs_save_folder": f"pair-{thread_id}"
+    }, config=cfg)
     return app.get_state(cfg)

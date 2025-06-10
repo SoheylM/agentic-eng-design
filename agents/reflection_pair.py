@@ -114,6 +114,10 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
     # Only update design_graph_history if we have a selected proposal
     if chosen_dsg is not None:
         update["design_graph_history"] = [chosen_dsg]
+        # Save the final DSG when workflow completes
+        if workflow_complete:
+            from utils import save_dsg
+            save_dsg(chosen_dsg, state.dsgs_save_folder, 0)
 
     goto = "generation_pair" if not workflow_complete else END
     return Command(update=update, goto=goto)
