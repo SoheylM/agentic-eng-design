@@ -454,3 +454,4 @@ class PairState(BaseModel):
     cahier_des_charges: str = ""  # The CdC as a string
     design_graph_history: Annotated[List[DesignState], operator.add] = field(default_factory=list)
     detailed_summary_for_graph: Annotated[List[BaseMessage], operator.add] = Field(default_factory=list)
+    reflection_notes: Annotated[List[str], operator.add] = field(default_factory=list)

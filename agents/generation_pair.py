@@ -25,6 +25,7 @@ def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]
     first_pass = state.first_pass
     if first_pass: 
         user_request = state.messages[-1].content
+        print(f"   • user request: {user_request}")
     else:
         user_request = state.user_request
 
