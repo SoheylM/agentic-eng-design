@@ -457,4 +457,5 @@ class PairState(BaseModel):
     reflection_notes: Annotated[List[str], operator.add] = field(default_factory=list)
     selected_proposal_index: int = -1
     workflow_complete: bool = False
-    dsgs_save_folder: Optional[str] = None  # Folder for saving DSGs
+    dsg_save_folder: Optional[str] = None  # Folder for saving DSGs
+    supervisor_visit_counter: int = 0

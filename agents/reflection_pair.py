@@ -18,6 +18,8 @@ from IPython.display import display, Markdown
 from langgraph.graph import MessagesState, StateGraph, START, END
 from data_models import Proposal
 from graph_utils import summarize_design_state_func
+from utils import save_dsg
+from graph_utils import visualize_design_state_func
 
 def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair", END]]:
     """
@@ -103,21 +105,33 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
     workflow_complete = llm_resp.workflow_complete
     print(f"   • LLM returned workflow complete: {workflow_complete}")
 
+    if chosen_dsg is not None:
+        try:
+            out = save_dsg(
+                chosen_dsg,
+                thread_id=str(state.supervisor_visit_counter),
+                step_idx=state.supervisor_visit_counter,
+                save_folder=state.dsg_save_folder,
+            )
+            print(f"💾 [Supervisor] DSG snapshot saved → {out}")
+            # Visualize the current DSG
+            visualize_design_state_func(chosen_dsg)
+        except Exception as e:
+            print(f"⚠️  [Supervisor] failed to save/visualize DSG: {e}")
+
     # Prepare the update dictionary
     update = {
         "selected_proposal_index": selected_idx,
         "detailed_summary_for_graph": [note_to_improve],
         "workflow_complete": workflow_complete,
         "reflection_iteration": iter_now,
+        "supervisor_visit_counter": state.supervisor_visit_counter+1,
     }
 
     # Only update design_graph_history if we have a selected proposal
     if chosen_dsg is not None:
         update["design_graph_history"] = [chosen_dsg]
-        # Save the final DSG when workflow completes
-        if workflow_complete:
-            from utils import save_dsg
-            save_dsg(chosen_dsg, state.dsgs_save_folder, 0)
+    
 
     goto = "generation_pair" if not workflow_complete else END
     return Command(update=update, goto=goto)

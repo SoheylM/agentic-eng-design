@@ -10,6 +10,8 @@ from graph_utils import summarize_design_state_func
 from utils import remove_think_tags
 from validation import filter_valid_proposals
 from data_models import Proposal, SingleProposal  # Added SingleProposal import
+from datetime import datetime, UTC
+import uuid
 
 def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]]:
     """
@@ -26,8 +28,11 @@ def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]
     if first_pass: 
         user_request = state.messages[-1].content
         print(f"   • user request: {user_request}")
+        ts = datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
+        new_folder = f"{ts}_{str(uuid.uuid4())}"
     else:
         user_request = state.user_request
+        new_folder = state.dsg_save_folder
 
     # ── Context strings for the LLM ────────────────────────────────────────
     graph_now   = state.design_graph_history[-1] if state.design_graph_history else DesignState()
@@ -79,7 +84,8 @@ def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]
             content=p.content,                 # ← the DesignState object
             status="generated",
             generation_iteration_index=iter_now,
-            reflection_iteration_index=state.reflection_iteration,
+            reflection_iteration_index=state.reflection_iteration
+
         )
         for i, p in enumerate(dsg_proposals)
     ]
@@ -96,6 +102,7 @@ def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]
             "user_request": user_request,
             "first_pass": False,
             "generation_iteration": iter_now,              # keep counter
+            "dsg_save_folder": new_folder,
         },
         goto="reflection_pair",
     )
