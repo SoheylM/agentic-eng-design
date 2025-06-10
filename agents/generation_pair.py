@@ -77,7 +77,6 @@ def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]
             title=p.title,
             content=p.content,                 # ← the DesignState object
             status="generated",
-            current_step_index=state.supervisor_visit_counter,  # Add current step index
             generation_iteration_index=iter_now,
             reflection_iteration_index=state.reflection_iteration,
             ranking_iteration_index=state.ranking_iteration,

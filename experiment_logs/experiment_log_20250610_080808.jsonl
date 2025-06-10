@@ -1,0 +1,1 @@
+{"config": {"llm_type": "reasoning", "temperature": 0.3, "workflow_type": "pair", "run_id": 0, "seed": 0}, "start_time": "2025-06-10T08:08:08.354031", "success": false, "error": "'PairState' object has no attribute 'supervisor_visit_counter'", "n_dsgs": 0, "wall_time": 175.06973886489868}
