@@ -130,7 +130,6 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
     # Only update design_graph_history if we have a selected proposal
     if chosen_dsg is not None:
         update["design_graph_history"] = [chosen_dsg]   
-    if note_to_improve is not None:
         update["detailed_summary_for_graph"] = [note_to_improve]
     
 
