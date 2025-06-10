@@ -108,7 +108,7 @@ Return your final decisions.
         chosen_prop = recent_props[selected_idx]
         chosen_dsg = chosen_prop.content
 
-        state.design_graph_history.append(chosen_dsg)
+        #state.design_graph_history.append(chosen_dsg)
         print(f"   ✅ proposal {selected_idx} selected – DSG stored to history")
     else:
         chosen_dsg = None
@@ -122,6 +122,7 @@ Return your final decisions.
             "selected_proposal_index":  selected_idx,
             "meta_review_notes":       [note],
             "meta_review_iteration":   it_now,
+            "design_graph_history": [chosen_dsg],
         },
         goto="supervisor",
     )
