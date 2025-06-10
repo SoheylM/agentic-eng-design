@@ -31,17 +31,18 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List
 
-from prompts import CAHIER_DES_CHARGES_REV_C
+from prompts import CAHIER_DES_CHARGES_REV_C, CAHIER_DES_CHARGES_REV_C_PAIR
 from experiment_config import ExperimentConfig, generate_experiment_configs, LLM_TYPES, TEMPERATURES, WORKFLOW_TYPES
 from llm_models import configure_models
 
 # --------------------------------------------------------------------------- helpers
-def default_request() -> str:
+def default_request(workflow_type: str = "mas") -> str:
     """Single-line prompt that embeds the Rev-C Cahier-des-Charges."""
+    prompt = CAHIER_DES_CHARGES_REV_C_PAIR if workflow_type == "pair" else CAHIER_DES_CHARGES_REV_C
     return (
         "I want to create a solar-powered water-filtration system that satisfies "
         "the following Cahier-des-Charges Rev C:\n\n"
-        + CAHIER_DES_CHARGES_REV_C
+        + prompt
     )
 
 def _run_once(config: ExperimentConfig, request: str) -> Dict[str, Any]:
@@ -110,7 +111,7 @@ def generate_specific_configs(llm_type: str, temperature: float, workflow_type: 
 # --------------------------------------------------------------------------- CLI
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--request", default=default_request(),
+    ap.add_argument("--request", default=None,
                     help="Initial user request (default embeds Rev-C CDC)")
     
     # Options for running specific combinations
@@ -149,7 +150,9 @@ if __name__ == "__main__":
     with log_file.open("w") as f:
         for i, config in enumerate(configs, 1):
             print(f"\nRun {i}/{total}: {config.run_folder_name}")
-            metadata = _run_once(config, args.request)
+            # Use default request based on workflow type if no custom request provided
+            request = args.request if args.request else default_request(config.workflow_type)
+            metadata = _run_once(config, request)
             f.write(json.dumps(metadata) + "\n")
             f.flush()
             

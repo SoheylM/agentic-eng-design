@@ -929,3 +929,63 @@ Terminate the workflow when the DSG is complete and accurate and respects the ca
 
 Your feedback guides the Generation agent to improve the selected design graph.
 """
+
+
+CAHIER_DES_CHARGES_REV_C_PAIR = """
+Here is exactly what I want:
+Cahier des Charges: Solar-Powered Water Filtration System
+
+1 Project Overview
+
+Title: Design of a Solar-Powered Water Filtration System
+Client Objective: Develop a solar-powered water filtration unit capable of delivering potable water from raw sources in off-grid, environmentally sensitive, and low-maintenance contexts.
+
+2 Stakeholder Needs
+
+✅ SN-1: Provide safe drinking water in off-grid locations.
+✅ SN-2: Require minimal user effort (≤ 10 minutes routine maintenance per day).
+✅ SN-3: Be affordable for target regions (≤ $500 household, ≤ $5,000 community).
+✅ SN-4: Use environmentally responsible materials and support end-of-life disposal.
+✅ SN-5: Be portable for households or easily palletized for community deployment.
+
+3 System-Level Requirements
+
+✅ SR-01: Deliver ≥ 10 L/h potable water (at 25°C, 1 atm) from sources with TDS ≤ 1000 mg/L.
+✅ SR-02: Achieve ≥ 4-log (99.99%) removal of bacteria, viruses, and 1 μm micro-plastics.
+✅ SR-03: Meet SR-01 and SR-02 under solar irradiance ≥ 300 W/m² (AM1.5).
+✅ SR-04: Average electrical power consumption < 50 W at SR-01 flow-rate.
+✅ SR-05: Operate ≥ 6 hours without sunlight while maintaining SR-01 flow-rate.
+✅ SR-06: Operate from -10°C to 50°C and 0-95% RH with ≤ 10% performance loss.
+✅ SR-07: Have dry mass < 20 kg (household) and < 80 kg (community).
+✅ SR-08: Use ≥ 60% recyclable product mass (ISO 14021) and exclude RoHS-restricted substances above thresholds.
+✅ SR-09: Allow untrained user to start/stop filtration in ≤ 3 actions and display water-quality status in < 2 seconds.
+✅ SR-10: Have delivered unit cost (FOB) ≤ $500 (household) and ≤ $5,000 (community) at 1,000 units/year.
+
+4 Constraints & Interfaces
+
+✅ Environmental: Must withstand dust and rain splash (minimum IP54 rating).
+✅ Power: 100% solar-powered with integrated energy storage. External AC charger optional, not required for compliance.
+✅ Interfaces: Water quality sensors must output digital readings via standard UART or I²C protocols.
+
+5 Verification Strategy
+
+Each system requirement (SR) will be verified through:
+- I = Inspection
+- A = Analysis
+- T = Test
+- D = Demonstration
+
+A detailed Requirements Verification Matrix (RVM) will be developed during the design phase.
+
+6 Expected Deliverables
+
+✅ Functional Decomposition: A hierarchical breakdown of all required system functions.
+✅ Subsystem Architecture: Alternative mappings of functions to physical subsystems (technology-neutral).
+✅ Numerical Models: Physics-based or empirical models to support performance predictions.
+✅ Trade Study: At least three design variants evaluated against SR-01 to SR-10.
+✅ Verification Plan: Test matrices, analysis protocols, and pass/fail criteria linked to each SR.
+
+📌 Final Note
+
+Design decisions must explicitly trace to stakeholder needs and system requirements, with a documented engineering process supporting validation, sustainability, usability, and cost compliance.
+"""
