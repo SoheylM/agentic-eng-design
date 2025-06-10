@@ -79,9 +79,6 @@ def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]
             status="generated",
             generation_iteration_index=iter_now,
             reflection_iteration_index=state.reflection_iteration,
-            ranking_iteration_index=state.ranking_iteration,
-            evolution_iteration_index=state.evolution_iteration,
-            meta_review_iteration_index=state.meta_review_iteration
         )
         for i, p in enumerate(dsg_proposals)
     ]
