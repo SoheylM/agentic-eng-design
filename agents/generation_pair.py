@@ -85,6 +85,8 @@ def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]
     ]
     
     print(f"   • Created {len(new_entries)} new proposal entries")
+    print(f"   • First proposal title: {new_entries[0].title if new_entries else 'None'}")
+    print(f"   • First proposal status: {new_entries[0].status if new_entries else 'None'}")
 
     # Otherwise go straight to reflection
     print(" ✅ generation complete → reflection")
