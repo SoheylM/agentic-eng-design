@@ -455,3 +455,5 @@ class PairState(BaseModel):
     design_graph_history: Annotated[List[DesignState], operator.add] = field(default_factory=list)
     detailed_summary_for_graph: Annotated[List[BaseMessage], operator.add] = Field(default_factory=list)
     reflection_notes: Annotated[List[str], operator.add] = field(default_factory=list)
+    selected_proposal_index: int = -1
+    workflow_complete: bool = False
