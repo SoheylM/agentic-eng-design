@@ -87,7 +87,7 @@ def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]
     print(" ✅ generation complete → reflection")
     return Command(
         update={
-            "proposals":          new_entries,
+            "proposal":          new_entries,
             "user_request": user_request,
             "first_pass": False,
             "generation_iteration": iter_now + 1,              # keep counter

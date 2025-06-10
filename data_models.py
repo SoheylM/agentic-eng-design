@@ -446,7 +446,7 @@ class PairState(BaseModel):
     messages: Annotated[List[BaseMessage], operator.add] = Field(default_factory=list)
     first_pass: bool = True
     user_request: str = ""
-    proposal: Annotated[List[str], operator.add] = Field(default_factory=list)
+    proposals: Annotated[List[Proposal], operator.add] = field(default_factory=list) 
     feedback: Annotated[List[str], operator.add] = Field(default_factory=list)
     generation_iteration: int = 0
     reflection_iteration: int = 0
