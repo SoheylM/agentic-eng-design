@@ -185,13 +185,13 @@ def save_dsg(
 ) -> Path:
     """
     Dump one Design-State Graph to
-        runs/<timestamp>_<uuid>/DSG_<index>.json
+        runs/<timestamp>_pair-<thread_id>/DSG_<index>.json
     and return the file path.
     """
     if save_folder is None:
-        # Create new folder with timestamp and UUID
+        # Create new folder with timestamp and thread_id
         ts = datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
-        base_dir = Path("runs") / f"{ts}_{thread_id}"
+        base_dir = Path("runs") / f"{ts}_pair-{thread_id}"
     else:
         # Use existing folder
         base_dir = Path("runs") / save_folder
