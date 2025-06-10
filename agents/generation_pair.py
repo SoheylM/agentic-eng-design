@@ -95,7 +95,7 @@ def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]
             "proposals": new_entries,
             "user_request": user_request,
             "first_pass": False,
-            "generation_iteration": iter_now + 1,              # keep counter
+            "generation_iteration": iter_now,              # keep counter
         },
         goto="reflection_pair",
     )

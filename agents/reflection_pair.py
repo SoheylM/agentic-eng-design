@@ -108,7 +108,7 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
             "selected_proposal_index":  selected_idx,
             "detailed_summary_for_graph":       [note_to_improve],
             "workflow_complete":   workflow_complete,
-            "reflection_iteration": iter_now + 1,
+            "reflection_iteration": iter_now,
         },
 
     goto = "generation_pair" if not workflow_complete else END
