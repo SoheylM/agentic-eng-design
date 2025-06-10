@@ -122,7 +122,6 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
     # Prepare the update dictionary
     update = {
         "selected_proposal_index": selected_idx,
-        "detailed_summary_for_graph": [note_to_improve],
         "workflow_complete": workflow_complete,
         "reflection_iteration": iter_now,
         "supervisor_visit_counter": state.supervisor_visit_counter+1,
@@ -130,7 +129,9 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
 
     # Only update design_graph_history if we have a selected proposal
     if chosen_dsg is not None:
-        update["design_graph_history"] = [chosen_dsg]
+        update["design_graph_history"] = [chosen_dsg]   
+    if note_to_improve is not None:
+        update["detailed_summary_for_graph"] = [note_to_improve]
     
 
     goto = "generation_pair" if not workflow_complete else END
