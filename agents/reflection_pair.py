@@ -17,6 +17,7 @@ from prompts import RE_PAIR_PROMPT
 from IPython.display import display, Markdown
 from langgraph.graph import MessagesState, StateGraph, START, END
 from data_models import Proposal
+from graph_utils import summarize_design_state_func
 
 def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair", END]]:
     """
