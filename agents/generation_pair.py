@@ -24,7 +24,7 @@ def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]
     # I guess I will not need cdc_text
     first_pass = state.first_pass
     if first_pass: 
-        user_request = state.messages[-1]
+        user_request = state.messages[-1].content
     else:
         user_request = state.user_request
 
