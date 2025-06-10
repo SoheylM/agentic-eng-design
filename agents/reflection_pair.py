@@ -113,11 +113,11 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
                 step_idx=state.supervisor_visit_counter,
                 save_folder=state.dsg_save_folder,
             )
-            print(f"💾 [Supervisor] DSG snapshot saved → {out}")
+            print(f"💾 [Reflection] DSG snapshot saved → {out}")
             # Visualize the current DSG
             visualize_design_state_func(chosen_dsg)
         except Exception as e:
-            print(f"⚠️  [Supervisor] failed to save/visualize DSG: {e}")
+            print(f"⚠️  [Reflection] failed to save/visualize DSG: {e}")
 
     # Prepare the update dictionary
     update = {
