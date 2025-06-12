@@ -20,8 +20,14 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
     iter_now = state.reflection_iteration
     print(f"   • iteration {iter_now}")
 
-    # Determine save folder: initial thread_id, then persist
-    save_folder = state.dsg_save_folder or state.thread_id
+    # Always use the existing save folder from state
+    if not state.dsg_save_folder:
+        print("   ⚠️  No save folder found in state")
+        return Command(
+            update={"reflection_notes": ["No save folder available."]},
+            goto="generation_pair",
+        )
+    save_folder = state.dsg_save_folder
 
     # Filter proposals from the most recent generation
     recent_props: List[Proposal] = [

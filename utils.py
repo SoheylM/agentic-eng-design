@@ -190,7 +190,7 @@ def save_dsg(
     """
     if save_folder is None:
         # Create new folder with timestamp and UUID
-        ts = datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
+        ts = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         base_dir = Path("runs") / f"{ts}_{thread_id}"
     else:
         # Use existing folder

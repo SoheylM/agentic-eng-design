@@ -28,7 +28,7 @@ def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]
     if first_pass: 
         user_request = state.messages[-1].content
         print(f"   • user request: {user_request}")
-        ts = datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
+        ts = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         new_folder = f"{ts}_{str(uuid.uuid4())}"
     else:
         user_request = state.user_request
