@@ -184,6 +184,7 @@ class State:
     supervisor_current_objectives: Annotated[List[str], operator.add] = field(default_factory=list)  # Step-specific objectives
     supervisor_visit_counter: int = 0  # Counter for supervisor visits
     dsg_save_folder: Optional[str] = None  # Folder name for saving DSGs
+    thread_id: Optional[str] = None  # Thread ID from the pipeline
 
     # **🔹 Step Execution & Control**
     active_agent: str = "human"  # Tracks the currently active agent

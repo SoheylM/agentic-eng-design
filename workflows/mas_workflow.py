@@ -61,7 +61,10 @@ def run_once(request: str,
     app = build_app()
     cfg = {"configurable": {"thread_id": thread_id}, "recursion_limit": 500}
 
-    app.invoke({"messages": [HumanMessage(content=request)]}, config=cfg)
+    app.invoke({
+        "messages": [HumanMessage(content=request)],
+        "thread_id": thread_id  # Pass thread_id to the state
+    }, config=cfg)
 
     if interactive:
         while True:

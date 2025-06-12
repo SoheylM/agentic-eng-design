@@ -1,0 +1,47 @@
+{
+  "nodes": {
+    "Recyclable_Piping": {
+      "node_id": "Recyclable_Piping",
+      "node_kind": "Component",
+      "name": "Recyclable Piping",
+      "description": "Piping made from recyclable materials.",
+      "embodiment": {
+        "principle": "Polypropylene piping.",
+        "description": "Highly recyclable and durable.",
+        "design_parameters": {
+          "material_type": 3.0,
+          "pipe_diameter": 25.0,
+          "pipe_length": 1000.0
+        },
+        "cost_estimate": 80.0,
+        "mass_estimate": 5.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Flow Rate",
+          "equations": "Q = A * v",
+          "coding_directives": "A is the cross-sectional area, v is the flow velocity.",
+          "python_code": "def calculate_flow_rate(area, velocity):\n    return area * velocity",
+          "coder_notes": "This model calculates the flow rate through the piping.",
+          "assumptions": [
+            "Flow is laminar."
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-08"
+      ],
+      "verification_plan": "Test the piping for durability and recyclability according to ISO standards.",
+      "maturity": "Preliminary Design",
+      "tags": [
+        "Piping",
+        "Recyclable",
+        "Sustainability"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}

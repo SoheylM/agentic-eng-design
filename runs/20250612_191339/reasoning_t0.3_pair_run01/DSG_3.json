@@ -1,0 +1,209 @@
+{
+  "nodes": {
+    "Solar_Panel": {
+      "node_id": "Solar_Panel",
+      "node_kind": "Component",
+      "name": "Solar Panel",
+      "description": "Provides solar power to the system.",
+      "embodiment": {
+        "principle": "Polycrystalline Silicon",
+        "description": "Affordable and efficient solar panel.",
+        "design_parameters": {
+          "power_output": 200.0,
+          "efficiency": 0.15
+        },
+        "cost_estimate": 150.0,
+        "mass_estimate": 15.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Power Output",
+          "equations": "Power = Efficiency * Irradiance * Area",
+          "coding_directives": "def calculate_power(efficiency, irradiance, area):\n    return efficiency * irradiance * area",
+          "python_code": "def calculate_power(efficiency, irradiance, area):\n    return efficiency * irradiance * area",
+          "coder_notes": "Irradiance is constant at 1000 W/m\u00b2.",
+          "assumptions": [
+            "Irradiance is constant at 1000 W/m\u00b2."
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-03",
+        "SR-04",
+        "SR-05"
+      ],
+      "verification_plan": "Test under varying irradiance conditions to ensure power output meets requirements.",
+      "maturity": "Preliminary Design",
+      "tags": [
+        "Solar",
+        "Power",
+        "Renewable"
+      ]
+    },
+    "Filtration_Unit": {
+      "node_id": "Filtration_Unit",
+      "node_kind": "Component",
+      "name": "Filtration Unit",
+      "description": "Removes contaminants from water.",
+      "embodiment": {
+        "principle": "Ceramic Filter",
+        "description": "Effective and affordable filtration method.",
+        "design_parameters": {
+          "pore_size": 0.2,
+          "flow_rate": 10.0
+        },
+        "cost_estimate": 100.0,
+        "mass_estimate": 5.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Flow Rate",
+          "equations": "Flow Rate = (Pressure Difference) / (Viscosity * Resistance)",
+          "coding_directives": "def calculate_flow_rate(pressure_difference, viscosity, resistance):\n    return pressure_difference / (viscosity * resistance)",
+          "python_code": "def calculate_flow_rate(pressure_difference, viscosity, resistance):\n    return pressure_difference / (viscosity * resistance)",
+          "coder_notes": "Viscosity remains constant.",
+          "assumptions": [
+            "Viscosity remains constant."
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-02"
+      ],
+      "verification_plan": "Test filtration efficiency under various water quality conditions.",
+      "maturity": "Preliminary Design",
+      "tags": [
+        "Filtration",
+        "Water",
+        "Ceramic"
+      ]
+    },
+    "Battery_Storage": {
+      "node_id": "Battery_Storage",
+      "node_kind": "Component",
+      "name": "Battery Storage",
+      "description": "Stores excess solar power for later use.",
+      "embodiment": {
+        "principle": "Lead-Acid Battery",
+        "description": "Reliable and cost-effective battery solution.",
+        "design_parameters": {
+          "capacity": 12.0,
+          "voltage": 12.0
+        },
+        "cost_estimate": 80.0,
+        "mass_estimate": 20.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Capacity",
+          "equations": "Capacity = Voltage * Charge",
+          "coding_directives": "def calculate_capacity(voltage, charge):\n    return voltage * charge",
+          "python_code": "def calculate_capacity(voltage, charge):\n    return voltage * charge",
+          "coder_notes": "Charge remains constant.",
+          "assumptions": [
+            "Charge remains constant."
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-05"
+      ],
+      "verification_plan": "Test battery capacity and discharge rate under various loads.",
+      "maturity": "Preliminary Design",
+      "tags": [
+        "Battery",
+        "Storage",
+        "Lead-Acid"
+      ]
+    },
+    "Control_Unit": {
+      "node_id": "Control_Unit",
+      "node_kind": "Component",
+      "name": "Control Unit",
+      "description": "Manages and monitors the filtration process.",
+      "embodiment": {
+        "principle": "Microcontroller",
+        "description": "Basic control unit for system operation.",
+        "design_parameters": {
+          "processing_power": 8.0,
+          "memory": 16.0
+        },
+        "cost_estimate": 50.0,
+        "mass_estimate": 0.5,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Processing Power",
+          "equations": "Processing Power = Clock Speed * Cores",
+          "coding_directives": "def calculate_processing_power(clock_speed, cores):\n    return clock_speed * cores",
+          "python_code": "def calculate_processing_power(clock_speed, cores):\n    return clock_speed * cores",
+          "coder_notes": "Clock speed and cores are the only factors affecting processing power.",
+          "assumptions": [
+            "Clock speed and cores are the only factors affecting processing power."
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-09"
+      ],
+      "verification_plan": "Test control unit functionality and response time.",
+      "maturity": "Preliminary Design",
+      "tags": [
+        "Control",
+        "Microcontroller",
+        "Monitoring"
+      ]
+    },
+    "Housing": {
+      "node_id": "Housing",
+      "node_kind": "Component",
+      "name": "Housing",
+      "description": "Protects internal components and provides structural integrity.",
+      "embodiment": {
+        "principle": "Plastic Injection Molding",
+        "description": "Durable and lightweight housing.",
+        "design_parameters": {
+          "material_density": 0.95,
+          "wall_thickness": 2.0
+        },
+        "cost_estimate": 100.0,
+        "mass_estimate": 8.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Mass Calculation",
+          "equations": "Mass = Density * Volume",
+          "coding_directives": "def calculate_mass(density, volume):\n    return density * volume",
+          "python_code": "def calculate_mass(density, volume):\n    return density * volume",
+          "coder_notes": "Volume remains constant.",
+          "assumptions": [
+            "Volume remains constant."
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-07"
+      ],
+      "verification_plan": "Test housing durability and structural integrity.",
+      "maturity": "Preliminary Design",
+      "tags": [
+        "Housing",
+        "Plastic",
+        "Structural"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}

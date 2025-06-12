@@ -72,11 +72,20 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
         new_step_index += 1
 
     # 4) Determine save folder, aligned with batch/thread_id ------------------------
-    # Use the incoming thread_id (which includes batch_id/run_folder_name) as base path
-    base_folder = state.thread_id  # set by run_pipeline's thread_id param
+    # Use the thread_id from the pipeline
+    if not state.thread_id:
+        print("⚠️  No thread_id found in state")
+        return Command(
+            update={
+                "supervisor_notes": ["No thread_id available for saving."],
+                "supervisor_visit_counter": state.supervisor_visit_counter,
+            },
+            goto="generation",
+        )
+
+    # On first visit, initialize save folder to thread_id path
     if state.supervisor_visit_counter == 0:
-        # on first visit, initialize save folder to thread_id path
-        save_folder = base_folder
+        save_folder = state.thread_id
     else:
         save_folder = state.dsg_save_folder  # persist thereafter
 

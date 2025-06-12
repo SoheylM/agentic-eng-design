@@ -1,0 +1,46 @@
+{
+  "nodes": {
+    "Solar_Panel": {
+      "node_id": "Solar_Panel",
+      "node_kind": "Component",
+      "name": "Solar Panel",
+      "description": "Smart solar panel with integrated monitoring for optimal performance.",
+      "embodiment": {
+        "principle": "Monocrystalline Silicon with Smart Monitoring",
+        "description": "Solar panel with integrated sensors and monitoring system for real-time performance tracking.",
+        "design_parameters": {
+          "power_rating": 250.0,
+          "efficiency": 0.2
+        },
+        "cost_estimate": 200.0,
+        "mass_estimate": 15.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Power Generation",
+          "equations": "P = A * G * \u03b7",
+          "coding_directives": "def calculate_power(area, irradiance, efficiency):\n    return area * irradiance * efficiency",
+          "python_code": "def calculate_power(area, irradiance, efficiency):\n    return area * irradiance * efficiency",
+          "coder_notes": "Calculates power output based on area, irradiance, and efficiency.",
+          "assumptions": [
+            "Irradiance is constant at 1000 W/m\u00b2."
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-03",
+        "SR-04"
+      ],
+      "verification_plan": "Test under varying irradiance conditions to ensure power output meets requirements.",
+      "maturity": "Preliminary Design",
+      "tags": [
+        "Solar",
+        "Smart"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}
