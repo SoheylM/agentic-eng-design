@@ -1,49 +1,41 @@
-# agents/supervisor.py  – counter-safe, no refinement
+# agents/supervisor.py  – counter-safe, batch-aligned DSG saving
 from __future__ import annotations
-from typing  import Literal
+from typing import Literal
 from datetime import datetime, UTC
-import uuid
 
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-from langgraph.types          import Command
-from langgraph.graph          import END
+from langchain_core.messages import SystemMessage, HumanMessage
+from langgraph.types import Command
+from langgraph.graph import END
 
 import json
 
-from data_models  import ( State, DesignState, CahierDesCharges,
-                           SupervisorDecision )
-from prompts      import SUPERVISOR_PROMPT
-from llm_models   import supervisor_model
-from graph_utils  import summarize_design_state_func, visualize_design_state_func
-from utils        import remove_think_tags, save_dsg
+from data_models import State, DesignState, CahierDesCharges, SupervisorDecision
+from prompts import SUPERVISOR_PROMPT
+from llm_models import supervisor_model
+from graph_utils import summarize_design_state_func, visualize_design_state_func
+from utils import remove_think_tags, save_dsg
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 def supervisor_node(state: State) -> Command[Literal["generation", END]]:
     """
-    Decide whether the current Design-State Graph is complete and meets requirements.
+    Decide whether the current Design-State Graph is complete and meets requirements,
+    and save snapshots under a batch-aligned folder structure.
     """
-
     print("\n🔎  [Supervisor] invoked")
-    
 
-    # 1) Check CDC and DSG ------------------------------------------------------------
+    # 1) Gather current CDC and DSG --------------------------------------------------
     if not state.cahier_des_charges:
         print("⚠️  no Cahier des Charges → END")
         return Command(goto=END)
 
     dsg = state.design_graph_history[-1] if state.design_graph_history else DesignState()
     cdc = state.cahier_des_charges
-    cdc_js = (cdc.model_dump_json() if isinstance(cdc, CahierDesCharges)
-              else json.dumps(cdc or {}, indent=2))
+    cdc_js = cdc.model_dump_json() if isinstance(cdc, CahierDesCharges) else json.dumps(cdc or {}, indent=2)
 
-    # Get meta-review notes if available
     meta_notes = state.meta_review_notes[-1] if state.meta_review_notes else "No meta-review notes available."
-
-    # Get last supervisor instructions if available
     last_instructions = state.supervisor_instructions[-1] if len(state.supervisor_instructions) > 1 else "No previous instructions."
 
-    # 2) structured LLM call ---------------------------------------------------
+    # 2) Invoke structured LLM for decision -----------------------------------------
     decision: SupervisorDecision = supervisor_model.invoke([
         SystemMessage(content=SUPERVISOR_PROMPT),
         HumanMessage(content=f"""
@@ -57,21 +49,16 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
 {meta_notes}
 
 ### Your Last Instructions:
-{last_instructions}
-""")
+{last_instructions}""")
     ])
 
-    # Print concise decision summary
     status = "✅" if decision.step_completed else "🔄"
     print(f"{status} Design State: {'Complete' if decision.step_completed else 'Needs iteration'}")
     if not decision.step_completed:
         print(f"   Reason: {decision.reason_for_iteration}")
 
-    # 3) counter / flag maintenance --------------------------------------------
+    # 3) Update control flags and iteration counters -------------------------------
     redo_flag = not decision.step_completed
-
-    # keep max_iterations monotonically increasing so other agents
-    # never see 0/0
     new_max_iter = max(
         state.max_iterations,
         state.generation_iteration,
@@ -80,38 +67,40 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
         state.evolution_iteration,
     ) + 1
 
-    # Update current step index if step is completed
     new_step_index = state.current_step_index
     if decision.step_completed and not decision.workflow_complete:
         new_step_index += 1
 
-    # Create folder name on first visit
-    new_folder = state.dsg_save_folder
+    # 4) Determine save folder, aligned with batch/thread_id ------------------------
+    # Use the incoming thread_id (which includes batch_id/run_folder_name) as base path
+    base_folder = state.thread_id  # set by run_pipeline's thread_id param
     if state.supervisor_visit_counter == 0:
-        ts = datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%SZ")
-        new_folder = f"{ts}_{str(uuid.uuid4())}"
+        # on first visit, initialize save folder to thread_id path
+        save_folder = base_folder
+    else:
+        save_folder = state.dsg_save_folder  # persist thereafter
 
+    # 5) Mark workflow completion on DSG --------------------------------------------
     if state.design_graph_history and decision.workflow_complete:
-        dsg = state.design_graph_history[-1]
         dsg.workflow_complete = True
         state.design_graph_history[-1] = dsg
-    
-     # Save current DSG if we have one
+
+    # 6) Save current DSG snapshot --------------------------------------------------
     if state.design_graph_history:
         try:
             dsg_now = state.design_graph_history[-1]
-            out = save_dsg(
+            out_path = save_dsg(
                 dsg_now,
-                thread_id=str(state.supervisor_visit_counter),
+                thread_id=save_folder,
                 step_idx=state.supervisor_visit_counter,
-                save_folder=state.dsg_save_folder,
+                save_folder=save_folder,
             )
-            print(f"💾 [Supervisor] DSG snapshot saved → {out}")
-            # Visualize the current DSG
+            print(f"💾 [Supervisor] DSG snapshot saved → {out_path}")
             visualize_design_state_func(dsg_now)
         except Exception as e:
             print(f"⚠️  [Supervisor] failed to save/visualize DSG: {e}")
 
+    # 7) Prepare state update -------------------------------------------------------
     update = {
         "supervisor_instructions": [decision.instructions],
         "redo_work": redo_flag,
@@ -119,9 +108,8 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
         "max_iterations": new_max_iter,
         "current_step_index": new_step_index,
         "supervisor_visit_counter": state.supervisor_visit_counter + 1,
-        "dsg_save_folder": new_folder,
-        # trace for debugging
-        "supervisor_status": f"supervised_{datetime.utcnow().isoformat(timespec='seconds')}",
+        "dsg_save_folder": save_folder,
+        "supervisor_status": f"supervised_{datetime.utcnow().isoformat(timespec='seconds')}"
     }
 
     goto = "generation" if not decision.workflow_complete else END
