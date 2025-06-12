@@ -97,6 +97,7 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
         "selected_proposal_index": selected_idx,
         "workflow_complete": llm_resp.workflow_complete,
         "reflection_iteration": iter_now + 1,
+        "generation_iteration": iter_now + 1,
         "dsg_save_folder": save_folder,
     }
     if chosen_dsg is not None:
