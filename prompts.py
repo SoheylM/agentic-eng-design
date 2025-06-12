@@ -921,8 +921,8 @@ For each proposal (index 0 … N-1) write a concise, engineering-rigorous critiq
   - Compliance with CDC requirements, objectives and constraints.  
   - Clear, actionable improvements (or explicitly state "Proposal is already optimal.").
 Then select the best proposal and give it a selected status. You must select ONE and ONLY ONE proposal.
-If the proposal is not the best, give it a rejected status.
-If the proposal is not the best and needs more iteration, give it a needs more iteration status.
+Give a rejected status to all other proposals.
+A proposal may be relatively the best compared to the others, but still needs more iteration. If this the case, explain how it can be improved.
 Give a reason for your decision.
 
 Terminate the workflow when the DSG is complete and accurate and respects the cahier des charges.
