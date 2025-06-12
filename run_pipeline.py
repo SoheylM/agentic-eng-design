@@ -1,25 +1,16 @@
 #!/usr/bin/env python
 """
-Fire-and-forget launcher for MAS or 2-Agent workflows.
+Fire-and-forget launcher for MAS or 2-Agent workflows, with
+batching and manifest support.
 
-• The Meta-Review agent inside every workflow already dumps each Design-State
-  Graph (DSG) to:
-      runs/<thread_id>/stepXX_metaYY_<timestamp>.json
+Usage:
+    python run_pipeline.py [--output-dir RUNS_DIR] [--request USER_PROMPT]
+                           [--llm LLM_TYPE --temp TEMP --workflow WF_TYPE --runs N]
 
-• This script launches experiments with different combinations of:
-  - LLM type (reasoning vs non-reasoning)
-  - Temperature (0.0, 0.3, 0.5, 0.7)
-  - Workflow type (MAS vs 2-agent pair)
-  - 10 runs per combination with seeds 0-9
-
-• For each run, it logs:
-  - Success/failure status
-  - Number of DSGs generated
-  - Any errors encountered
-  - Wall time
-  - Random seed used
-
-• You can run all combinations or specify a single combination for debugging.
+Each invocation creates a new timestamped batch folder under RUNS_DIR
+(default “runs/”). Within that batch, each experiment’s outputs go into
+RUNS_DIR/<batch_id>/<run_folder_name>/, and a top-level manifest.json
+records all sub-runs for easy discovery by eval_saved.py.
 """
 
 from __future__ import annotations
@@ -32,63 +23,84 @@ from pathlib import Path
 from typing import Dict, Any, List
 
 from prompts import CAHIER_DES_CHARGES_REV_C, CAHIER_DES_CHARGES_REV_C_PAIR
-from experiment_config import ExperimentConfig, generate_experiment_configs, LLM_TYPES, TEMPERATURES, WORKFLOW_TYPES
-from llm_models import configure_models
+from experiment_config import (
+    ExperimentConfig,
+    generate_experiment_configs,
+    LLM_TYPES,
+    TEMPERATURES,
+    WORKFLOW_TYPES,
+)
 
-# --------------------------------------------------------------------------- helpers
+
 def default_request(workflow_type: str = "mas") -> str:
     """Single-line prompt that embeds the Rev-C Cahier-des-Charges."""
-    prompt = CAHIER_DES_CHARGES_REV_C_PAIR if workflow_type == "pair" else CAHIER_DES_CHARGES_REV_C
+    prompt = (
+        CAHIER_DES_CHARGES_REV_C_PAIR
+        if workflow_type == "pair"
+        else CAHIER_DES_CHARGES_REV_C
+    )
     return (
         "I want to create a solar-powered water-filtration system that satisfies "
         "the following Cahier-des-Charges Rev C:\n\n"
         + prompt
     )
 
-def _run_once(config: ExperimentConfig, request: str) -> Dict[str, Any]:
+
+def _run_once(
+    config: ExperimentConfig, request: str, batch_id: str, base_dir: Path
+) -> Dict[str, Any]:
     """
     Launch one workflow run and return metadata about the run.
+    DSGs will be written by the workflow into:
+        base_dir / batch_id / config.run_folder_name / *.json
     """
     start_time = time.time()
-    run_metadata = {
+    run_metadata: Dict[str, Any] = {
         "config": {
             "llm_type": config.llm_type,
             "temperature": config.temperature,
             "workflow_type": config.workflow_type,
             "run_id": config.run_id,
-            "seed": config.run_id  # Using run_id as seed (0-9)
+            "seed": config.run_id,  # Using run_id as seed
         },
         "start_time": datetime.now().isoformat(),
         "success": False,
         "error": None,
         "n_dsgs": 0,
-        "wall_time": None
+        "wall_time": None,
     }
 
     try:
-        # Configure all agent models for this experiment
-        configure_models(config.llm_type, config.temperature, config.run_id)
-        
-        # Import and run appropriate workflow
-        if config.workflow_type == "mas":
-            wf = importlib.import_module("workflows.mas_workflow")
-        else:
-            wf = importlib.import_module("workflows.pair_workflow")
-        
-        # Run the workflow
-        wf.run_once(request, thread_id=config.run_folder_name)
+        # Configure the LLMs/tools for this experiment
+        from llm_models import configure_models
 
-        # Check results
-        outdir = Path("runs") / config.run_folder_name
+        configure_models(config.llm_type, config.temperature, config.run_id)
+
+        # Import and run the correct workflow
+        if config.workflow_type == "mas":
+            wf_mod = importlib.import_module("workflows.mas_workflow")
+        else:
+            wf_mod = importlib.import_module("workflows.pair_workflow")
+
+        # Thread ID now includes batch subfolder
+        thread_id = f"{batch_id}/{config.run_folder_name}"
+
+        # Run the workflow (it dumps DSGs to "runs/<thread_id>/stepXX_*.json")
+        wf_mod.run_once(request, thread_id=thread_id)
+
+        # Collect outputs
+        outdir = base_dir / batch_id / config.run_folder_name
         if outdir.exists():
             dsgs = list(outdir.glob("*.json"))
-            run_metadata.update({
-                "success": True,
-                "n_dsgs": len(dsgs),
-                "wall_time": time.time() - start_time
-            })
+            run_metadata.update(
+                {
+                    "success": True,
+                    "n_dsgs": len(dsgs),
+                    "wall_time": time.time() - start_time,
+                }
+            )
         else:
-            run_metadata["error"] = "No output directory created"
+            run_metadata["error"] = "No output directory created: " + str(outdir)
 
     except Exception as e:
         run_metadata["error"] = str(e)
@@ -96,73 +108,107 @@ def _run_once(config: ExperimentConfig, request: str) -> Dict[str, Any]:
 
     return run_metadata
 
-def generate_specific_configs(llm_type: str, temperature: float, workflow_type: str, runs: int = 10) -> List[ExperimentConfig]:
+
+def generate_specific_configs(
+    llm_type: str, temperature: float, workflow_type: str, runs: int = 10
+) -> List[ExperimentConfig]:
     """Generate configurations for a specific experiment combination."""
     return [
         ExperimentConfig(
             llm_type=llm_type,
             temperature=temperature,
             workflow_type=workflow_type,
-            run_id=i
+            run_id=i,
         )
         for i in range(runs)
     ]
 
-# --------------------------------------------------------------------------- CLI
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--request", default=None,
-                    help="Initial user request (default embeds Rev-C CDC)")
-    
-    # Options for running specific combinations
-    ap.add_argument("--llm", choices=LLM_TYPES,
-                    help="Run only experiments with this LLM type")
-    ap.add_argument("--temp", type=float, choices=TEMPERATURES,
-                    help="Run only experiments with this temperature")
-    ap.add_argument("--workflow", choices=WORKFLOW_TYPES,
-                    help="Run only experiments with this workflow type")
-    ap.add_argument("--runs", type=int, default=10,
-                    help="Number of runs for the specific combination (default: 10)")
-    
+    ap.add_argument(
+        "--output-dir",
+        type=str,
+        default="runs",
+        help="Base directory to store all batches (default: runs/)",
+    )
+    ap.add_argument(
+        "--request", default=None, help="Initial user request (overrides default prompt)"
+    )
+    ap.add_argument("--llm", choices=LLM_TYPES, help="Run only this LLM type")
+    ap.add_argument("--temp", type=float, choices=TEMPERATURES, help="Only this temperature")
+    ap.add_argument(
+        "--workflow", choices=WORKFLOW_TYPES, help="Only this workflow type (mas|pair)"
+    )
+    ap.add_argument(
+        "--runs",
+        type=int,
+        default=10,
+        help="Number of runs for a specific combination (default: 10)",
+    )
     args = ap.parse_args()
 
-    # Create experiment log directory
+    # Set up experiment logging
     log_dir = Path("experiment_logs")
     log_dir.mkdir(exist_ok=True)
-    
-    # Generate timestamp for this experiment batch
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file = log_dir / f"experiment_log_{timestamp}.jsonl"
-    
-    # Generate configurations based on arguments
-    if args.llm and args.temp and args.workflow:
-        # Run specific combination
-        configs = generate_specific_configs(args.llm, args.temp, args.workflow, args.runs)
+
+    # Create a new batch folder under output-dir
+    base_dir = Path(args.output_dir)
+    batch_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    batch_dir = base_dir / batch_id
+    batch_dir.mkdir(parents=True, exist_ok=True)
+
+    # Decide which configs to run
+    if args.llm and args.temp is not None and args.workflow:
+        configs = generate_specific_configs(
+            args.llm, args.temp, args.workflow, args.runs
+        )
         print(f"Running specific combination: {args.llm}, t={args.temp}, {args.workflow}")
     else:
-        # Run all combinations
         configs = generate_experiment_configs()
         print("Running all experiment combinations")
-    
+
     total = len(configs)
-    print(f"Total runs: {total}")
-    
-    with log_file.open("w") as f:
-        for i, config in enumerate(configs, 1):
-            print(f"\nRun {i}/{total}: {config.run_folder_name}")
-            # Use default request based on workflow type if no custom request provided
-            request = args.request if args.request else default_request(config.workflow_type)
-            metadata = _run_once(config, request)
-            f.write(json.dumps(metadata) + "\n")
-            f.flush()
-            
+    print(f"Total runs: {total}\n")
+
+    # Prepare manifest
+    manifest: List[Dict[str, Any]] = []
+
+    # Open a line-delimited JSONL log for quick debugging
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = log_dir / f"experiment_log_{timestamp}.jsonl"
+
+    with log_file.open("w") as lf:
+        for idx, cfg in enumerate(configs, start=1):
+            print(f"[{idx}/{total}] {cfg.run_folder_name} …")
+            request = args.request or default_request(cfg.workflow_type)
+
+            metadata = _run_once(cfg, request, batch_id, base_dir)
+            lf.write(json.dumps(metadata) + "\n")
+            lf.flush()
+
             status = "✅" if metadata["success"] else "❌"
-            print(f"{status} {config.run_folder_name}")
-            if not metadata["success"]:
-                print(f"  Error: {metadata['error']}")
+            print(f"  {status} {cfg.run_folder_name}")
+            if metadata["success"]:
+                print(f"    DSGs: {metadata['n_dsgs']}  Wall time: {metadata['wall_time']:.1f}s  Seed: {cfg.run_id}")
             else:
-                print(f"  Generated {metadata['n_dsgs']} DSGs")
-                print(f"  Wall time: {metadata['wall_time']:.1f}s")
-                print(f"  Seed: {metadata['config']['seed']}")
-    
-    print(f"\nExperiment batch complete. Log written to {log_file}")
+                print(f"    Error: {metadata['error']}")
+
+            # Add to batch manifest
+            manifest.append(
+                {
+                    "run_folder": cfg.run_folder_name,
+                    "llm_type": cfg.llm_type,
+                    "temperature": cfg.temperature,
+                    "workflow": cfg.workflow_type,
+                }
+            )
+
+    # Write batch manifest
+    with (batch_dir / "manifest.json").open("w") as mf:
+        json.dump(manifest, mf, indent=2)
+
+    print(f"\nBatch {batch_id} complete.")
+    print(f"  Outputs → {batch_dir}")
+    print(f"  Manifest → {batch_dir / 'manifest.json'}")
+    print(f"  Log → {log_file}")
