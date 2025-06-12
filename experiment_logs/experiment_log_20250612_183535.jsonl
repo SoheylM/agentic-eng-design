@@ -1,0 +1,1 @@
+{"config": {"llm_type": "reasoning", "temperature": 0.3, "workflow_type": "pair", "run_id": 0, "seed": 0}, "start_time": "2025-06-12T18:35:35.022213", "success": false, "error": "No output directory created: runs/20250612_183535/reasoning_t0.3_pair_run00", "n_dsgs": 0, "wall_time": null}

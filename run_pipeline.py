@@ -8,7 +8,7 @@ Usage:
                            [--llm LLM_TYPE --temp TEMP --workflow WF_TYPE --runs N]
 
 Each invocation creates a new timestamped batch folder under RUNS_DIR
-(default “runs/”). Within that batch, each experiment’s outputs go into
+(default "runs/"). Within that batch, each experiment's outputs go into
 RUNS_DIR/<batch_id>/<run_folder_name>/, and a top-level manifest.json
 records all sub-runs for easy discovery by eval_saved.py.
 """
@@ -82,6 +82,10 @@ def _run_once(
         else:
             wf_mod = importlib.import_module("workflows.pair_workflow")
 
+        # Create the output directory structure
+        outdir = base_dir / batch_id / config.run_folder_name
+        outdir.mkdir(parents=True, exist_ok=True)
+
         # Thread ID now includes batch subfolder
         thread_id = f"{batch_id}/{config.run_folder_name}"
 
@@ -89,7 +93,6 @@ def _run_once(
         wf_mod.run_once(request, thread_id=thread_id)
 
         # Collect outputs
-        outdir = base_dir / batch_id / config.run_folder_name
         if outdir.exists():
             dsgs = list(outdir.glob("*.json"))
             run_metadata.update(
