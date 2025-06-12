@@ -23,6 +23,7 @@ def run_once(request: str, thread_id: str = "0") -> PairState:
     app = build_app()
     cfg = {"configurable": {"thread_id": thread_id}, "recursion_limit": 50}
     app.invoke({
-        "messages": [HumanMessage(content=request)]
+        "messages": [HumanMessage(content=request)],
+        "thread_id": thread_id
     }, config=cfg)
     return app.get_state(cfg)

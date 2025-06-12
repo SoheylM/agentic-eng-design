@@ -23,13 +23,21 @@ def generation_pair_node(state: PairState) -> Command[Literal["reflection_pair"]
     print(f"   • iteration {iter_now + 1}")
 
     # just a mechanism to save the user request in the first pass
-    # I guess I will not need cdc_text
     first_pass = state.first_pass
     if first_pass: 
         user_request = state.messages[-1].content
         print(f"   • user request: {user_request}")
-        ts = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-        new_folder = f"{ts}_{str(uuid.uuid4())}"
+        # Use the thread_id from the pipeline instead of creating a new folder
+        new_folder = state.thread_id if hasattr(state, 'thread_id') else None
+        if not new_folder:
+            print("   ⚠️  No thread_id found in state")
+            return Command(
+                update={
+                    "generation_notes": ["No thread_id available for saving."],
+                    "generation_iteration": iter_now,
+                },
+                goto="generation_pair",
+            )
     else:
         user_request = state.user_request
         new_folder = state.dsg_save_folder

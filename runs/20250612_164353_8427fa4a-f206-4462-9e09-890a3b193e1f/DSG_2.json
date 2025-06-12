@@ -1,0 +1,207 @@
+{
+  "nodes": {
+    "Solar_Panel": {
+      "node_id": "Solar_Panel",
+      "node_kind": "Component",
+      "name": "Solar Panel",
+      "description": "Provides solar power to the system.",
+      "embodiment": {
+        "principle": "Thin-film photovoltaic cells",
+        "description": "Lightweight and flexible thin-film solar cells.",
+        "design_parameters": {
+          "efficiency": 0.12,
+          "power_output": 150.0
+        },
+        "cost_estimate": 120.0,
+        "mass_estimate": 10.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Power Generation",
+          "equations": "Power = efficiency * irradiance * area",
+          "coding_directives": "def calculate_power(efficiency, irradiance, area):\n    return efficiency * irradiance * area",
+          "python_code": "def calculate_power(efficiency, irradiance, area):\n    return efficiency * irradiance * area",
+          "coder_notes": "Assumes constant irradiance; no temperature effects.",
+          "assumptions": [
+            "Constant irradiance",
+            "No temperature effects"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-03",
+        "SR-04"
+      ],
+      "verification_plan": "Test under varying irradiance conditions to validate power output.",
+      "maturity": "Preliminary Design",
+      "tags": [
+        "Solar",
+        "Power"
+      ]
+    },
+    "Battery": {
+      "node_id": "Battery",
+      "node_kind": "Component",
+      "name": "Battery",
+      "description": "Stores energy for operation during low light conditions.",
+      "embodiment": {
+        "principle": "Lithium-polymer battery",
+        "description": "Lightweight and compact lithium-polymer battery.",
+        "design_parameters": {
+          "capacity": 80.0,
+          "voltage": 12.0
+        },
+        "cost_estimate": 100.0,
+        "mass_estimate": 12.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Energy Storage",
+          "equations": "Energy = capacity * voltage",
+          "coding_directives": "def calculate_energy(capacity, voltage):\n    return capacity * voltage",
+          "python_code": "def calculate_energy(capacity, voltage):\n    return capacity * voltage",
+          "coder_notes": "Assumes constant voltage; no self-discharge.",
+          "assumptions": [
+            "Constant voltage",
+            "No self-discharge"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-05"
+      ],
+      "verification_plan": "Test energy storage capacity and discharge rate.",
+      "maturity": "Preliminary Design",
+      "tags": [
+        "Battery",
+        "Storage"
+      ]
+    },
+    "Filtration_Unit": {
+      "node_id": "Filtration_Unit",
+      "node_kind": "Component",
+      "name": "Filtration Unit",
+      "description": "Removes contaminants from water.",
+      "embodiment": {
+        "principle": "Ceramic filtration",
+        "description": "Lightweight ceramic filter for water purification.",
+        "design_parameters": {
+          "pore_size": 0.2,
+          "flow_rate": 10.0
+        },
+        "cost_estimate": 90.0,
+        "mass_estimate": 8.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Flow Rate",
+          "equations": "Flow rate = (pressure difference) / (viscosity * resistance)",
+          "coding_directives": "def calculate_flow_rate(pressure_difference, viscosity, resistance):\n    return pressure_difference / (viscosity * resistance)",
+          "python_code": "def calculate_flow_rate(pressure_difference, viscosity, resistance):\n    return pressure_difference / (viscosity * resistance)",
+          "coder_notes": "Assumes laminar flow; constant viscosity.",
+          "assumptions": [
+            "Laminar flow",
+            "Constant viscosity"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-02"
+      ],
+      "verification_plan": "Test filtration efficiency and flow rate.",
+      "maturity": "Preliminary Design",
+      "tags": [
+        "Filtration",
+        "Water"
+      ]
+    },
+    "Control_Unit": {
+      "node_id": "Control_Unit",
+      "node_kind": "Component",
+      "name": "Control Unit",
+      "description": "Manages system operations and monitoring.",
+      "embodiment": {
+        "principle": "Microcontroller-based control",
+        "description": "Compact microcontroller for system control.",
+        "design_parameters": {
+          "processing_speed": 80.0,
+          "memory": 512.0
+        },
+        "cost_estimate": 40.0,
+        "mass_estimate": 4.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Processing Speed",
+          "equations": "Processing time = instructions / speed",
+          "coding_directives": "def calculate_processing_time(instructions, speed):\n    return instructions / speed",
+          "python_code": "def calculate_processing_time(instructions, speed):\n    return instructions / speed",
+          "coder_notes": "Assumes constant speed; no interruptions.",
+          "assumptions": [
+            "Constant speed",
+            "No interruptions"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-09"
+      ],
+      "verification_plan": "Test processing speed and task handling.",
+      "maturity": "Preliminary Design",
+      "tags": [
+        "Control",
+        "Microcontroller"
+      ]
+    },
+    "Housing": {
+      "node_id": "Housing",
+      "node_kind": "Component",
+      "name": "Housing",
+      "description": "Protects internal components.",
+      "embodiment": {
+        "principle": "Lightweight plastic molding",
+        "description": "Compact and lightweight plastic housing.",
+        "design_parameters": {
+          "material_density": 0.8,
+          "wall_thickness": 1.5
+        },
+        "cost_estimate": 80.0,
+        "mass_estimate": 6.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Mass Calculation",
+          "equations": "Mass = density * volume",
+          "coding_directives": "def calculate_mass(density, volume):\n    return density * volume",
+          "python_code": "def calculate_mass(density, volume):\n    return density * volume",
+          "coder_notes": "Assumes constant volume.",
+          "assumptions": [
+            "Constant volume"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-07"
+      ],
+      "verification_plan": "Test mass and structural integrity.",
+      "maturity": "Preliminary Design",
+      "tags": [
+        "Housing",
+        "Protection"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}

@@ -459,3 +459,4 @@ class PairState(BaseModel):
     workflow_complete: bool = False
     dsg_save_folder: Optional[str] = None  # Folder for saving DSGs
     supervisor_visit_counter: int = 0
+    thread_id: Optional[str] = None  # Thread ID from the pipeline
