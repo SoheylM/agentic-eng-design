@@ -920,7 +920,7 @@ For each proposal (index 0 … N-1) write a concise, engineering-rigorous critiq
   - Completeness w.r.t. the step objectives.  
   - Compliance with CDC requirements, objectives and constraints.  
   - Clear, actionable improvements (or explicitly state "Proposal is already optimal.").
-Then select the best proposal and give it a selected status.
+Then select the best proposal and give it a selected status. You must select a proposal.
 If the proposal is not the best, give it a rejected status.
 If the proposal is not the best and needs more iteration, give it a needs more iteration status.
 Give a reason for your decision.
