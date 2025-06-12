@@ -176,7 +176,7 @@ def process_batch(base_dir: Path, batch_id: str) -> pd.DataFrame:
 def generate_report(df: pd.DataFrame, output_dir: Path, batch_id: str):
     """Generate CSV, LaTeX, and plots for the batch."""
     stats = (
-        df.groupby(["llm_type", "temperature", "workflow_type"]))
+        df.groupby(["llm_type", "temperature", "workflow_type"])
         .agg({
             "M1": ["mean", "std"],
             "M2": ["mean", "std"],
@@ -187,6 +187,7 @@ def generate_report(df: pd.DataFrame, output_dir: Path, batch_id: str):
             "n_snapshots": ["mean", "std"]
         })
         .round(3)
+    )
     
     # Save
     output_dir.mkdir(parents=True, exist_ok=True)
