@@ -18,9 +18,9 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
     print(f"   • Current generation iteration: {state.generation_iteration}")
 
     iter_now = state.reflection_iteration
-    print(f"   • iteration {iter_now + 1}")
+    print(f"   • iteration {iter_now}")
 
-    # Determine save folder: first use existing, else thread_id (batch/run)
+    # Determine save folder: initial thread_id, then persist
     save_folder = state.dsg_save_folder or state.thread_id
 
     # Filter proposals from the most recent generation
@@ -32,8 +32,7 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
     if not recent_props:
         print("   ⚠️  no proposals available → forward to generation")
         return Command(
-            update={"reflection_notes": ["No proposals to critique."],
-                    "dsg_save_folder": save_folder},
+            update={"reflection_notes": ["No proposals to critique."], "dsg_save_folder": save_folder},
             goto="generation_pair",
         )
 
@@ -44,17 +43,19 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
         for idx, p in enumerate(recent_props)
     ]
 
-    llm_resp = pair_reflection_agent.invoke([
-        SystemMessage(content=RE_PAIR_PROMPT),
-        HumanMessage(
-            content=(
-                f"User request: {state.user_request}\n\n"
-                "# Design-State Graph proposals\n\n"
-                + "\n\n".join(full_summaries)
-                + "\n\nProvide structured feedback for **each** proposal."
-            )
-        ),
-    ])
+    llm_resp = pair_reflection_agent.invoke(
+        [
+            SystemMessage(content=RE_PAIR_PROMPT),
+            HumanMessage(
+                content=(
+                    f"User request: {state.user_request}\n\n"
+                    "# Design-State Graph proposals\n\n"
+                    + "\n\n".join(full_summaries)
+                    + "\n\nProvide structured feedback for **each** proposal."
+                )
+            ),
+        ]
+    )
 
     # Attach feedback and status
     for item in llm_resp.reflections:
@@ -69,11 +70,11 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
         else:
             print(f"     ⚠️  bad index {idx} in LLM output – ignored")
 
+    # Select chosen DSG
     selected_idx = llm_resp.selected_proposal_index
     chosen_dsg = None
     if 0 <= selected_idx < len(recent_props):
-        chosen_prop = recent_props[selected_idx]
-        chosen_dsg = chosen_prop.content
+        chosen_dsg = recent_props[selected_idx].content
         print(f"   ✅ proposal {selected_idx} selected – storing DSG snapshot")
     else:
         print("   ⚠️  no valid proposal selected")

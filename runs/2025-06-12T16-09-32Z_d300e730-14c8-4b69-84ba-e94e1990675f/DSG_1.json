@@ -1,0 +1,211 @@
+{
+  "nodes": {
+    "Solar_Panel": {
+      "node_id": "Solar_Panel",
+      "node_kind": "Component",
+      "name": "Solar Panel",
+      "description": "Captures solar energy to power the filtration system.",
+      "embodiment": {
+        "principle": "Photovoltaic cells",
+        "description": "Monocrystalline silicon cells for high efficiency.",
+        "design_parameters": {
+          "efficiency": 0.22,
+          "voltage": 12.0,
+          "current": 5.0
+        },
+        "cost_estimate": 150.0,
+        "mass_estimate": 10.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Power Generation",
+          "equations": "Power = efficiency * irradiance * area",
+          "coding_directives": "def calculate_power(efficiency, irradiance, area):\n    return efficiency * irradiance * area",
+          "python_code": "def calculate_power(efficiency, irradiance, area):\n    return efficiency * irradiance * area",
+          "coder_notes": "Assumes constant irradiance and temperature.",
+          "assumptions": [
+            "Constant irradiance",
+            "Constant temperature"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-03",
+        "SR-04",
+        "SR-05"
+      ],
+      "verification_plan": "Test under varying irradiance conditions to ensure power output meets requirements.",
+      "maturity": "Preliminary Design",
+      "tags": [
+        "Solar",
+        "Power Generation"
+      ]
+    },
+    "Filtration_System": {
+      "node_id": "Filtration_System",
+      "node_kind": "Component",
+      "name": "Filtration System",
+      "description": "Removes contaminants from water to produce potable water.",
+      "embodiment": {
+        "principle": "Multi-stage filtration",
+        "description": "Includes pre-filter, activated carbon, and UV treatment.",
+        "design_parameters": {
+          "flow_rate": 10.0,
+          "filtration_stages": 3.0
+        },
+        "cost_estimate": 200.0,
+        "mass_estimate": 15.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Flow Rate Calculation",
+          "equations": "Flow Rate = (Cross-sectional Area * Permeability) / Viscosity",
+          "coding_directives": "def calculate_flow_rate(area, permeability, viscosity):\n    return (area * permeability) / viscosity",
+          "python_code": "def calculate_flow_rate(area, permeability, viscosity):\n    return (area * permeability) / viscosity",
+          "coder_notes": "Assumes laminar flow and constant viscosity.",
+          "assumptions": [
+            "Laminar flow",
+            "Constant viscosity"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-02"
+      ],
+      "verification_plan": "Test filtration efficiency under various contaminant loads.",
+      "maturity": "Preliminary Design",
+      "tags": [
+        "Filtration",
+        "Water Treatment"
+      ]
+    },
+    "Smart_Controller": {
+      "node_id": "Smart_Controller",
+      "node_kind": "Component",
+      "name": "Smart Controller",
+      "description": "Monitors and controls the filtration and power systems.",
+      "embodiment": {
+        "principle": "Microcontroller-based system",
+        "description": "Includes sensors for water quality and system performance.",
+        "design_parameters": {
+          "processing_speed": 1.0,
+          "memory": 512.0,
+          "interfaces": 4.0
+        },
+        "cost_estimate": 100.0,
+        "mass_estimate": 5.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Control Loop",
+          "equations": "Response Time = Processing Speed + Communication Delay",
+          "coding_directives": "def calculate_response_time(processing_speed, delay):\n    return processing_speed + delay",
+          "python_code": "def calculate_response_time(processing_speed, delay):\n    return processing_speed + delay",
+          "coder_notes": "Assumes minimal communication delay.",
+          "assumptions": [
+            "Minimal communication delay"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-09"
+      ],
+      "verification_plan": "Test response time and accuracy of sensor readings.",
+      "maturity": "Preliminary Design",
+      "tags": [
+        "Control",
+        "Monitoring"
+      ]
+    },
+    "Battery_Storage": {
+      "node_id": "Battery_Storage",
+      "node_kind": "Component",
+      "name": "Battery Storage",
+      "description": "Stores excess solar energy for operation during low light conditions.",
+      "embodiment": {
+        "principle": "Deep cycle lead-acid battery",
+        "description": "Provides 6 hours of backup power.",
+        "design_parameters": {
+          "capacity": 12.0,
+          "voltage": 12.0,
+          "charge_rate": 0.5
+        },
+        "cost_estimate": 120.0,
+        "mass_estimate": 20.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Battery Capacity",
+          "equations": "Capacity = Voltage * Charge Rate * Time",
+          "coding_directives": "def calculate_capacity(voltage, charge_rate, time):\n    return voltage * charge_rate * time",
+          "python_code": "def calculate_capacity(voltage, charge_rate, time):\n    return voltage * charge_rate * time",
+          "coder_notes": "Assumes constant voltage and charge rate.",
+          "assumptions": [
+            "Constant voltage",
+            "Constant charge rate"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-05"
+      ],
+      "verification_plan": "Test battery capacity and discharge rate under various loads.",
+      "maturity": "Preliminary Design",
+      "tags": [
+        "Energy Storage",
+        "Backup Power"
+      ]
+    },
+    "Lightweight_Housing": {
+      "node_id": "Lightweight_Housing",
+      "node_kind": "Component",
+      "name": "Lightweight Housing",
+      "description": "Durable, lightweight enclosure for the system.",
+      "embodiment": {
+        "principle": "Plastic injection molding",
+        "description": "High-density polyethylene for durability and light weight.",
+        "design_parameters": {
+          "material_density": 0.95,
+          "wall_thickness": 2.0
+        },
+        "cost_estimate": 100.0,
+        "mass_estimate": 8.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Mass Calculation",
+          "equations": "Mass = density * volume",
+          "coding_directives": "def calculate_mass(density, volume):\n    return density * volume",
+          "python_code": "def calculate_mass(density, volume):\n    return density * volume",
+          "coder_notes": "Assumes volume remains constant.",
+          "assumptions": [
+            "Constant volume"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-07"
+      ],
+      "verification_plan": "Test housing durability and weight.",
+      "maturity": "Preliminary Design",
+      "tags": [
+        "Housing",
+        "Lightweight",
+        "Portability"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}
