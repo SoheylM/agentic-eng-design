@@ -17,7 +17,7 @@ from data_models import (
     Proposal,                         # contains .content -> DesignState
 )
 from prompts import REFLECTION_PROMPT, RESEARCH_PROMPT_REFLECTION
-from llm_models import reflection_agent, base_model_reasoning
+from llm_models import reflection_agent, base_model
 from graph_utils import summarize_design_state_func
 from utils import remove_think_tags
 
@@ -167,7 +167,7 @@ If yes, output ONE clear task for the Orchestrator.
 If no, answer exactly:  "No additional research is needed."
 """
 
-    resp = base_model_reasoning.invoke(
+    resp = base_model.invoke(
         [
             SystemMessage(content=RESEARCH_PROMPT_REFLECTION),
             HumanMessage(content=question),

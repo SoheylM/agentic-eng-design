@@ -16,7 +16,7 @@ from data_models import (
     Proposal,                # full life-cycle container
 )
 from prompts import GE_PROMPT_STRUCTURED, GEN_RESEARCH_PROMPT
-from llm_models import generation_agent, base_model_reasoning
+from llm_models import generation_agent, base_model
 from graph_utils import summarize_design_state_func
 from utils import remove_think_tags
 from validation import filter_valid_proposals  # Import our validation functions
@@ -185,7 +185,7 @@ If yes, output a SINGLE clear task for the orchestrator.
 If no, answer exactly:  "No additional research is needed."
 """
 
-    resp = base_model_reasoning.invoke([
+    resp = base_model.invoke([
         SystemMessage(content=GEN_RESEARCH_PROMPT),
         HumanMessage(content=question)
     ]).content

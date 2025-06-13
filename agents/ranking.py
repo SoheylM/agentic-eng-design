@@ -7,7 +7,7 @@ from langgraph.types import Command
 
 from data_models import State, Proposal                           # long-term container
 from prompts      import RA_PROMPT, RESEARCH_PROMPT_RANKING
-from llm_models   import ranking_agent, base_model_reasoning
+from llm_models   import ranking_agent, base_model
 from graph_utils  import summarize_design_state_func
 from utils        import remove_think_tags
 
@@ -153,7 +153,7 @@ If yes, output ONE clear task for the Orchestrator.
 If no, answer exactly:  "No additional research is needed."
 """
 
-    resp = base_model_reasoning.invoke([
+    resp = base_model.invoke([
         SystemMessage(content=RESEARCH_PROMPT_RANKING),
         HumanMessage(content=question),
     ]).content

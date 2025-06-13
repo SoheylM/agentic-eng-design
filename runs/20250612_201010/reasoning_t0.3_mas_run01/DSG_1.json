@@ -1,0 +1,51 @@
+{
+  "nodes": {
+    "SPG": {
+      "node_id": "SPG",
+      "node_kind": "Subsystem",
+      "name": "Solar Power Generation",
+      "description": "Subsystem responsible for converting sunlight into electrical energy.",
+      "embodiment": {
+        "principle": "Photovoltaic Panels",
+        "description": "High-efficiency monocrystalline silicon panels with MPPT charge controller.",
+        "design_parameters": {
+          "power_capacity": 350.0,
+          "efficiency": 0.22,
+          "size": 1.5,
+          "unit": 1.0
+        },
+        "cost_estimate": 200.0,
+        "mass_estimate": 15.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "SPG Efficiency Model",
+          "equations": "\u03b7 = 0.22 * (1 - (Tc - 25)/200)",
+          "coding_directives": "Calculate SPG efficiency based on temperature.",
+          "python_code": "Alright, I need to create a Python script for the Solar Power Generation (SPG) Efficiency Model based on the provided equation and assumptions. Let's break down the requirements and figure out how to structure the code.\n\nFirst, the user provided a simple function to calculate efficiency. My task is to expand this into a full script that meets all the specified guidelines. The key points to address are:\n\n1. **Correctness & Fidelity**: Ensure the physics is correct and the code is numerically sound.\n2. **Runnable**: The script should be self-contained with minimal dependencies.\n3. **Self-Documented**: Include docstrings and clear comments.\n4. **CLI**: Use argparse to expose parameters.\n5. **Logging**: Implement logging with verbosity control.\n6. **Outputs**: Save results in ./outputs in a portable format and generate a plot.\n7. **Testing**: Include a pytest for verification.\n8. **Coupling Stub**: Provide a function for data exchange with other nodes.\n9. **Performance**: Use efficient libraries like NumPy for calculations.\n\nStarting with the efficiency equation: \u03b7 = 0.22 * (1 - (Tc - 25)/200). I'll create a function that takes temperature as input and returns efficiency. I'll also add validation to ensure temperatures are within the specified range.\n\nNext, I'll set up the command-line interface using argparse. This will allow users to input temperature and verbosity. Logging will help track the execution flow, especially useful for debugging.\n\nFor output, I'll structure the results as a dictionary and save it using NumPy's savez for portability. Additionally, I'll generate a quick-look plot using matplotlib to visualize the efficiency curve.\n\nTesting is crucial. I'll write a pytest to check the efficiency calculation against known values, ensuring the function behaves as expected.\n\nThe coupling stub will be a simple function that can send or receive data, making it easier to integrate this node into a larger system.\n\nFinally, I'll make sure the script is efficient by using NumPy for array operations, avoiding any unnecessary bottlenecks.\n\nPutting it all together, I'll organize the code into functions with clear docstrings, include example usage, and ensure all dependencies are listed for easy installation.\n</think>\n\n```python\n\"\"\"\nSolar Power Generation Efficiency Model\n\nThis module calculates the efficiency of a solar power generation system\nbased on temperature using a simple physical model.\n\nEquation:\n\u03b7 = 0.22 * (1 - (Tc - 25)/200)\n\nAssumptions:\n- Ambient temperature range: -10\u00b0C to 50\u00b0C\n- Efficiency decreases linearly with temperature deviation from 25\u00b0C\n\"\"\"\n\nimport numpy as np\nimport argparse\nimport logging\nimport matplotlib.pyplot as plt\nimport pytest\nimport os\n\n# Set up logging\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s - %(levelname)s - %(message)s'\n)\nlogger = logging.getLogger(__name__)\n\ndef calculate_efficiency(temperature: float) -> float:\n    \"\"\"\n    Calculate solar panel efficiency based on temperature.\n\n    Args:\n        temperature: Ambient temperature in degrees Celsius\n\n    Returns:\n        Efficiency as a decimal value between 0 and 1\n    \"\"\"\n    if temperature < -10 or temperature > 50:\n        logger.warning(\"Temperature is outside the valid range (-10\u00b0C to 50\u00b0C)\")\n    \n    return 0.22 * (1 - (temperature - 25)/200)\n\ndef generate_efficiency_curve() -> np.ndarray:\n    \"\"\"\n    Generate an efficiency curve for the valid temperature range\n    Returns:\n        Array of temperatures and corresponding efficiencies\n    \"\"\"\n    temperatures = np.linspace(-10, 50, 100)\n    efficiencies = 0.22 * (1 - (temperatures - 25)/200)\n    return np.column_stack((temperatures, efficiencies))\n\ndef save_results(results: np.ndarray, output_dir: str = \"./outputs\") -> None:\n    \"\"\"\n    Save efficiency results to a NumPy archive file\n    \"\"\"\n    os.makedirs(output_dir, exist_ok=True)\n    output_path = os.path.join(output_dir, \"efficiency_results.npz\")\n    np.savez(output_path, results)\n    logger.info(f\"Results saved to {output_path}\")\n\ndef plot_efficiency_curve(results: np.ndarray) -> None:\n    \"\"\"\n    Generate a quick-look plot of efficiency vs temperature\n    \"\"\"\n    plt.figure(figsize=(10, 6))\n    plt.plot(results[:, 0], results[:, 1], label='Efficiency')\n    plt.xlabel('Temperature (\u00b0C)')\n    plt.ylabel('Efficiency')\n    plt.title('Solar Panel Efficiency vs Temperature')\n    plt.grid(True)\n    plt.legend()\n    plt.savefig(\"./outputs/efficiency_plot.png\")\n    plt.close()\n    logger.info(\"Efficiency plot saved\")\n\ndef main():\n    # Parse command line arguments\n    parser = argparse.ArgumentParser(description='Solar Power Generation Efficiency Model')\n    parser.add_argument('--temperature', type=float, default=25,\n                       help='Ambient temperature in \u00b0C (default: 25)')\n    parser.add_argument('--verbosity', type=int, default=2,\n                       help='Logging verbosity level (0-4)')\n    args = parser.parse_args()\n    \n    # Set logging level based on verbosity\n    logger.setLevel(50 - (args.verbosity * 10))\n    \n    # Calculate efficiency\n    efficiency = calculate_efficiency(args.temperature)\n    logger.info(f\"Efficiency at {args.temperature}\u00b0C: {efficiency:.4f}\")\n    \n    # Generate and save efficiency curve\n    efficiency_curve = generate_efficiency_curve()\n    save_results(efficiency_curve)\n    plot_efficiency_curve(efficiency_curve)\n\ndef coupling_stub():\n    \"\"\"\n    Stub function for coupling with other system components.\n    Returns:\n        Dictionary with current state\n    \"\"\"\n    return {\n        'temperature': 25.0,\n        'efficiency': calculate_efficiency(25.0)\n    }\n\n# Example usage\nif __name__ == \"__main__\":\n    main()\n\n# Test cases\ndef test_calculate_efficiency():\n    # Test at reference temperature\n    assert np.isclose(calculate_efficiency(25), 0.22)\n    \n    # Test at lower bound\n    assert calculate_efficiency(-10) >= 0\n    \n    # Test at upper bound\n    assert calculate_efficiency(50) >= 0\n\ndef test_efficiency_curve():\n    curve = generate_efficiency_curve()\n    assert curve.shape == (100, 2)\n    assert np.all(curve[:, 0] >= -10)\n    assert np.all(curve[:, 0] <= 50)\n```\n\nTo use this code:\n\n1. Save it as `solar_efficiency.py`\n2. Install requirements:\n```bash\npip install numpy matplotlib pytest\n```\n3. Run with:\n```bash\npython solar_efficiency.py --temperature 30 --verbosity 1\n```\n\nThe code includes:\n- A physical efficiency model\n- Input validation\n- Command-line interface\n- Logging system\n- Results saving\n- Visualization\n- Test cases\n- Coupling stub for integration\n\nThe model outputs both numerical results and a visual plot of the efficiency curve, while maintaining physical consistency with the given equation and assumptions.",
+          "coder_notes": "",
+          "assumptions": [
+            "Ambient temperature range: -10\u00b0C to 50\u00b0C"
+          ],
+          "status": "Complete"
+        }
+      ],
+      "linked_reqs": [
+        "NF1",
+        "NF2",
+        "F3",
+        "F4",
+        "F5"
+      ],
+      "verification_plan": "Testing under varying solar irradiance conditions.",
+      "maturity": "Low",
+      "tags": [
+        "Solar",
+        "Energy"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": true
+}

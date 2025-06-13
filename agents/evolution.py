@@ -7,7 +7,7 @@ from langgraph.types import Command
 
 from data_models  import State, Proposal, DesignState
 from prompts      import EVOLUTION_PROMPT, RESEARCH_PROMPT_EVOLUTION
-from llm_models   import evolution_agent, base_model_reasoning
+from llm_models   import evolution_agent, base_model
 from graph_utils  import summarize_design_state_func
 from utils        import remove_think_tags
 from validation   import filter_valid_proposals
@@ -181,7 +181,7 @@ If yes, output ONE clear task for the Orchestrator.
 If no, answer exactly:  "No additional research is needed."
 """
 
-    resp = base_model_reasoning.invoke([
+    resp = base_model.invoke([
         SystemMessage(content=RESEARCH_PROMPT_EVOLUTION),
         HumanMessage(content=question),
     ]).content
