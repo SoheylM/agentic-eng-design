@@ -15,7 +15,7 @@ class ExperimentConfig:
 
 # Experiment combinations
 LLM_TYPES = ["non_reasoning", "reasoning"]
-TEMPERATURES = [0.0, 0.3, 0.5, 0.7]
+TEMPERATURES = [0.0, 0.5, 1.0]
 WORKFLOW_TYPES = ["mas", "pair"]
 RUNS_PER_COMBINATION = 5
 
