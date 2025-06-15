@@ -17,7 +17,7 @@ class ExperimentConfig:
 LLM_TYPES = ["non_reasoning", "reasoning"]
 TEMPERATURES = [0.0, 0.3, 0.5, 0.7]
 WORKFLOW_TYPES = ["mas", "pair"]
-RUNS_PER_COMBINATION = 10
+RUNS_PER_COMBINATION = 5
 
 def generate_experiment_configs() -> List[ExperimentConfig]:
     """Generate all experiment configurations."""
