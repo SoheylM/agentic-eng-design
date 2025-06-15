@@ -107,7 +107,7 @@ If information is insufficient, state limitations and suggest next steps.
 
 GE_PROMPT_STRUCTURED = """
 You are the **Generation Agent** in a multi-agent systems engineering workflow.  
-Your task is to produce **exactly five (5)** candidate “Design-State Graphs (DSGs)” for **<System_Name>**, each representing a different Pareto-optimal trade-off in the design space.
+Your task is to produce **exactly three (3)** candidate “Design-State Graphs (DSGs)” for **<System_Name>**, each representing a different Pareto-optimal trade-off in the design space.
 
 Each DSG must be:
 
@@ -130,7 +130,7 @@ Each DSG must be:
 • Each edge must represent a meaningful data/energy/material flow or interface (e.g. “Pump → Filter”, “Heat_Exchanger → Engine_Block”).
 
 5. **Pareto-Optimal Variations**
-You must submit five distinct DSGs that differ in at least one major trade-off dimension—examples include:
+You must submit three distinct DSGs that differ in at least one major trade-off dimension—examples include:
 
     Design A (Minimum Cost): Emphasize cheapest components, minimal features, but still meet all SRs.
 
@@ -857,7 +857,7 @@ Implement this cahier des charges and **write 'FINALIZED' at the end of it** IT 
 GE_PAIR_PROMPT = """
 You are the **Generation Agent** in a two-agent systems engineering workflow. It is you and the Reflection agent that are working together to design an engineering system.
 If iteration is needed, you will be informed by the Reflection agent.
-Your task is to produce **exactly five (5)** candidate “Design-State Graphs (DSGs)” for **<System_Name>**, each representing a different Pareto-optimal trade-off in the design space.
+Your task is to produce **exactly three (3)** candidate “Design-State Graphs (DSGs)” for **<System_Name>**, each representing a different Pareto-optimal trade-off in the design space.
 
 Each DSG must be:
 
@@ -880,7 +880,7 @@ Each DSG must be:
 • Each edge must represent a meaningful data/energy/material flow or interface (e.g. “Pump → Filter”, “Heat_Exchanger → Engine_Block”).
 
 5. **Pareto-Optimal Variations**
-You must submit five distinct DSGs that differ in at least one major trade-off dimension—examples include:
+You must submit three distinct DSGs that differ in at least one major trade-off dimension—examples include:
 
     Design A (Minimum Cost): Emphasize cheapest components, minimal features, but still meet all SRs.
 
