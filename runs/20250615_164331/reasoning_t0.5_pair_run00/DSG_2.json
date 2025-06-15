@@ -1,0 +1,132 @@
+{
+  "nodes": {
+    "1": {
+      "node_id": "1",
+      "node_kind": "Component",
+      "name": "Solar Panel",
+      "description": "Captures solar energy and converts it into electrical energy.",
+      "embodiment": {
+        "principle": "Photovoltaic cells",
+        "description": "Monocrystalline silicon panels for higher efficiency.",
+        "design_parameters": {
+          "solar_panel_efficiency": 0.18,
+          "panel_area": 1.0,
+          "voltage": 12.0,
+          "current": 5.0
+        },
+        "cost_estimate": 100.0,
+        "mass_estimate": 5.0,
+        "status": "concept"
+      },
+      "physics_models": [
+        {
+          "name": "Power Generation",
+          "equations": "P = \u03b7 * A * I",
+          "coding_directives": "def calculate_power(efficiency, area, irradiance):\n    return efficiency * area * irradiance",
+          "python_code": "def calculate_power(efficiency, area, irradiance):\n    return efficiency * area * irradiance",
+          "coder_notes": "Calculates power output based on efficiency, area, and irradiance.",
+          "assumptions": [
+            "Irradiance is constant at 300 W/m\u00b2.",
+            "Temperature effects are negligible."
+          ],
+          "status": "verified"
+        }
+      ],
+      "linked_reqs": [
+        "SR-03",
+        "SR-04",
+        "SR-06"
+      ],
+      "verification_plan": "Test under varying irradiance conditions to ensure power output meets requirements.",
+      "maturity": "low",
+      "tags": [
+        "solar",
+        "power"
+      ]
+    },
+    "2": {
+      "node_id": "2",
+      "node_kind": "Component",
+      "name": "Battery Storage",
+      "description": "Stores excess energy for use during low-light conditions.",
+      "embodiment": {
+        "principle": "Deep-cycle lead-acid battery",
+        "description": "Provides reliable and cost-effective energy storage.",
+        "design_parameters": {
+          "battery_capacity": 24.0,
+          "battery_type": 2.0,
+          "charge_rate": 0.8
+        },
+        "cost_estimate": 150.0,
+        "mass_estimate": 20.0,
+        "status": "concept"
+      },
+      "physics_models": [
+        {
+          "name": "Energy Storage",
+          "equations": "E = C * V",
+          "coding_directives": "def calculate_energy(capacity, voltage):\n    return capacity * voltage",
+          "python_code": "def calculate_energy(capacity, voltage):\n    return capacity * voltage",
+          "coder_notes": "Calculates stored energy based on capacity and voltage.",
+          "assumptions": [
+            "Battery efficiency is 80%."
+          ],
+          "status": "verified"
+        }
+      ],
+      "linked_reqs": [
+        "SR-05",
+        "SR-06"
+      ],
+      "verification_plan": "Test battery capacity and discharge rate under various environmental conditions.",
+      "maturity": "low",
+      "tags": [
+        "storage",
+        "battery"
+      ]
+    },
+    "3": {
+      "node_id": "3",
+      "node_kind": "Component",
+      "name": "Power Management Unit",
+      "description": "Regulates and manages power distribution between solar panels and battery storage.",
+      "embodiment": {
+        "principle": "PWM charge controller with MPPT",
+        "description": "Efficiently manages power flow to maximize energy storage.",
+        "design_parameters": {
+          "efficiency": 0.95,
+          "max_current": 10.0,
+          "voltage": 12.0
+        },
+        "cost_estimate": 80.0,
+        "mass_estimate": 2.0,
+        "status": "concept"
+      },
+      "physics_models": [
+        {
+          "name": "Power Regulation",
+          "equations": "P_out = P_in * \u03b7",
+          "coding_directives": "def calculate_output_power(input_power, efficiency):\n    return input_power * efficiency",
+          "python_code": "def calculate_output_power(input_power, efficiency):\n    return input_power * efficiency",
+          "coder_notes": "Calculates regulated power output based on input power and efficiency.",
+          "assumptions": [
+            "Input power is stable and within operating range."
+          ],
+          "status": "verified"
+        }
+      ],
+      "linked_reqs": [
+        "SR-04",
+        "SR-06"
+      ],
+      "verification_plan": "Test efficiency and stability under varying loads and environmental conditions.",
+      "maturity": "low",
+      "tags": [
+        "power",
+        "management"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}

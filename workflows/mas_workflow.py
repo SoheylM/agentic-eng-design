@@ -30,7 +30,7 @@ from agents.meta_review   import meta_review_node
 # --------------------------------------------------------------------------
 def build_app() -> "langgraph.App":
     """Return a fully-wired MAS LangGraph application."""
-    config.setup_langsmith_tracing("IDETC25-MAS-v3")
+    config.setup_langsmith_tracing("Agent-MAS-v4")
 
     g = StateGraph(State)
 

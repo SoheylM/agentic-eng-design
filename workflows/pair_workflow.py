@@ -10,8 +10,10 @@ from data_models import PairState
 from agents.generation_pair import generation_pair_node
 from agents.reflection_pair import reflection_pair_node
 from langchain_core.messages import HumanMessage
+from config import config  # Add config import
 
 def build_app() -> "langgraph.App":
+    config.setup_langsmith_tracing("Agent-Pair-v4")  # Add LangSmith tracing
     g = StateGraph(PairState)
     g.set_entry_point("generation_pair")
     g.add_node("generation_pair", generation_pair_node)
