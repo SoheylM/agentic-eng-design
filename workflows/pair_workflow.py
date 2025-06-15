@@ -21,7 +21,7 @@ def build_app() -> "langgraph.App":
 
 def run_once(request: str, thread_id: str = "0") -> PairState:
     app = build_app()
-    cfg = {"configurable": {"thread_id": thread_id}, "recursion_limit": 50}
+    cfg = {"configurable": {"thread_id": thread_id}, "recursion_limit": 30}
     app.invoke({
         "messages": [HumanMessage(content=request)],
         "thread_id": thread_id

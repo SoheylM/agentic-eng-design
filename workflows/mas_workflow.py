@@ -59,7 +59,7 @@ def run_once(request: str,
     Returns the **final State** for metric evaluation.
     """
     app = build_app()
-    cfg = {"configurable": {"thread_id": thread_id}, "recursion_limit": 50}
+    cfg = {"configurable": {"thread_id": thread_id}, "recursion_limit": 30}
 
     app.invoke({
         "messages": [HumanMessage(content=request)],
