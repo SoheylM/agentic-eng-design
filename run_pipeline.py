@@ -162,33 +162,11 @@ if __name__ == "__main__":
     batch_dir.mkdir(parents=True, exist_ok=True)
 
     # Decide which configs to run
-    if args.llm is not None or args.temp is not None or args.workflow is not None:
-        # Use specified values where provided, otherwise use all possible values
-        llm_types = [args.llm] if args.llm is not None else LLM_TYPES
-        temps = [args.temp] if args.temp is not None else TEMPERATURES
-        workflows = [args.workflow] if args.workflow is not None else WORKFLOW_TYPES
-        
-        # Generate all combinations of the specified parameters
-        configs = []
-        for llm in llm_types:
-            for temp in temps:
-                for wf in workflows:
-                    for i in range(args.runs):
-                        configs.append(ExperimentConfig(
-                            llm_type=llm,
-                            temperature=temp,
-                            workflow_type=wf,
-                            run_id=i
-                        ))
-        
-        print(f"Running combinations with:")
-        if args.llm is not None:
-            print(f"  LLM: {args.llm}")
-        if args.temp is not None:
-            print(f"  Temperature: {args.temp}")
-        if args.workflow is not None:
-            print(f"  Workflow: {args.workflow}")
-        print(f"  And all combinations of unspecified parameters")
+    if args.llm and args.temp is not None and args.workflow:
+        configs = generate_specific_configs(
+            args.llm, args.temp, args.workflow, args.runs
+        )
+        print(f"Running specific combination: {args.llm}, t={args.temp}, {args.workflow}")
     else:
         configs = generate_experiment_configs()
         print("Running all experiment combinations")
