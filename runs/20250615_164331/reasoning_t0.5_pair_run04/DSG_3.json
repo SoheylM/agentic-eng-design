@@ -1,0 +1,191 @@
+{
+  "nodes": {
+    "33ed0ea3-1a18-403d-b809-6d17c87edb1b": {
+      "node_id": "33ed0ea3-1a18-403d-b809-6d17c87edb1b",
+      "node_kind": "Subsystem",
+      "name": "Solar Power Subsystem",
+      "description": "Captures solar energy and stores it for system operation with a focus on portability.",
+      "embodiment": {
+        "principle": "Lightweight Photovoltaic Panels with Compact Battery Storage",
+        "description": "Uses lightweight, flexible solar panels and compact lithium-ion batteries for portability.",
+        "design_parameters": {
+          "solar_panel_efficiency": 18.0,
+          "battery_capacity": 10.0,
+          "battery_type": 3.0
+        },
+        "cost_estimate": 200.0,
+        "mass_estimate": 8.0,
+        "status": "concept"
+      },
+      "physics_models": [
+        {
+          "name": "Energy_Budget",
+          "equations": "E_total = E_solar * \u03b7 * t",
+          "coding_directives": "def energy_budget(solar_irradiance, time):\n    return solar_irradiance * 0.18 * time",
+          "python_code": "def energy_budget(solar_irradiance, time):\n    return solar_irradiance * 0.18 * time",
+          "coder_notes": "Solar irradiance is constant at 300 W/m\u00b2.",
+          "assumptions": [
+            "Solar irradiance is constant at 300 W/m\u00b2."
+          ],
+          "status": "verified"
+        }
+      ],
+      "linked_reqs": [
+        "SR-03",
+        "SR-04",
+        "SR-05"
+      ],
+      "verification_plan": "Test under varying solar conditions to ensure power availability.",
+      "maturity": "low",
+      "tags": [
+        "solar",
+        "power",
+        "portable"
+      ]
+    },
+    "bef3a879-0624-40a1-9f5b-fe09b47b0fce": {
+      "node_id": "bef3a879-0624-40a1-9f5b-fe09b47b0fce",
+      "node_kind": "Subsystem",
+      "name": "Filtration Subsystem",
+      "description": "Removes contaminants from raw water to produce potable water with minimal weight.",
+      "embodiment": {
+        "principle": "Lightweight Ceramic Water Filter",
+        "description": "Utilizes a lightweight ceramic filter element for basic filtration.",
+        "design_parameters": {
+          "filtration_rate": 10.0,
+          "filter_pore_size": 0.2,
+          "filter_type": 3.0
+        },
+        "cost_estimate": 60.0,
+        "mass_estimate": 4.0,
+        "status": "concept"
+      },
+      "physics_models": [
+        {
+          "name": "Flow_Rate",
+          "equations": "Flow Rate = (Filter Area * Permeability) / Viscosity",
+          "coding_directives": "def flow_rate(filter_area, permeability, viscosity):\n    return (filter_area * permeability) / viscosity",
+          "python_code": "def flow_rate(filter_area, permeability, viscosity):\n    return (filter_area * permeability) / viscosity",
+          "coder_notes": "Water viscosity at 25\u00b0C.",
+          "assumptions": [
+            "Water viscosity at 25\u00b0C."
+          ],
+          "status": "verified"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-02"
+      ],
+      "verification_plan": "Test filtration efficiency under various water qualities.",
+      "maturity": "low",
+      "tags": [
+        "filtration",
+        "water",
+        "portable"
+      ]
+    },
+    "7e150b13-9294-497f-817d-aec1a660b6e5": {
+      "node_id": "7e150b13-9294-497f-817d-aec1a660b6e5",
+      "node_kind": "Subsystem",
+      "name": "Water Quality Monitoring Subsystem",
+      "description": "Monitors and displays water quality parameters with a focus on portability.",
+      "embodiment": {
+        "principle": "Compact Digital Water Quality Sensors",
+        "description": "Incorporates compact sensors for pH, turbidity, and TDS.",
+        "design_parameters": {
+          "sensor_accuracy": 0.2,
+          "sampling_rate": 1.0,
+          "sensor_type": 3.0
+        },
+        "cost_estimate": 40.0,
+        "mass_estimate": 0.6,
+        "status": "concept"
+      },
+      "physics_models": [
+        {
+          "name": "Sensor_Response",
+          "equations": "Response Time = (Sensor Delay + Processing Time)",
+          "coding_directives": "def sensor_response(sensor_delay, processing_time):\n    return sensor_delay + processing_time",
+          "python_code": "def sensor_response(sensor_delay, processing_time):\n    return sensor_delay + processing_time",
+          "coder_notes": "Constant sensor delay and processing time.",
+          "assumptions": [
+            "Constant sensor delay and processing time."
+          ],
+          "status": "verified"
+        }
+      ],
+      "linked_reqs": [
+        "SR-09"
+      ],
+      "verification_plan": "Test sensor accuracy and response time.",
+      "maturity": "low",
+      "tags": [
+        "sensors",
+        "monitoring",
+        "portable"
+      ]
+    },
+    "5fb983ca-cb6c-4a88-b1ac-003844730b55": {
+      "node_id": "5fb983ca-cb6c-4a88-b1ac-003844730b55",
+      "node_kind": "Subsystem",
+      "name": "Power Management Subsystem",
+      "description": "Manages and optimizes power distribution and storage with a focus on portability.",
+      "embodiment": {
+        "principle": "Lightweight Charge Controller with Battery Management",
+        "description": "Uses a lightweight charge controller and compact battery management system.",
+        "design_parameters": {
+          "charge_efficiency": 0.85,
+          "discharge_rate": 0.08,
+          "management_type": 3.0
+        },
+        "cost_estimate": 50.0,
+        "mass_estimate": 2.5,
+        "status": "concept"
+      },
+      "physics_models": [
+        {
+          "name": "Charge_Discharge",
+          "equations": "Battery Level = Initial Charge - (Discharge Rate * Time)",
+          "coding_directives": "def battery_level(initial_charge, discharge_rate, time):\n    return initial_charge - (discharge_rate * time)",
+          "python_code": "def battery_level(initial_charge, discharge_rate, time):\n    return initial_charge - (discharge_rate * time)",
+          "coder_notes": "Constant discharge rate.",
+          "assumptions": [
+            "Constant discharge rate."
+          ],
+          "status": "verified"
+        }
+      ],
+      "linked_reqs": [
+        "SR-04",
+        "SR-05"
+      ],
+      "verification_plan": "Test battery life and charge efficiency under various loads.",
+      "maturity": "low",
+      "tags": [
+        "power",
+        "management",
+        "portable"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "33ed0ea3-1a18-403d-b809-6d17c87edb1b",
+      "5fb983ca-cb6c-4a88-b1ac-003844730b55"
+    ],
+    [
+      "5fb983ca-cb6c-4a88-b1ac-003844730b55",
+      "bef3a879-0624-40a1-9f5b-fe09b47b0fce"
+    ],
+    [
+      "5fb983ca-cb6c-4a88-b1ac-003844730b55",
+      "7e150b13-9294-497f-817d-aec1a660b6e5"
+    ],
+    [
+      "bef3a879-0624-40a1-9f5b-fe09b47b0fce",
+      "7e150b13-9294-497f-817d-aec1a660b6e5"
+    ]
+  ],
+  "workflow_complete": false
+}

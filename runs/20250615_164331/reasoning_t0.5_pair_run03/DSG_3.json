@@ -1,0 +1,174 @@
+{
+  "nodes": {
+    "62f1d51a-552a-4766-86cb-53d5d28daf67": {
+      "node_id": "62f1d51a-552a-4766-86cb-53d5d28daf67",
+      "node_kind": "Subsystem",
+      "name": "Solar Power Subsystem",
+      "description": "Captures solar energy and stores it for system operation with a focus on high efficiency.",
+      "embodiment": {
+        "principle": "High-Efficiency Photovoltaic Panels with Advanced Battery Storage",
+        "description": "Uses high-efficiency, flexible solar panels and lithium-ion batteries for superior performance.",
+        "design_parameters": {
+          "solar_panel_efficiency": 22.0,
+          "battery_capacity": 15.0,
+          "battery_type": 2.0
+        },
+        "cost_estimate": 350.0,
+        "mass_estimate": 15.0,
+        "status": "concept"
+      },
+      "physics_models": [
+        {
+          "name": "Energy_Budget",
+          "equations": "E_total = E_solar * \u03b7 * t",
+          "coding_directives": "def energy_budget(solar_irradiance, time):\n    return solar_irradiance * 0.22 * time",
+          "python_code": "def energy_budget(solar_irradiance, time):\n    return solar_irradiance * 0.22 * time",
+          "coder_notes": "Solar irradiance is constant at 300 W/m\u00b2.",
+          "assumptions": [
+            "Solar irradiance is constant at 300 W/m\u00b2."
+          ],
+          "status": "verified"
+        }
+      ],
+      "linked_reqs": [
+        "SR-03",
+        "SR-04",
+        "SR-05"
+      ],
+      "verification_plan": "Test the energy storage capacity and efficiency under varying solar conditions.",
+      "maturity": "low",
+      "tags": [
+        "solar",
+        "power",
+        "high-efficiency"
+      ]
+    },
+    "954ec274-6502-494e-a10c-7cb265163ba4": {
+      "node_id": "954ec274-6502-494e-a10c-7cb265163ba4",
+      "node_kind": "Subsystem",
+      "name": "Filtration Subsystem",
+      "description": "Removes contaminants from raw water to produce potable water with advanced filtration.",
+      "embodiment": {
+        "principle": "Advanced Ceramic Water Filter with Pre-Treatment",
+        "description": "Utilizes a high-efficiency ceramic filter with additional pre-treatment stages.",
+        "design_parameters": {
+          "filtration_rate": 12.0,
+          "filter_pore_size": 0.1,
+          "filter_type": 3.0
+        },
+        "cost_estimate": 80.0,
+        "mass_estimate": 5.0,
+        "status": "concept"
+      },
+      "physics_models": [
+        {
+          "name": "Flow_Rate",
+          "equations": "Flow Rate = (Filter Area * Permeability) / Viscosity",
+          "coding_directives": "def flow_rate(filter_area, permeability, viscosity):\n    return (filter_area * permeability) / viscosity",
+          "python_code": "def flow_rate(filter_area, permeability, viscosity):\n    return (filter_area * permeability) / viscosity",
+          "coder_notes": "Water viscosity at 25\u00b0C.",
+          "assumptions": [
+            "Water viscosity at 25\u00b0C."
+          ],
+          "status": "verified"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-02"
+      ],
+      "verification_plan": "Test the filtration efficiency and flow rate with contaminated water samples.",
+      "maturity": "low",
+      "tags": [
+        "filtration",
+        "water",
+        "high-efficiency"
+      ]
+    },
+    "f1e65283-b4bf-41c4-bfee-44d7bb7026a9": {
+      "node_id": "f1e65283-b4bf-41c4-bfee-44d7bb7026a9",
+      "node_kind": "Subsystem",
+      "name": "Water Quality Monitoring Subsystem",
+      "description": "Monitors and displays water quality parameters with advanced sensors.",
+      "embodiment": {
+        "principle": "Advanced Digital Water Quality Sensors with Real-Time Monitoring",
+        "description": "Incorporates high-accuracy sensors for pH, turbidity, TDS, and additional parameters.",
+        "design_parameters": {
+          "sensor_accuracy": 0.1,
+          "sampling_rate": 5.0,
+          "sensor_type": 3.0
+        },
+        "cost_estimate": 100.0,
+        "mass_estimate": 1.0,
+        "status": "concept"
+      },
+      "physics_models": [
+        {
+          "name": "Sensor_Response",
+          "equations": "Response Time = (Sensor Delay + Processing Time)",
+          "coding_directives": "def sensor_response(sensor_delay, processing_time):\n    return sensor_delay + processing_time",
+          "python_code": "def sensor_response(sensor_delay, processing_time):\n    return sensor_delay + processing_time",
+          "coder_notes": "Constant sensor delay and processing time.",
+          "assumptions": [
+            "Constant sensor delay and processing time."
+          ],
+          "status": "verified"
+        }
+      ],
+      "linked_reqs": [
+        "SR-09"
+      ],
+      "verification_plan": "Test the accuracy and response time of the sensors with various water samples.",
+      "maturity": "low",
+      "tags": [
+        "sensors",
+        "monitoring",
+        "high-accuracy"
+      ]
+    },
+    "5434a110-004d-46c0-b8e0-c5322d574251": {
+      "node_id": "5434a110-004d-46c0-b8e0-c5322d574251",
+      "node_kind": "Subsystem",
+      "name": "Power Management Subsystem",
+      "description": "Manages and optimizes power distribution and storage with advanced algorithms.",
+      "embodiment": {
+        "principle": "Smart Charge Controller with Advanced Battery Management",
+        "description": "Uses a smart charge controller and advanced battery management system with real-time monitoring.",
+        "design_parameters": {
+          "charge_efficiency": 0.9,
+          "discharge_rate": 0.05,
+          "management_type": 3.0
+        },
+        "cost_estimate": 60.0,
+        "mass_estimate": 3.0,
+        "status": "concept"
+      },
+      "physics_models": [
+        {
+          "name": "Charge_Discharge",
+          "equations": "Battery Level = Initial Charge - (Discharge Rate * Time)",
+          "coding_directives": "def battery_level(initial_charge, discharge_rate, time):\n    return initial_charge - (discharge_rate * time)",
+          "python_code": "def battery_level(initial_charge, discharge_rate, time):\n    return initial_charge - (discharge_rate * time)",
+          "coder_notes": "Constant discharge rate.",
+          "assumptions": [
+            "Constant discharge rate."
+          ],
+          "status": "verified"
+        }
+      ],
+      "linked_reqs": [
+        "SR-04",
+        "SR-05"
+      ],
+      "verification_plan": "Test the power management efficiency and battery life under various load conditions.",
+      "maturity": "low",
+      "tags": [
+        "power",
+        "management",
+        "advanced"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}
