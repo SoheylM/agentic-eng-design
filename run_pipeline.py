@@ -113,7 +113,7 @@ def _run_once(
 
 
 def generate_specific_configs(
-    llm_type: str, temperature: float, workflow_type: str, runs: int = 10
+    llm_type: str, temperature: float, workflow_type: str, runs: int = 5
 ) -> List[ExperimentConfig]:
     """Generate configurations for a specific experiment combination."""
     return [
@@ -146,7 +146,7 @@ if __name__ == "__main__":
     ap.add_argument(
         "--runs",
         type=int,
-        default=10,
+        default=5,
         help="Number of runs for a specific combination (default: 10)",
     )
     args = ap.parse_args()
