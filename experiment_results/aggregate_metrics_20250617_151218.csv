@@ -1,0 +1,4 @@
+,,,M1,M1,M2,M2,M3,M3,M4,M4,M5,M5,M6,M6,n_snapshots,n_snapshots
+,,,mean,std,mean,std,mean,std,mean,std,mean,std,mean,std,mean,std
+llm_type,temperature,workflow,,,,,,,,,,,,,,
+non_reasoning,0.5,mas,1.0,0.0,0.0,0.0,1.0,0.0,0.209,0.102,0.0,0.0,0.0,0.0,1.0,0.0
