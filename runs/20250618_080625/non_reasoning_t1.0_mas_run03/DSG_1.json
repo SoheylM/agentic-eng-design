@@ -1,0 +1,161 @@
+{
+  "nodes": {
+    "1": {
+      "node_id": "1",
+      "node_kind": "Component",
+      "name": "Solar Panel",
+      "description": "Generate electricity from sunlight",
+      "embodiment": {
+        "principle": "Photovoltaic",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 5.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "PV Efficiency",
+          "equations": "\u03b7 = 0.15",
+          "coding_directives": "py:",
+          "python_code": "## Reasoning Process\n\nThe problem involves creating a high-fidelity physics node for a solar panel's PV efficiency. The given equation `\u03b7 = 0.15` represents the efficiency of the solar panel, which is assumed to be constant. The current code only calculates the efficiency but does not account for the irradiance, which is a crucial factor in determining the solar panel's performance.\n\nTo create a more comprehensive node, we will:\n\n1.  Define a class `SolarPanel` to encapsulate the properties and behavior of the solar panel.\n2.  Use the `argparse` library to expose key parameters via the command line interface (CLI).\n3.  Implement a function to calculate the efficiency of the solar panel based on the given irradiance.\n4.  Add logging to track the execution and provide a verbosity flag.\n5.  Write the results to an output file in a portable format (e.g., CSV).\n6.  Include a minimal testing suite using `pytest` to verify the correctness of the implementation.\n7.  Provide a coupling stub function to send/receive data if this node were composited with others.\n\n## Python Code\n\n```python\nimport argparse\nimport logging\nimport csv\nimport numpy as np\nimport pytest\n\n# Define the SolarPanel class\nclass SolarPanel:\n    def __init__(self, efficiency=0.15):\n        \"\"\"\n        Initialize the SolarPanel object.\n\n        Args:\n        efficiency (float): The efficiency of the solar panel (default: 0.15).\n        \"\"\"\n        self.efficiency = efficiency\n\n    def calculate_efficiency(self, irradiance):\n        \"\"\"\n        Calculate the efficiency of the solar panel based on the given irradiance.\n\n        Args:\n        irradiance (float): The irradiance of the solar panel.\n\n        Returns:\n        float: The calculated efficiency.\n        \"\"\"\n        return self.efficiency * irradiance\n\n    def write_output(self, irradiance, efficiency, filename):\n        \"\"\"\n        Write the results to an output file in CSV format.\n\n        Args:\n        irradiance (float): The irradiance of the solar panel.\n        efficiency (float): The calculated efficiency.\n        filename (str): The name of the output file.\n        \"\"\"\n        with open(filename, 'w', newline='') as csvfile:\n            fieldnames = ['irradiance', 'efficiency']\n            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)\n\n            writer.writeheader()\n            writer.writerow({'irradiance': irradiance, 'efficiency': efficiency})\n\n    def coupling_stub(self, irradiance):\n        \"\"\"\n        Coupling stub function to send/receive data if this node were composited with others.\n\n        Args:\n        irradiance (float): The irradiance of the solar panel.\n\n        Returns:\n        float: The calculated efficiency.\n        \"\"\"\n        return self.calculate_efficiency(irradiance)\n\n\ndef main():\n    # Parse command line arguments\n    parser = argparse.ArgumentParser(description='Solar Panel PV Efficiency Node')\n    parser.add_argument('--irradiance', type=float, default=1000.0, help='Irradiance of the solar panel (default: 1000.0)')\n    parser.add_argument('--verbosity', type=int, default=0, help='Verbosity level (default: 0)')\n    args = parser.parse_args()\n\n    # Set up logging\n    logging.basicConfig(level=logging.INFO if args.verbosity > 0 else logging.WARNING)\n\n    # Create a SolarPanel object\n    solar_panel = SolarPanel()\n\n    # Calculate the efficiency\n    efficiency = solar_panel.calculate_efficiency(args.irradiance)\n\n    # Write the results to an output file\n    output_filename = 'solar_panel_efficiency.csv'\n    solar_panel.write_output(args.irradiance, efficiency, output_filename)\n\n    # Log the results\n    logging.info(f'Irradiance: {args.irradiance}, Efficiency: {efficiency}')\n\n    # Coupling stub\n    coupled_efficiency = solar_panel.coupling_stub(args.irradiance)\n    logging.info(f'Coupled Efficiency: {coupled_efficiency}')\n\n\n# Testing suite\ndef test_pv_efficiency():\n    solar_panel = SolarPanel()\n    irradiance = 1000.0\n    efficiency = solar_panel.calculate_efficiency(irradiance)\n    assert np.isclose(efficiency, 0.15 * irradiance)\n\nif __name__ == '__main__':\n    main()\n```\n\n## Usage\n\nTo run the code, save it to a file (e.g., `solar_panel.py`) and execute it using Python:\n```bash\npython solar_panel.py --irradiance 1000.0 --verbosity 1\n```\nThis will calculate the efficiency of the solar panel based on the given irradiance, write the results to an output file (`solar_panel_efficiency.csv`), and log the results.\n\n## Testing\n\nTo run the testing suite, use `pytest`:\n```bash\npytest solar_panel.py\n```\nThis will execute the `test_pv_efficiency` function and verify that the calculated efficiency matches the expected value.",
+          "coder_notes": "",
+          "assumptions": [
+            "Constant irradiance"
+          ],
+          "status": "Preliminary"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-03"
+      ],
+      "verification_plan": "The photovoltaic efficiency will be verified through testing under controlled laboratory conditions.",
+      "maturity": "Low",
+      "tags": [
+        "Energy Generation"
+      ]
+    },
+    "2": {
+      "node_id": "2",
+      "node_kind": "Component",
+      "name": "Battery",
+      "description": "Store energy for later use",
+      "embodiment": {
+        "principle": "Lithium-Ion",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 10.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Battery Capacity",
+          "equations": "C = 10 Ah",
+          "coding_directives": "py:",
+          "python_code": "## Reasoning Process\n\nThe problem involves creating a high-fidelity physics node for a battery capacity model. The given equation is a simple linear relationship between the battery capacity `C` and the state of charge `state_of_charge`. The assumption is that the state of charge remains constant.\n\nTo create a high-fidelity model, we will:\n\n1.  Define the battery capacity as a function of the state of charge.\n2.  Use the given equation `C = 10 Ah` to calculate the battery capacity.\n3.  Implement the model using Python.\n4.  Add input validation to ensure the state of charge is within valid ranges (0 to 1).\n5.  Create a command-line interface (CLI) to expose key parameters.\n6.  Implement logging to track the execution of the model.\n7.  Write the results to an output file in a portable format.\n8.  Create a minimal test suite to verify the correctness of the model.\n\n## Python Code\n\n```python\nimport argparse\nimport logging\nimport numpy as np\nimport os\n\ndef calculate_battery_capacity(state_of_charge):\n    \"\"\"\n    Calculate the battery capacity based on the state of charge.\n\n    Args:\n    state_of_charge (float): The current state of charge of the battery (0 to 1).\n\n    Returns:\n    float: The battery capacity in Ah.\n    \"\"\"\n    if not 0 <= state_of_charge <= 1:\n        raise ValueError(\"State of charge must be between 0 and 1\")\n\n    # Given equation: C = 10 Ah\n    battery_capacity = 10 * state_of_charge\n    return battery_capacity\n\ndef save_results_to_file(state_of_charge, battery_capacity, output_file):\n    \"\"\"\n    Save the results to a file in a portable format.\n\n    Args:\n    state_of_charge (float): The current state of charge of the battery.\n    battery_capacity (float): The calculated battery capacity.\n    output_file (str): The path to the output file.\n    \"\"\"\n    np.savez(output_file, state_of_charge=state_of_charge, battery_capacity=battery_capacity)\n\ndef main():\n    # Parse command-line arguments\n    parser = argparse.ArgumentParser(description=\"Battery Capacity Model\")\n    parser.add_argument(\"--state_of_charge\", type=float, default=0.5, help=\"State of charge (0 to 1)\")\n    parser.add_argument(\"--output_file\", type=str, default=\"output.npz\", help=\"Path to the output file\")\n    parser.add_argument(\"--verbosity\", type=int, default=1, help=\"Logging verbosity\")\n    args = parser.parse_args()\n\n    # Set up logging\n    logging.basicConfig(level=logging.INFO if args.verbosity == 1 else logging.DEBUG)\n    logger = logging.getLogger(__name__)\n\n    # Calculate battery capacity\n    try:\n        battery_capacity_value = calculate_battery_capacity(args.state_of_charge)\n        logger.info(f\"Battery capacity: {battery_capacity_value} Ah\")\n    except ValueError as e:\n        logger.error(e)\n        return\n\n    # Save results to file\n    output_dir = \"./outputs\"\n    os.makedirs(output_dir, exist_ok=True)\n    output_file = os.path.join(output_dir, args.output_file)\n    save_results_to_file(args.state_of_charge, battery_capacity_value, output_file)\n    logger.info(f\"Results saved to {output_file}\")\n\n    # Quick validation plot (optional)\n    import matplotlib.pyplot as plt\n    plt.plot([args.state_of_charge], [battery_capacity_value], 'o')\n    plt.xlabel(\"State of Charge\")\n    plt.ylabel(\"Battery Capacity (Ah)\")\n    plt.title(\"Battery Capacity Model\")\n    plt.savefig(os.path.join(output_dir, \"validation_plot.png\"))\n    logger.info(\"Validation plot saved\")\n\ndef test_calculate_battery_capacity():\n    assert np.isclose(calculate_battery_capacity(0.5), 5.0)\n    assert np.isclose(calculate_battery_capacity(1.0), 10.0)\n\nif __name__ == \"__main__\":\n    main()\n```\n\n## Testing and Verification\n\nTo test the model, you can run the `test_calculate_battery_capacity` function. This function checks if the calculated battery capacity matches the expected values for different states of charge.\n\n## Usage\n\nTo run the model, save the code to a file (e.g., `battery_capacity.py`) and execute it using Python:\n\n```bash\npython battery_capacity.py --state_of_charge 0.5 --output_file output.npz\n```\n\nThis will calculate the battery capacity for a state of charge of 0.5 and save the results to a file named `output.npz` in the `./outputs` directory.\n\n## Coupling Stub\n\nTo couple this model with other nodes, you can use the `calculate_battery_capacity` function as a stub. This function takes the state of charge as input and returns the calculated battery capacity. You can modify the function to accept additional inputs or return additional outputs as needed.\n\n```python\ndef send_data_to_other_node(state_of_charge):\n    # Calculate battery capacity\n    battery_capacity_value = calculate_battery_capacity(state_of_charge)\n    \n    # Send data to other node\n    # ...\n    pass\n\ndef receive_data_from_other_node(data):\n    # Receive data from other node\n    # ...\n    pass\n```",
+          "coder_notes": "",
+          "assumptions": [
+            "Constant state of charge"
+          ],
+          "status": "Preliminary"
+        }
+      ],
+      "linked_reqs": [
+        "SR-04",
+        "SR-05"
+      ],
+      "verification_plan": "The battery capacity will be verified through testing under controlled laboratory conditions.",
+      "maturity": "Low",
+      "tags": [
+        "Energy Storage"
+      ]
+    },
+    "3": {
+      "node_id": "3",
+      "node_kind": "Component",
+      "name": "Pump",
+      "description": "Pump water through the system",
+      "embodiment": {
+        "principle": "Centrifugal",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 5.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Pump Flow Rate",
+          "equations": "Q = 10 L/min",
+          "coding_directives": "py:",
+          "python_code": "## Reasoning Process\n\nThe problem describes a pump flow rate model with a constant flow rate of 10 L/min, assuming constant pressure. However, the provided Python code `def pump_flow_rate(pressure): return 10 * pressure` does not match the given equation `Q = 10 L/min`, as it introduces a pressure-dependent flow rate.\n\nTo correct this, we need to modify the code to reflect the constant flow rate. We will also add input validation, logging, and command-line interface (CLI) features to make the code more robust and user-friendly.\n\n## Python Code\n\n```python\nimport argparse\nimport logging\nimport numpy as np\nimport os\n\n# Set up logging\nlogging.basicConfig(level=logging.INFO)\nlogger = logging.getLogger(__name__)\n\ndef pump_flow_rate():\n    \"\"\"\n    Calculates the pump flow rate.\n\n    Returns:\n        float: The pump flow rate in L/min.\n    \"\"\"\n    # Constant flow rate (L/min)\n    flow_rate = 10.0\n    return flow_rate\n\ndef main():\n    # Parse command-line arguments\n    parser = argparse.ArgumentParser(description=\"Pump Flow Rate Calculator\")\n    parser.add_argument(\"--verbosity\", type=int, default=1, help=\"Logging verbosity (0-2)\")\n    args = parser.parse_args()\n\n    # Set logging level based on verbosity\n    if args.verbosity == 0:\n        logger.setLevel(logging.ERROR)\n    elif args.verbosity == 1:\n        logger.setLevel(logging.INFO)\n    elif args.verbosity == 2:\n        logger.setLevel(logging.DEBUG)\n\n    # Calculate and log the pump flow rate\n    flow_rate = pump_flow_rate()\n    logger.info(f\"Pump flow rate: {flow_rate} L/min\")\n\n    # Create output directory if it doesn't exist\n    output_dir = \"./outputs\"\n    if not os.path.exists(output_dir):\n        os.makedirs(output_dir)\n\n    # Save the result to a file\n    np.savetxt(os.path.join(output_dir, \"pump_flow_rate.txt\"), [flow_rate])\n\n    # Quick-look plot (not applicable in this case, but can be added if needed)\n\nif __name__ == \"__main__\":\n    main()\n```\n\n## Testing and Verification\n\nTo test the code, we can create a simple test case using the `unittest` framework:\n\n```python\nimport unittest\nimport numpy as np\n\nclass TestPumpFlowRate(unittest.TestCase):\n    def test_constant_flow_rate(self):\n        flow_rate = pump_flow_rate()\n        self.assertEqual(flow_rate, 10.0)\n\nif __name__ == \"__main__\":\n    unittest.main()\n```\n\n## Coupling Stub\n\nTo couple this node with others, we can create a function that sends or receives data. For example:\n\n```python\ndef send_pump_flow_rate(flow_rate):\n    # Send the pump flow rate to another node\n    # Replace with actual implementation\n    pass\n\ndef receive_pump_flow_rate():\n    # Receive the pump flow rate from another node\n    # Replace with actual implementation\n    pass\n```\n\nNote that the actual implementation of these functions will depend on the specific requirements of the larger pipeline.",
+          "coder_notes": "",
+          "assumptions": [
+            "Constant pressure"
+          ],
+          "status": "Preliminary"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01"
+      ],
+      "verification_plan": "The pump flow rate will be verified through testing under controlled laboratory conditions.",
+      "maturity": "Low",
+      "tags": [
+        "Water Pumping"
+      ]
+    },
+    "4": {
+      "node_id": "4",
+      "node_kind": "Component",
+      "name": "Filter",
+      "description": "Remove contaminants from the water",
+      "embodiment": {
+        "principle": "Activated Carbon",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 5.0,
+        "status": "Concept"
+      },
+      "physics_models": [
+        {
+          "name": "Filter Efficiency",
+          "equations": "\u03b7 = 0.9",
+          "coding_directives": "py:",
+          "python_code": "## Reasoning Process\n\nThe problem involves creating a node in a larger design-state graph (DSG) for a complete engineering system. The node is named \"Filter\" and represents a \"Filter Efficiency\" model. The governing equation for this model is a simple constant efficiency of 0.9, which is applied to the contaminant concentration. \n\nThe assumptions for this model are that the contaminant concentration is constant. The provided Python code defines a function `filter_efficiency` that takes a contaminant concentration as input and returns the filtered concentration with an efficiency of 0.9.\n\nTo create a high-fidelity physics/data-generation node, we need to expand on this code to include the following features:\n\n*   Command-line interface (CLI) with `argparse` for key parameters\n*   Logging with Python's `logging` module\n*   Output writing to an `./outputs` folder in a portable format (e.g., CSV)\n*   Optional quick-look plot\n*   Testing/verification with `pytest`\n\n## Code\n\n```python\nimport argparse\nimport logging\nimport os\nimport numpy as np\nimport pandas as pd\nimport matplotlib.pyplot as plt\n\n# Set up logging\nlogging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')\n\ndef filter_efficiency(contaminant):\n    \"\"\"\n    Calculate the filtered contaminant concentration.\n\n    Parameters:\n    contaminant (float): The initial contaminant concentration.\n\n    Returns:\n    float: The filtered contaminant concentration.\n    \"\"\"\n    return 0.9 * contaminant\n\ndef main():\n    # Parse command-line arguments\n    parser = argparse.ArgumentParser(description='Filter Efficiency Model')\n    parser.add_argument('--contaminant', type=float, help='Initial contaminant concentration', default=1.0)\n    parser.add_argument('--verbosity', type=int, help='Logging verbosity level', choices=[0, 1, 2], default=1)\n    args = parser.parse_args()\n\n    # Set logging level\n    if args.verbosity == 0:\n        logging.getLogger().setLevel(logging.ERROR)\n    elif args.verbosity == 2:\n        logging.getLogger().setLevel(logging.DEBUG)\n\n    # Calculate filtered contaminant concentration\n    filtered_contaminant = filter_efficiency(args.contaminant)\n\n    # Create output directory if it doesn't exist\n    output_dir = './outputs'\n    if not os.path.exists(output_dir):\n        os.makedirs(output_dir)\n\n    # Write output to CSV file\n    output_file = os.path.join(output_dir, 'filtered_contaminant.csv')\n    pd.DataFrame({'Contaminant': [args.contaminant], 'Filtered Contaminant': [filtered_contaminant]}).to_csv(output_file, index=False)\n\n    # Optional quick-look plot\n    plt.figure(figsize=(8, 6))\n    plt.plot([args.contaminant], [filtered_contaminant], 'bo')\n    plt.xlabel('Contaminant Concentration')\n    plt.ylabel('Filtered Contaminant Concentration')\n    plt.title('Filter Efficiency Model')\n    plt.grid(True)\n    plt.savefig(os.path.join(output_dir, 'filter_efficiency_plot.png'))\n\n    logging.info(f'Filtered contaminant concentration: {filtered_contaminant}')\n\ndef test_filter_efficiency():\n    \"\"\"\n    Test the filter_efficiency function.\n    \"\"\"\n    contaminant = 1.0\n    expected_filtered_contaminant = 0.9 * contaminant\n    assert np.isclose(filter_efficiency(contaminant), expected_filtered_contaminant)\n\nif __name__ == '__main__':\n    main()\n```\n\n## Usage\n\nTo run the script, save it to a file (e.g., `filter_efficiency.py`) and execute it using Python:\n\n```bash\npython filter_efficiency.py --contaminant 1.0 --verbosity 1\n```\n\nThis will calculate the filtered contaminant concentration, write the output to a CSV file, and generate a quick-look plot. The `--verbosity` flag controls the logging level, with 0 being the least verbose and 2 being the most verbose.\n\nTo test the `filter_efficiency` function, you can use the `test_filter_efficiency` function, which checks that the function returns the expected result for a given input.\n\n## Testing\n\nTo test the script, you can use the `pytest` framework. Create a test file (e.g., `test_filter_efficiency.py`) with the following content:\n\n```python\nimport pytest\nfrom filter_efficiency import filter_efficiency\n\ndef test_filter_efficiency():\n    contaminant = 1.0\n    expected_filtered_contaminant = 0.9 * contaminant\n    assert pytest.approx(filter_efficiency(contaminant), expected_filtered_contaminant)\n```\n\nRun the tests using `pytest`:\n\n```bash\npytest test_filter_efficiency.py\n```",
+          "coder_notes": "",
+          "assumptions": [
+            "Constant contaminant concentration"
+          ],
+          "status": "Preliminary"
+        }
+      ],
+      "linked_reqs": [
+        "SR-02"
+      ],
+      "verification_plan": "The filter efficiency will be verified through testing under controlled laboratory conditions.",
+      "maturity": "Low",
+      "tags": [
+        "Water Filtration"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ]
+  ],
+  "workflow_complete": false
+}

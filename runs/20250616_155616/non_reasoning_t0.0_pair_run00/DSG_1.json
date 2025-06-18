@@ -1,0 +1,209 @@
+{
+  "nodes": {
+    "SP-1": {
+      "node_id": "SP-1",
+      "node_kind": "Physical",
+      "name": "Solar Panel",
+      "description": "15V, 10A solar panel for energy harvesting",
+      "embodiment": {
+        "principle": "Photovoltaic",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 50.0,
+        "mass_estimate": 5.0,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Energy Harvesting",
+          "equations": "P = \u03b7 \u22c5 A \u22c5 G",
+          "coding_directives": "import numpy as np; P = 0.15 * 0.1 * 1000",
+          "python_code": "import numpy as np; P = 0.15 * 0.1 * 1000",
+          "coder_notes": "Constant solar irradiance",
+          "assumptions": [
+            "Constant solar irradiance"
+          ],
+          "status": "validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-03"
+      ],
+      "verification_plan": "Test matrices, analysis protocols, and pass/fail criteria linked to SR-03",
+      "maturity": "Low",
+      "tags": [
+        "Solar",
+        "Energy Harvesting"
+      ]
+    },
+    "B-1": {
+      "node_id": "B-1",
+      "node_kind": "Physical",
+      "name": "Battery",
+      "description": "12V, 10Ah lead-acid battery for energy storage",
+      "embodiment": {
+        "principle": "Electrochemical",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 30.0,
+        "mass_estimate": 10.0,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Energy Storage",
+          "equations": "E = C \u22c5 V",
+          "coding_directives": "import numpy as np; E = 10 * 12",
+          "python_code": "import numpy as np; E = 10 * 12",
+          "coder_notes": "Constant voltage and capacity",
+          "assumptions": [
+            "Constant voltage and capacity"
+          ],
+          "status": "validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-04",
+        "SR-05"
+      ],
+      "verification_plan": "Test matrices, analysis protocols, and pass/fail criteria linked to SR-04 and SR-05",
+      "maturity": "Medium",
+      "tags": [
+        "Energy Storage",
+        "Battery"
+      ]
+    },
+    "P-1": {
+      "node_id": "P-1",
+      "node_kind": "Physical",
+      "name": "Pump",
+      "description": "DC-powered pump for water filtration",
+      "embodiment": {
+        "principle": "Centrifugal",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 20.0,
+        "mass_estimate": 2.0,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Fluid Dynamics",
+          "equations": "Q = \u03b7 \u22c5 P \u22c5 A",
+          "coding_directives": "import numpy as np; Q = 0.5 * 10 * 0.01",
+          "python_code": "import numpy as np; Q = 0.5 * 10 * 0.01",
+          "coder_notes": "Constant pressure and flow rate",
+          "assumptions": [
+            "Constant pressure and flow rate"
+          ],
+          "status": "validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-02"
+      ],
+      "verification_plan": "Test matrices, analysis protocols, and pass/fail criteria linked to SR-01 and SR-02",
+      "maturity": "High",
+      "tags": [
+        "Pump",
+        "Water Filtration"
+      ]
+    },
+    "F-1": {
+      "node_id": "F-1",
+      "node_kind": "Physical",
+      "name": "Filter",
+      "description": "Activated carbon filter for water purification",
+      "embodiment": {
+        "principle": "Adsorption",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 15.0,
+        "mass_estimate": 1.5,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Adsorption Kinetics",
+          "equations": "C = k \u22c5 t",
+          "coding_directives": "import numpy as np; C = 0.1 * 10",
+          "python_code": "import numpy as np; C = 0.1 * 10",
+          "coder_notes": "Constant concentration and contact time",
+          "assumptions": [
+            "Constant concentration and contact time"
+          ],
+          "status": "validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-02"
+      ],
+      "verification_plan": "Test matrices, analysis protocols, and pass/fail criteria linked to SR-02",
+      "maturity": "Medium",
+      "tags": [
+        "Filter",
+        "Water Purification"
+      ]
+    },
+    "CE-1": {
+      "node_id": "CE-1",
+      "node_kind": "Physical",
+      "name": "Control Electronics",
+      "description": "Microcontroller-based control system for pump and filter",
+      "embodiment": {
+        "principle": "Digital",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 10.0,
+        "mass_estimate": 0.5,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Digital Signal Processing",
+          "equations": "y = f(x)",
+          "coding_directives": "import numpy as np; y = x**2",
+          "python_code": "import numpy as np; y = x**2",
+          "coder_notes": "Constant input and output",
+          "assumptions": [
+            "Constant input and output"
+          ],
+          "status": "validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-09"
+      ],
+      "verification_plan": "Test matrices, analysis protocols, and pass/fail criteria linked to SR-09",
+      "maturity": "High",
+      "tags": [
+        "Control Electronics",
+        "Digital Signal Processing"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "SP-1",
+      "B-1"
+    ],
+    [
+      "B-1",
+      "P-1"
+    ],
+    [
+      "P-1",
+      "F-1"
+    ],
+    [
+      "F-1",
+      "CE-1"
+    ],
+    [
+      "CE-1",
+      "P-1"
+    ]
+  ],
+  "workflow_complete": false
+}

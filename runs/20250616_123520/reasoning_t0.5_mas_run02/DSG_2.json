@@ -1,0 +1,202 @@
+{
+  "nodes": {
+    "UA-1": {
+      "node_id": "UA-1",
+      "node_kind": "Function",
+      "name": "User Authentication",
+      "description": "Handles user registration, login, and session management.",
+      "embodiment": {
+        "principle": "Firebase Authentication",
+        "description": "Uses Firebase for cost-effective user authentication.",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SYS-001",
+        "STK-001"
+      ],
+      "verification_plan": "Testing on both iOS and Android devices to ensure functionality across both platforms.",
+      "maturity": "High",
+      "tags": [
+        "Authentication",
+        "Firebase"
+      ]
+    },
+    "TM-1": {
+      "node_id": "TM-1",
+      "node_kind": "Function",
+      "name": "Task Management",
+      "description": "Allows users to create, edit, and delete tasks with deadlines and priorities.",
+      "embodiment": {
+        "principle": "React Native UI Components",
+        "description": "Uses standard React Native components for task management.",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SYS-001",
+        "STK-002",
+        "STK-005"
+      ],
+      "verification_plan": "Unit and integration testing to validate task management features.",
+      "maturity": "High",
+      "tags": [
+        "Task Management",
+        "React Native"
+      ]
+    },
+    "PN-1": {
+      "node_id": "PN-1",
+      "node_kind": "Function",
+      "name": "Push Notifications",
+      "description": "Sends push notifications for upcoming task deadlines using Firebase Cloud Messaging.",
+      "embodiment": {
+        "principle": "Firebase Cloud Messaging",
+        "description": "Cost-effective push notification service.",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SYS-003",
+        "STK-003"
+      ],
+      "verification_plan": "Testing push notifications on multiple devices to ensure delivery and accuracy.",
+      "maturity": "High",
+      "tags": [
+        "Notifications",
+        "FCM"
+      ]
+    },
+    "DS-1": {
+      "node_id": "DS-1",
+      "node_kind": "Function",
+      "name": "Data Synchronization",
+      "description": "Syncs tasks across multiple devices using a cloud-based backend.",
+      "embodiment": {
+        "principle": "Firebase Realtime Database",
+        "description": "Cost-effective cloud storage solution.",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SYS-002",
+        "STK-004"
+      ],
+      "verification_plan": "Unit and integration testing to validate data synchronization and storage.",
+      "maturity": "High",
+      "tags": [
+        "Data Sync",
+        "Firebase"
+      ]
+    },
+    "UI-1": {
+      "node_id": "UI-1",
+      "node_kind": "Function",
+      "name": "User Interface",
+      "description": "Provides a user-friendly interface with a clean and modern design.",
+      "embodiment": {
+        "principle": "React Native",
+        "description": "Uses React Native for cross-platform compatibility.",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SYS-001",
+        "STK-002",
+        "STK-005"
+      ],
+      "verification_plan": "Conducting usability testing with a focus group to gather feedback on the interface design.",
+      "maturity": "High",
+      "tags": [
+        "UI",
+        "React Native"
+      ]
+    },
+    "TS-1": {
+      "node_id": "TS-1",
+      "node_kind": "Function",
+      "name": "Task Sharing",
+      "description": "Allows users to share tasks with other users.",
+      "embodiment": {
+        "principle": "Firebase Database Sharing",
+        "description": "Enables task sharing through the cloud database.",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "STK-005"
+      ],
+      "verification_plan": "Testing task sharing functionality across user accounts.",
+      "maturity": "High",
+      "tags": [
+        "Task Sharing",
+        "Firebase"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "UA-1",
+      "TM-1"
+    ],
+    [
+      "UA-1",
+      "PN-1"
+    ],
+    [
+      "UA-1",
+      "DS-1"
+    ],
+    [
+      "TM-1",
+      "PN-1"
+    ],
+    [
+      "TM-1",
+      "DS-1"
+    ],
+    [
+      "TM-1",
+      "UI-1"
+    ],
+    [
+      "TM-1",
+      "TS-1"
+    ],
+    [
+      "PN-1",
+      "DS-1"
+    ],
+    [
+      "DS-1",
+      "UI-1"
+    ],
+    [
+      "DS-1",
+      "TS-1"
+    ],
+    [
+      "UI-1",
+      "TS-1"
+    ]
+  ],
+  "workflow_complete": true
+}

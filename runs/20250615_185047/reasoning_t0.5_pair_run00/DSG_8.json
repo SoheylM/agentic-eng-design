@@ -1,0 +1,49 @@
+{
+  "nodes": {
+    "a86aee78-1118-42d4-9bfe-9dc765a8c015": {
+      "node_id": "a86aee78-1118-42d4-9bfe-9dc765a8c015",
+      "node_kind": "Subsystem",
+      "name": "Solar Power Subsystem",
+      "description": "Captures solar energy and stores it for system operation with a focus on cost-effectiveness.",
+      "embodiment": {
+        "principle": "Standard Photovoltaic Panels with Basic Battery Storage",
+        "description": "Uses cost-effective, rigid solar panels and lead-acid batteries for reliability.",
+        "design_parameters": {
+          "solar_panel_efficiency": 15.0,
+          "battery_capacity": 10.0,
+          "battery_type": 1.0
+        },
+        "cost_estimate": 180.0,
+        "mass_estimate": 12.0,
+        "status": "concept"
+      },
+      "physics_models": [
+        {
+          "name": "Energy_Budget",
+          "equations": "E_total = E_solar * \u03b7 * t",
+          "coding_directives": "def energy_budget(solar_irradiance, time): return solar_irradiance * 0.15 * time",
+          "python_code": "def energy_budget(solar_irradiance, time): return solar_irradiance * 0.15 * time",
+          "coder_notes": "Solar irradiance is constant at 300 W/m\u00b2.",
+          "assumptions": [
+            "Solar irradiance is constant at 300 W/m\u00b2."
+          ],
+          "status": "verified"
+        }
+      ],
+      "linked_reqs": [
+        "SR-03",
+        "SR-04",
+        "SR-05"
+      ],
+      "verification_plan": "Test under varying solar conditions to ensure energy output meets requirements.",
+      "maturity": "low",
+      "tags": [
+        "solar",
+        "power",
+        "cost-effective"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}

@@ -1,0 +1,183 @@
+{
+  "nodes": {
+    "SP-1": {
+      "node_id": "SP-1",
+      "node_kind": "Physical",
+      "name": "Solar Panel",
+      "description": "Low-cost, efficient solar panel for energy generation",
+      "embodiment": {
+        "principle": "Photovoltaic",
+        "description": "",
+        "design_parameters": {
+          "efficiency": 0.15,
+          "area": 1.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Solar Irradiance Model",
+          "equations": "P = \u03b7 \u22c5 A \u22c5 G",
+          "coding_directives": "\u03b7 = 0.15, A = 1.0, G = 1000",
+          "python_code": "import numpy as np; P = 0.15 * 1.0 * 1000",
+          "coder_notes": "Assumes 15% efficient solar panel with 1m^2 area",
+          "assumptions": [
+            "Constant solar irradiance"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-03",
+        "SR-04"
+      ],
+      "verification_plan": "T: Measure power output under various solar irradiance conditions",
+      "maturity": "Low",
+      "tags": [
+        "Solar",
+        "Renewable Energy"
+      ]
+    },
+    "WT-1": {
+      "node_id": "WT-1",
+      "node_kind": "Physical",
+      "name": "Water Tank",
+      "description": "Low-cost, durable water tank for storing filtered water",
+      "embodiment": {
+        "principle": "Plastic Container",
+        "description": "",
+        "design_parameters": {
+          "volume": 50.0,
+          "material": 1.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Water Tank Model",
+          "equations": "V = \u03c0 \u22c5 r^2 \u22c5 h",
+          "coding_directives": "V = 50.0, r = 0.5, h = 1.0",
+          "python_code": "import numpy as np; V = np.pi * (0.5)**2 * 1.0",
+          "coder_notes": "Assumes cylindrical water tank with 50L volume",
+          "assumptions": [
+            "Constant water level"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-05"
+      ],
+      "verification_plan": "I: Inspect water tank for leaks and durability",
+      "maturity": "Medium",
+      "tags": [
+        "Water Storage",
+        "Plastic"
+      ]
+    },
+    "FS-1": {
+      "node_id": "FS-1",
+      "node_kind": "Physical",
+      "name": "Filtration System",
+      "description": "Low-cost, efficient filtration system for removing contaminants",
+      "embodiment": {
+        "principle": "Activated Carbon",
+        "description": "",
+        "design_parameters": {
+          "filter_area": 0.1,
+          "filter_thickness": 0.05
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Filtration Model",
+          "equations": "Q = (\u0394P / R) \u22c5 A",
+          "coding_directives": "Q = 10.0, \u0394P = 10.0, R = 100.0, A = 0.1",
+          "python_code": "import numpy as np; Q = (10.0 / 100.0) * 0.1",
+          "coder_notes": "Assumes activated carbon filter with 0.1m^2 area",
+          "assumptions": [
+            "Constant flow rate"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-02"
+      ],
+      "verification_plan": "T: Test filtration system for contaminant removal efficiency",
+      "maturity": "High",
+      "tags": [
+        "Filtration",
+        "Activated Carbon"
+      ]
+    },
+    "CS-1": {
+      "node_id": "CS-1",
+      "node_kind": "Physical",
+      "name": "Control System",
+      "description": "Low-cost, simple control system for monitoring and controlling filtration process",
+      "embodiment": {
+        "principle": "Microcontroller",
+        "description": "",
+        "design_parameters": {
+          "processing_speed": 100.0,
+          "memory": 1000.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Control Model",
+          "equations": "y = f(x)",
+          "coding_directives": "y = 10.0, x = 5.0",
+          "python_code": "import numpy as np; y = 10.0 * np.sin(5.0)",
+          "coder_notes": "Assumes microcontroller with 100MHz processing speed",
+          "assumptions": [
+            "Constant input signal"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-09",
+        "SR-10"
+      ],
+      "verification_plan": "T: Test control system for functionality and user interface",
+      "maturity": "Medium",
+      "tags": [
+        "Control",
+        "Microcontroller"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "SP-1",
+      "CS-1"
+    ],
+    [
+      "CS-1",
+      "FS-1"
+    ],
+    [
+      "FS-1",
+      "WT-1"
+    ],
+    [
+      "WT-1",
+      "CS-1"
+    ]
+  ],
+  "workflow_complete": false
+}

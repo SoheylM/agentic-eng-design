@@ -1,0 +1,113 @@
+{
+  "nodes": {
+    "1": {
+      "node_id": "1",
+      "node_kind": "Function",
+      "name": "Solar Power Generation",
+      "description": "This subsystem generates power from solar energy.",
+      "embodiment": {
+        "principle": "Photovoltaic panels.",
+        "description": "",
+        "design_parameters": {
+          "power_output": 20.0,
+          "unit": 11.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-003",
+        "SR-004",
+        "SR-005"
+      ],
+      "verification_plan": "Performance testing under varying solar conditions.",
+      "maturity": "Low fidelity prototype",
+      "tags": [
+        "Renewable Energy"
+      ]
+    },
+    "2": {
+      "node_id": "2",
+      "node_kind": "Function",
+      "name": "Water Filtration",
+      "description": "Removes contaminants from raw water.",
+      "embodiment": {
+        "principle": "Ceramic filters.",
+        "description": "",
+        "design_parameters": {
+          "filtration_rate": 10.0,
+          "unit": 1.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-001",
+        "SR-002"
+      ],
+      "verification_plan": "Testing in controlled laboratory conditions.",
+      "maturity": "Concept design",
+      "tags": [
+        "Water Treatment"
+      ]
+    },
+    "3": {
+      "node_id": "3",
+      "node_kind": "Function",
+      "name": "Power Storage",
+      "description": "Stores excess energy for later use.",
+      "embodiment": {
+        "principle": "Lead-acid batteries.",
+        "description": "",
+        "design_parameters": {
+          "capacity": 100.0,
+          "unit": 8.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-005"
+      ],
+      "verification_plan": "Capacity and discharge rate testing.",
+      "maturity": "High fidelity prototype",
+      "tags": [
+        "Energy Storage"
+      ]
+    },
+    "4": {
+      "node_id": "4",
+      "node_kind": "Function",
+      "name": "Control and Monitoring",
+      "description": "Manages and monitors system operations.",
+      "embodiment": {
+        "principle": "Microcontroller-based system.",
+        "description": "",
+        "design_parameters": {
+          "response_time": 2.0,
+          "unit": 10.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-009"
+      ],
+      "verification_plan": "User interface testing.",
+      "maturity": "Concept design",
+      "tags": [
+        "Automation"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}

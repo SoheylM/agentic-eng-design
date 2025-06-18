@@ -1,0 +1,34 @@
+{
+  "nodes": {
+    "))": {
+      "node_id": "))",
+      "node_kind": "Subsystem",
+      "name": "Water Quality Monitoring",
+      "description": "Real-time monitoring of water quality parameters.",
+      "embodiment": {
+        "principle": "Sensors",
+        "description": "pH, TDS, and turbidity sensors with digital output.",
+        "design_parameters": {
+          "cost": 50.0,
+          "weight": 2.0
+        },
+        "cost_estimate": 50.0,
+        "mass_estimate": 2.0,
+        "status": "Proposed"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-02",
+        "SR-09"
+      ],
+      "verification_plan": " Accuracy testing of pH, TDS, and turbidity sensors; Response time testing of digital output.",
+      "maturity": "Low",
+      "tags": [
+        "Water Quality",
+        "Monitoring"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}

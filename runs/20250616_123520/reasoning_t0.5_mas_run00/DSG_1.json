@@ -1,0 +1,183 @@
+{
+  "nodes": {
+    "Authentication": {
+      "node_id": "Authentication",
+      "node_kind": "subsystem",
+      "name": "Authentication",
+      "description": "Handles user registration, login, and authentication using Firebase Authentication.",
+      "embodiment": {
+        "principle": "Firebase Authentication",
+        "description": "Firebase provides a robust and scalable authentication system that supports multiple methods and is easy to integrate.",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "STK-001",
+        "SYS-002"
+      ],
+      "verification_plan": "Unit and integration testing of authentication features.",
+      "maturity": "Low",
+      "tags": [
+        "security",
+        "user_management"
+      ]
+    },
+    "Task Management": {
+      "node_id": "Task Management",
+      "node_kind": "subsystem",
+      "name": "Task Management",
+      "description": "Manages the creation, editing, deletion, and marking of tasks as completed. It also filters tasks by completion status.",
+      "embodiment": {
+        "principle": "Firestore Database",
+        "description": "Firestore offers real-time data synchronization and scalability, which aligns with the application's requirements for data synchronization across devices.",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "STK-002",
+        "STK-003",
+        "SYS-003",
+        "SYS-006"
+      ],
+      "verification_plan": "Testing task creation, editing, deletion, and filtering functionality. Testing real-time updates among collaborators.",
+      "maturity": "Medium",
+      "tags": [
+        "task_management",
+        "data_storage"
+      ]
+    },
+    "Notifications": {
+      "node_id": "Notifications",
+      "node_kind": "subsystem",
+      "name": "Notifications",
+      "description": "Provides push notifications for upcoming deadlines and task reminders using Firebase Cloud Messaging.",
+      "embodiment": {
+        "principle": "Firebase Cloud Messaging",
+        "description": "FCM is a reliable service for sending push notifications to Android and iOS devices, ensuring timely reminders and updates for users.",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "STK-004",
+        "SYS-004"
+      ],
+      "verification_plan": "Testing notification delivery and user interaction with notifications.",
+      "maturity": "Low",
+      "tags": [
+        "notifications",
+        "user_reminders"
+      ]
+    },
+    "Dashboard": {
+      "node_id": "Dashboard",
+      "node_kind": "subsystem",
+      "name": "Dashboard",
+      "description": "Displays task statistics and progress visually using React Native Charts and Graphs library.",
+      "embodiment": {
+        "principle": "React Native Charts",
+        "description": "Visual representation of task data helps users quickly understand their progress and productivity trends.",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "STK-005",
+        "SYS-008"
+      ],
+      "verification_plan": "Testing the accuracy of data displayed in the dashboard and user experience.",
+      "maturity": "Medium",
+      "tags": [
+        "data_visualization",
+        "user_interface"
+      ]
+    },
+    "User Interface": {
+      "node_id": "User Interface",
+      "node_kind": "subsystem",
+      "name": "User Interface",
+      "description": "Provides an intuitive and user-friendly interface for task management, developed using Expo and native components.",
+      "embodiment": {
+        "principle": "Expo and Native Components",
+        "description": "Expo simplifies the development process and native components ensure optimal performance and user experience.",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "STK-009",
+        "SYS-005"
+      ],
+      "verification_plan": "Conducting usability testing and gathering user feedback on the interface.",
+      "maturity": "High",
+      "tags": [
+        "user_experience",
+        "ui/ux"
+      ]
+    },
+    "Data Security": {
+      "node_id": "Data Security",
+      "node_kind": "subsystem",
+      "name": "Data Security",
+      "description": "Ensures data security and privacy in accordance with GDPR guidelines through encryption and access controls.",
+      "embodiment": {
+        "principle": "Encryption and Access Controls",
+        "description": "GDPR requires personal data protection, and encryption along with strict access controls ensures data security and privacy.",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "STK-008",
+        "SYS-007"
+      ],
+      "verification_plan": "Conducting security audits and obtaining necessary certifications.",
+      "maturity": "Low",
+      "tags": [
+        "security",
+        "gdpr"
+      ]
+    },
+    "Cross-Platform Compatibility": {
+      "node_id": "Cross-Platform Compatibility",
+      "node_kind": "subsystem",
+      "name": "Cross-Platform Compatibility",
+      "description": "Ensures the application is compatible with both iOS and Android platforms using React Native.",
+      "embodiment": {
+        "principle": "React Native",
+        "description": "React Native allows for cost-effective development of apps that run on both iOS and Android with minimal code changes.",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "STK-010",
+        "SYS-001"
+      ],
+      "verification_plan": "Testing on both iOS and Android devices to ensure functionality and responsiveness.",
+      "maturity": "High",
+      "tags": [
+        "cross_platform",
+        "react_native"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}

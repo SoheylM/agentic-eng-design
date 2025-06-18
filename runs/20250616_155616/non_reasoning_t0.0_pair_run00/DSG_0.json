@@ -1,0 +1,224 @@
+{
+  "nodes": {
+    "SP-1": {
+      "node_id": "SP-1",
+      "node_kind": "Physical",
+      "name": "Solar Panel",
+      "description": "15V, 10A solar panel for energy harvesting",
+      "embodiment": {
+        "principle": "Photovoltaic",
+        "description": "",
+        "design_parameters": {
+          "area": 0.1,
+          "efficiency": 0.15
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Energy Harvesting",
+          "equations": "P = \u03b7 \u22c5 A \u22c5 G",
+          "coding_directives": "\u03b7 = 0.15, A = 0.1, G = 1000",
+          "python_code": "import numpy as np; P = 0.15 * 0.1 * 1000",
+          "coder_notes": "Assuming 15% efficiency and 0.1m^2 area",
+          "assumptions": [
+            "Constant solar irradiance"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-03",
+        "SR-04"
+      ],
+      "verification_plan": "Test under various solar irradiance conditions",
+      "maturity": "Low",
+      "tags": [
+        "Solar",
+        "Energy Harvesting"
+      ]
+    },
+    "B-1": {
+      "node_id": "B-1",
+      "node_kind": "Physical",
+      "name": "Battery",
+      "description": "12V, 10Ah lead-acid battery for energy storage",
+      "embodiment": {
+        "principle": "Electrochemical",
+        "description": "",
+        "design_parameters": {
+          "capacity": 10.0,
+          "voltage": 12.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Energy Storage",
+          "equations": "E = C \u22c5 V",
+          "coding_directives": "C = 10, V = 12",
+          "python_code": "import numpy as np; E = 10 * 12",
+          "coder_notes": "Assuming 10Ah capacity and 12V voltage",
+          "assumptions": [
+            "Constant voltage and capacity"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-05"
+      ],
+      "verification_plan": "Test under various load conditions",
+      "maturity": "Medium",
+      "tags": [
+        "Energy Storage",
+        "Battery"
+      ]
+    },
+    "P-1": {
+      "node_id": "P-1",
+      "node_kind": "Physical",
+      "name": "Pump",
+      "description": "DC-powered pump for water filtration",
+      "embodiment": {
+        "principle": "Centrifugal",
+        "description": "",
+        "design_parameters": {
+          "flow_rate": 10.0,
+          "pressure": 10.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Fluid Dynamics",
+          "equations": "Q = \u03b7 \u22c5 P \u22c5 A",
+          "coding_directives": "\u03b7 = 0.5, P = 10, A = 0.01",
+          "python_code": "import numpy as np; Q = 0.5 * 10 * 0.01",
+          "coder_notes": "Assuming 50% efficiency and 0.01m^2 area",
+          "assumptions": [
+            "Constant pressure and flow rate"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-02"
+      ],
+      "verification_plan": "Test under various flow rate conditions",
+      "maturity": "High",
+      "tags": [
+        "Pump",
+        "Water Filtration"
+      ]
+    },
+    "F-1": {
+      "node_id": "F-1",
+      "node_kind": "Physical",
+      "name": "Filter",
+      "description": "Activated carbon filter for water purification",
+      "embodiment": {
+        "principle": "Adsorption",
+        "description": "",
+        "design_parameters": {
+          "surface_area": 100.0,
+          "thickness": 10.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Adsorption Kinetics",
+          "equations": "C = k \u22c5 t",
+          "coding_directives": "k = 0.1, t = 10",
+          "python_code": "import numpy as np; C = 0.1 * 10",
+          "coder_notes": "Assuming 0.1min^-1 rate constant and 10min contact time",
+          "assumptions": [
+            "Constant concentration and contact time"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-02"
+      ],
+      "verification_plan": "Test under various concentration conditions",
+      "maturity": "Medium",
+      "tags": [
+        "Filter",
+        "Water Purification"
+      ]
+    },
+    "CE-1": {
+      "node_id": "CE-1",
+      "node_kind": "Physical",
+      "name": "Control Electronics",
+      "description": "Microcontroller-based control system for pump and filter",
+      "embodiment": {
+        "principle": "Digital",
+        "description": "",
+        "design_parameters": {
+          "processing_speed": 100.0,
+          "memory": 1000.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Digital Signal Processing",
+          "equations": "y = f(x)",
+          "coding_directives": "f(x) = x^2",
+          "python_code": "import numpy as np; y = x**2",
+          "coder_notes": "Assuming quadratic relationship between input and output",
+          "assumptions": [
+            "Constant input and output"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-09"
+      ],
+      "verification_plan": "Test under various input conditions",
+      "maturity": "High",
+      "tags": [
+        "Control Electronics",
+        "Digital Signal Processing"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "SP-1",
+      "B-1"
+    ],
+    [
+      "B-1",
+      "P-1"
+    ],
+    [
+      "P-1",
+      "F-1"
+    ],
+    [
+      "F-1",
+      "CE-1"
+    ],
+    [
+      "CE-1",
+      "P-1"
+    ]
+  ],
+  "workflow_complete": false
+}

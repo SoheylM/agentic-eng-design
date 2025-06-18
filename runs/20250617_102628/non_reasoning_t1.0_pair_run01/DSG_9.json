@@ -1,0 +1,177 @@
+{
+  "nodes": {
+    "Solar_Panel": {
+      "node_id": "Solar_Panel",
+      "node_kind": "Component",
+      "name": "Solar Panel",
+      "description": "Flexible thin-film solar panel with high-efficiency photovoltaic cells and lightweight materials",
+      "embodiment": {
+        "principle": "Photovoltaic",
+        "description": "Lightweight solar panel with advanced materials and design",
+        "design_parameters": {},
+        "cost_estimate": 250.0,
+        "mass_estimate": 0.8,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-01",
+        "SR-03"
+      ],
+      "verification_plan": "Inspection",
+      "maturity": "Medium",
+      "tags": [
+        "lightweight",
+        "portable"
+      ]
+    },
+    "Water_Pump": {
+      "node_id": "Water_Pump",
+      "node_kind": "Component",
+      "name": "Water Pump",
+      "description": "DC pump with advanced motor technology and compact design",
+      "embodiment": {
+        "principle": "Centrifugal",
+        "description": "Lightweight water pump with compact design",
+        "design_parameters": {},
+        "cost_estimate": 200.0,
+        "mass_estimate": 0.4,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-01",
+        "SR-02"
+      ],
+      "verification_plan": "Test",
+      "maturity": "Medium",
+      "tags": [
+        "lightweight",
+        "compact"
+      ]
+    },
+    "Filter_Module": {
+      "node_id": "Filter_Module",
+      "node_kind": "Component",
+      "name": "Filter Module",
+      "description": "Advanced ceramic filter with activated carbon and compact design",
+      "embodiment": {
+        "principle": "Filtration",
+        "description": "Lightweight filter module with compact design",
+        "design_parameters": {},
+        "cost_estimate": 220.0,
+        "mass_estimate": 0.9,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-02"
+      ],
+      "verification_plan": "Analysis",
+      "maturity": "Medium",
+      "tags": [
+        "lightweight",
+        "compact"
+      ]
+    },
+    "Control_Unit": {
+      "node_id": "Control_Unit",
+      "node_kind": "Component",
+      "name": "Control Unit",
+      "description": "Microcontroller with high-performance processing and data analytics and compact design",
+      "embodiment": {
+        "principle": "Microcontroller",
+        "description": "Lightweight control unit with compact design",
+        "design_parameters": {},
+        "cost_estimate": 180.0,
+        "mass_estimate": 0.2,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-09"
+      ],
+      "verification_plan": "Demonstration",
+      "maturity": "Medium",
+      "tags": [
+        "lightweight",
+        "compact"
+      ]
+    },
+    "Battery": {
+      "node_id": "Battery",
+      "node_kind": "Component",
+      "name": "Battery",
+      "description": "Lithium-ion battery with advanced battery management system and compact design",
+      "embodiment": {
+        "principle": "Lithium-ion",
+        "description": "Lightweight battery with compact design",
+        "design_parameters": {},
+        "cost_estimate": 280.0,
+        "mass_estimate": 1.6,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-05"
+      ],
+      "verification_plan": "Test",
+      "maturity": "Medium",
+      "tags": [
+        "lightweight",
+        "compact"
+      ]
+    },
+    "Water_Quality_Sensor": {
+      "node_id": "Water_Quality_Sensor",
+      "node_kind": "Component",
+      "name": "Water Quality Sensor",
+      "description": "Multi-parameter water quality sensor with advanced sensing technologies and compact design",
+      "embodiment": {
+        "principle": "Optical",
+        "description": "Lightweight water quality sensor with compact design",
+        "design_parameters": {},
+        "cost_estimate": 220.0,
+        "mass_estimate": 0.3,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-02"
+      ],
+      "verification_plan": "Analysis",
+      "maturity": "Medium",
+      "tags": [
+        "lightweight",
+        "compact"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "Solar_Panel",
+      "Control_Unit"
+    ],
+    [
+      "Control_Unit",
+      "Water_Pump"
+    ],
+    [
+      "Water_Pump",
+      "Filter_Module"
+    ],
+    [
+      "Filter_Module",
+      "Water_Quality_Sensor"
+    ],
+    [
+      "Water_Quality_Sensor",
+      "Control_Unit"
+    ],
+    [
+      "Control_Unit",
+      "Battery"
+    ]
+  ],
+  "workflow_complete": false
+}

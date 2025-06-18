@@ -1,0 +1,166 @@
+{
+  "nodes": {
+    "SPWF-1": {
+      "node_id": "SPWF-1",
+      "node_kind": "Subsystem",
+      "name": "Solar-Powered Water Filtration System",
+      "description": "Top-level system.",
+      "embodiment": {
+        "principle": "Photovoltaic Power Generation",
+        "description": "",
+        "design_parameters": {
+          "power_capacity": 500.0,
+          "voltage": 12.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-001",
+        "SR-002",
+        "SR-003",
+        "SR-004",
+        "SR-005",
+        "SR-006",
+        "SR-007",
+        "SR-008",
+        "SR-009",
+        "SR-010"
+      ],
+      "verification_plan": "Performance testing in controlled environments and user testing for operability.",
+      "maturity": "Concept",
+      "tags": []
+    },
+    "SP-1": {
+      "node_id": "SP-1",
+      "node_kind": "Component",
+      "name": "Solar Panels",
+      "description": "Generate electrical power from sunlight.",
+      "embodiment": {
+        "principle": "Photovoltaic Cells",
+        "description": "",
+        "design_parameters": {
+          "efficiency": 0.18,
+          "area": 1.2,
+          "material": 68.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-003",
+        "SR-005"
+      ],
+      "verification_plan": "Outdoor performance testing under varying irradiance conditions.",
+      "maturity": "Prototype",
+      "tags": []
+    },
+    "PMU-1": {
+      "node_id": "PMU-1",
+      "node_kind": "Component",
+      "name": "Power Management Unit",
+      "description": "Regulate and store electrical energy for the system.",
+      "embodiment": {
+        "principle": "PWM Charge Controller",
+        "description": "",
+        "design_parameters": {
+          "efficiency": 0.9,
+          "max_current": 5.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-004",
+        "SR-005"
+      ],
+      "verification_plan": "Battery charging and discharging cycle testing under different loads.",
+      "maturity": "Prototype",
+      "tags": []
+    },
+    "FU-1": {
+      "node_id": "FU-1",
+      "node_kind": "Component",
+      "name": "Filtration Unit",
+      "description": "Removes contaminants from raw water.",
+      "embodiment": {
+        "principle": "Ceramic Filter Elements",
+        "description": "",
+        "design_parameters": {
+          "pore_size": 0.2,
+          "surface_area": 0.1,
+          "material": 1.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-001",
+        "SR-002"
+      ],
+      "verification_plan": "Water quality testing before and after filtration.",
+      "maturity": "Prototype",
+      "tags": []
+    },
+    "ST-1": {
+      "node_id": "ST-1",
+      "node_kind": "Component",
+      "name": "Storage Tank",
+      "description": "Holds filtered potable water.",
+      "embodiment": {
+        "principle": "Plastic Container",
+        "description": "",
+        "design_parameters": {
+          "volume": 50.0,
+          "material": 5.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-001",
+        "SR-005"
+      ],
+      "verification_plan": "Volume and integrity testing under operational conditions.",
+      "maturity": "Prototype",
+      "tags": []
+    },
+    "CP-1": {
+      "node_id": "CP-1",
+      "node_kind": "Component",
+      "name": "Control Panel",
+      "description": "User interface and control electronics.",
+      "embodiment": {
+        "principle": "Microcontroller-based System",
+        "description": "",
+        "design_parameters": {
+          "power_consumption": 10.0,
+          "interface": 3.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-009",
+        "SR-010"
+      ],
+      "verification_plan": "User interface testing with untrained participants.",
+      "maturity": "Prototype",
+      "tags": []
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}

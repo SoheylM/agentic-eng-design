@@ -1,0 +1,82 @@
+{
+  "nodes": {
+    "1": {
+      "node_id": "1",
+      "node_kind": "Function",
+      "name": "Solar Power Generation",
+      "description": "Generates electrical power from solar energy",
+      "embodiment": {
+        "principle": "Flexible, thin-film solar panels",
+        "description": "Lightweight and easy to transport",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-003",
+        "SR-004",
+        "SR-005"
+      ],
+      "verification_plan": "Performance testing under various solar conditions",
+      "maturity": "High",
+      "tags": [
+        "Solar",
+        "Energy"
+      ]
+    },
+    "2": {
+      "node_id": "2",
+      "node_kind": "Function",
+      "name": "Water Filtration",
+      "description": "Removes impurities from raw water",
+      "embodiment": {
+        "principle": "Ceramic filters with hollow fiber technology",
+        "description": "Lightweight, portable, and easy to maintain",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-001",
+        "SR-002"
+      ],
+      "verification_plan": "Laboratory testing of filtration efficiency",
+      "maturity": "High",
+      "tags": [
+        "Filtration",
+        "Water"
+      ]
+    },
+    "3": {
+      "node_id": "3",
+      "node_kind": "Function",
+      "name": "Power Storage",
+      "description": "Stores excess energy for use during low sunlight",
+      "embodiment": {
+        "principle": "Compact lithium-ion batteries",
+        "description": "Small, lightweight, and energy-efficient",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-005",
+        "SR-004"
+      ],
+      "verification_plan": "Testing battery life and performance",
+      "maturity": "Medium",
+      "tags": [
+        "Battery",
+        "Storage"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}

@@ -1,0 +1,167 @@
+{
+  "nodes": {
+    "SP-3": {
+      "node_id": "SP-3",
+      "node_kind": "Physical",
+      "name": "Solar Panel",
+      "description": "High-efficiency solar panel for maximum energy generation",
+      "embodiment": {
+        "principle": "Thin-Film Silicon",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 200.0,
+        "mass_estimate": 8.0,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Efficiency Model",
+          "equations": "\u03b7 = 0.20 * (1 - 0.005 * (T - 25))",
+          "coding_directives": "",
+          "python_code": "",
+          "coder_notes": "",
+          "assumptions": [
+            "Constant irradiance"
+          ],
+          "status": "validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-02",
+        "SR-03"
+      ],
+      "verification_plan": "I",
+      "maturity": "High",
+      "tags": [
+        "Renewable Energy",
+        "Solar Power"
+      ]
+    },
+    "WP-3": {
+      "node_id": "WP-3",
+      "node_kind": "Physical",
+      "name": "Water Pump",
+      "description": "High-performance water pump for maximum flow rate",
+      "embodiment": {
+        "principle": "Centrifugal",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 150.0,
+        "mass_estimate": 6.0,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Flow Rate Model",
+          "equations": "Q = 20 * (1 - 0.01 * (P - 20))",
+          "coding_directives": "",
+          "python_code": "",
+          "coder_notes": "",
+          "assumptions": [
+            "Constant speed"
+          ],
+          "status": "validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-02"
+      ],
+      "verification_plan": "T",
+      "maturity": "High",
+      "tags": [
+        "Water Treatment",
+        "Pumping System"
+      ]
+    },
+    "FU-3": {
+      "node_id": "FU-3",
+      "node_kind": "Physical",
+      "name": "Filtration Unit",
+      "description": "High-performance filtration unit for maximum water purification",
+      "embodiment": {
+        "principle": "Ultrafiltration",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 180.0,
+        "mass_estimate": 10.0,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Removal Efficiency Model",
+          "equations": "\u03b7 = 0.95 * (1 - 0.01 * (C - 10))",
+          "coding_directives": "",
+          "python_code": "",
+          "coder_notes": "",
+          "assumptions": [
+            "Constant flow rate"
+          ],
+          "status": "validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-02"
+      ],
+      "verification_plan": "A",
+      "maturity": "High",
+      "tags": [
+        "Water Treatment",
+        "Filtration"
+      ]
+    },
+    "ES-3": {
+      "node_id": "ES-3",
+      "node_kind": "Physical",
+      "name": "Energy Storage",
+      "description": "High-performance energy storage for maximum solar power utilization",
+      "embodiment": {
+        "principle": "Lithium-Ion Battery",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 200.0,
+        "mass_estimate": 12.0,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Capacity Model",
+          "equations": "C = 25 * (1 - 0.01 * (V - 24))",
+          "coding_directives": "",
+          "python_code": "",
+          "coder_notes": "",
+          "assumptions": [
+            "Constant current"
+          ],
+          "status": "validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-03",
+        "SR-05"
+      ],
+      "verification_plan": "D",
+      "maturity": "High",
+      "tags": [
+        "Energy Storage",
+        "Battery"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "SP-3",
+      "ES-3"
+    ],
+    [
+      "ES-3",
+      "WP-3"
+    ],
+    [
+      "WP-3",
+      "FU-3"
+    ]
+  ],
+  "workflow_complete": false
+}

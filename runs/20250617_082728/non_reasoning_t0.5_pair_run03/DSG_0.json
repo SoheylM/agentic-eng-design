@@ -1,0 +1,177 @@
+{
+  "nodes": {
+    "SP-2": {
+      "node_id": "SP-2",
+      "node_kind": "Physical",
+      "name": "Solar Panel",
+      "description": "High-efficiency solar panel for maximum energy generation",
+      "embodiment": {
+        "principle": "Monocrystalline Silicon",
+        "description": "",
+        "design_parameters": {
+          "efficiency": 0.2,
+          "area": 1.5
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Efficiency Model",
+          "equations": "\u03b7 = 0.20 * (1 - 0.005 * (T - 25))",
+          "coding_directives": "Python",
+          "python_code": "import numpy as np; def efficiency_model(T): return 0.20 * (1 - 0.005 * (T - 25))",
+          "coder_notes": "Temperature in Celsius",
+          "assumptions": [
+            "Constant irradiance"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-03",
+        "SR-04"
+      ],
+      "verification_plan": "T",
+      "maturity": "Medium",
+      "tags": [
+        "Renewable Energy",
+        "Solar Power"
+      ]
+    },
+    "WP-2": {
+      "node_id": "WP-2",
+      "node_kind": "Physical",
+      "name": "Water Pump",
+      "description": "High-performance water pump for maximum flow rate",
+      "embodiment": {
+        "principle": "Centrifugal",
+        "description": "",
+        "design_parameters": {
+          "flow_rate": 20.0,
+          "pressure_head": 20.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Flow Rate Model",
+          "equations": "Q = 20 * (1 - 0.01 * (P - 20))",
+          "coding_directives": "Python",
+          "python_code": "import numpy as np; def flow_rate_model(P): return 20 * (1 - 0.01 * (P - 20))",
+          "coder_notes": "Pressure in psi",
+          "assumptions": [
+            "Constant speed"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-04"
+      ],
+      "verification_plan": "T",
+      "maturity": "Medium",
+      "tags": [
+        "Water Treatment",
+        "Pumping System"
+      ]
+    },
+    "FU-2": {
+      "node_id": "FU-2",
+      "node_kind": "Physical",
+      "name": "Filtration Unit",
+      "description": "High-performance filtration unit for maximum water purification",
+      "embodiment": {
+        "principle": "Ultrafiltration",
+        "description": "",
+        "design_parameters": {
+          "filter_area": 0.2,
+          "filter_thickness": 0.1
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Removal Efficiency Model",
+          "equations": "\u03b7 = 0.95 * (1 - 0.01 * (C - 10))",
+          "coding_directives": "Python",
+          "python_code": "import numpy as np; def removal_efficiency_model(C): return 0.95 * (1 - 0.01 * (C - 10))",
+          "coder_notes": "Concentration in mg/L",
+          "assumptions": [
+            "Constant flow rate"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-02"
+      ],
+      "verification_plan": "T",
+      "maturity": "Medium",
+      "tags": [
+        "Water Treatment",
+        "Filtration"
+      ]
+    },
+    "ES-2": {
+      "node_id": "ES-2",
+      "node_kind": "Physical",
+      "name": "Energy Storage",
+      "description": "High-performance energy storage for maximum solar power utilization",
+      "embodiment": {
+        "principle": "Lithium-Ion Battery",
+        "description": "",
+        "design_parameters": {
+          "capacity": 20.0,
+          "voltage": 24.0
+        },
+        "cost_estimate": -1.0,
+        "mass_estimate": -1.0,
+        "status": "draft"
+      },
+      "physics_models": [
+        {
+          "name": "Capacity Model",
+          "equations": "C = 20 * (1 - 0.01 * (V - 24))",
+          "coding_directives": "Python",
+          "python_code": "import numpy as np; def capacity_model(V): return 20 * (1 - 0.01 * (V - 24))",
+          "coder_notes": "Voltage in V",
+          "assumptions": [
+            "Constant current"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-05"
+      ],
+      "verification_plan": "T",
+      "maturity": "Medium",
+      "tags": [
+        "Energy Storage",
+        "Battery"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "SP-2",
+      "ES-2"
+    ],
+    [
+      "ES-2",
+      "WP-2"
+    ],
+    [
+      "WP-2",
+      "FU-2"
+    ]
+  ],
+  "workflow_complete": false
+}

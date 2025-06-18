@@ -1,0 +1,31 @@
+{
+  "nodes": {
+    "WaterIn": {
+      "node_id": "WaterIn",
+      "node_kind": "Component",
+      "name": "Water Inlet",
+      "description": "Raw water intake with protective screen.",
+      "embodiment": {
+        "principle": "Engineered",
+        "description": "Screen mesh with float valve.",
+        "design_parameters": {
+          "cost": 15.0,
+          "weight": 1.5
+        },
+        "cost_estimate": 15.0,
+        "mass_estimate": 1.5,
+        "status": "Proposed"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SN-1",
+        "SN-5"
+      ],
+      "verification_plan": "Test inlet flow rate.",
+      "maturity": "Low",
+      "tags": []
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}

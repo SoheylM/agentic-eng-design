@@ -176,7 +176,7 @@ def process_batch(base_dir: Path, batch_id: str) -> pd.DataFrame:
 def generate_report(df: pd.DataFrame, output_dir: Path, batch_id: str):
     """Generate CSV, LaTeX, and plots for the batch."""
     stats = (
-        df.groupby(["llm_type", "temperature", "workflow_type"])
+        df.groupby(["llm_type", "temperature", "workflow"])
         .agg({
             "M1": ["mean", "std"],
             "M2": ["mean", "std"],
@@ -203,7 +203,7 @@ def generate_report(df: pd.DataFrame, output_dir: Path, batch_id: str):
     metrics = ["M1", "M2", "M3", "M4", "M5"]
     fig, axes = plt.subplots(len(metrics), 1, figsize=(10, 4 * len(metrics)))
     for ax, metric in zip(axes, metrics):
-        for (llm, wf), grp in df.groupby(["llm_type", "workflow_type"]):
+        for (llm, wf), grp in df.groupby(["llm_type", "workflow"]):
             summary = grp.groupby("temperature")[metric].agg(["mean", "std"])
             ax.errorbar(
                 summary.index,

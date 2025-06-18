@@ -1,0 +1,155 @@
+{
+  "nodes": {
+    "{{ sccm_9201 }}": {
+      "node_id": "{{ sccm_9201 }}",
+      "node_kind": "function",
+      "name": "Solar Power Generation",
+      "description": "Generates electrical power from solar energy",
+      "embodiment": {
+        "principle": "Flexible, thin-film solar panels",
+        "description": "Lightweight and easy to transport",
+        "design_parameters": {},
+        "cost_estimate": 150.0,
+        "mass_estimate": 10.0,
+        "status": "final"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-003",
+        "SR-004",
+        "SR-005"
+      ],
+      "verification_plan": "Outdoor testing under varying irradiance conditions.",
+      "maturity": "High",
+      "tags": [
+        "Solar",
+        "Energy"
+      ]
+    },
+    "2": {
+      "node_id": "2",
+      "node_kind": "function",
+      "name": "Water Filtration",
+      "description": "Removes impurities from raw water",
+      "embodiment": {
+        "principle": "Ceramic filters with hollow fiber technology",
+        "description": "Lightweight, portable, and easy to maintain",
+        "design_parameters": {},
+        "cost_estimate": 200.0,
+        "mass_estimate": 8.0,
+        "status": "final"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-001",
+        "SR-002"
+      ],
+      "verification_plan": "Laboratory testing of filtration efficiency.",
+      "maturity": "High",
+      "tags": [
+        "Filtration",
+        "Water"
+      ]
+    },
+    "3": {
+      "node_id": "3",
+      "node_kind": "function",
+      "name": "Power Storage",
+      "description": "Stores excess energy for use during low sunlight",
+      "embodiment": {
+        "principle": "Compact lithium-ion batteries",
+        "description": "Small, lightweight, and energy-efficient",
+        "design_parameters": {},
+        "cost_estimate": 100.0,
+        "mass_estimate": 5.0,
+        "status": "final"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-005"
+      ],
+      "verification_plan": "Testing battery performance over multiple cycles.",
+      "maturity": "Medium",
+      "tags": [
+        "Battery",
+        "Storage"
+      ]
+    },
+    "4": {
+      "node_id": "4",
+      "node_kind": "function",
+      "name": "Water Pump",
+      "description": "Pumps water through the filtration system",
+      "embodiment": {
+        "principle": "DC submersible pump",
+        "description": "High efficiency, low power consumption",
+        "design_parameters": {},
+        "cost_estimate": 50.0,
+        "mass_estimate": 2.0,
+        "status": "final"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-001",
+        "SR-004"
+      ],
+      "verification_plan": "Measurement of pump flow rate and power consumption.",
+      "maturity": "High",
+      "tags": [
+        "Pump",
+        "Water"
+      ]
+    },
+    "5": {
+      "node_id": "5",
+      "node_kind": "function",
+      "name": "System Controls",
+      "description": "Monitors and controls system operation",
+      "embodiment": {
+        "principle": "Microcontroller-based control system",
+        "description": "Automates system start/stop and monitors water quality",
+        "design_parameters": {},
+        "cost_estimate": 80.0,
+        "mass_estimate": 1.0,
+        "status": "final"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-009"
+      ],
+      "verification_plan": "User testing of control interface.",
+      "maturity": "Medium",
+      "tags": [
+        "Controls",
+        "Automation"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "{{ sccm_9201 }}",
+      "3"
+    ],
+    [
+      "{{ sccm_9201 }}",
+      "5"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "3",
+      "5"
+    ],
+    [
+      "4",
+      "2"
+    ],
+    [
+      "2",
+      "5"
+    ]
+  ],
+  "workflow_complete": false
+}

@@ -1,0 +1,5 @@
+{"config": {"llm_type": "reasoning", "temperature": 0.0, "workflow_type": "pair", "run_id": 0, "seed": 0}, "start_time": "2025-06-15T17:44:40.162005", "success": true, "error": null, "n_dsgs": 1, "wall_time": 39.81298613548279}
+{"config": {"llm_type": "reasoning", "temperature": 0.0, "workflow_type": "pair", "run_id": 1, "seed": 1}, "start_time": "2025-06-15T17:45:19.975544", "success": true, "error": null, "n_dsgs": 1, "wall_time": 38.34819316864014}
+{"config": {"llm_type": "reasoning", "temperature": 0.0, "workflow_type": "pair", "run_id": 2, "seed": 2}, "start_time": "2025-06-15T17:45:58.323865", "success": true, "error": null, "n_dsgs": 1, "wall_time": 38.255882024765015}
+{"config": {"llm_type": "reasoning", "temperature": 0.0, "workflow_type": "pair", "run_id": 3, "seed": 3}, "start_time": "2025-06-15T17:46:36.580046", "success": true, "error": null, "n_dsgs": 1, "wall_time": 38.30262899398804}
+{"config": {"llm_type": "reasoning", "temperature": 0.0, "workflow_type": "pair", "run_id": 4, "seed": 4}, "start_time": "2025-06-15T17:47:14.882969", "success": true, "error": null, "n_dsgs": 1, "wall_time": 38.282394886016846}

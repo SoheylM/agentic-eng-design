@@ -1,0 +1,166 @@
+{
+  "nodes": {
+    "SP-1": {
+      "node_id": "SP-1",
+      "node_kind": "Physical",
+      "name": "Solar Panel",
+      "description": "Low-cost, efficient solar panel for energy generation",
+      "embodiment": {
+        "principle": "Photovoltaic",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 40.0,
+        "mass_estimate": 3.0,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Solar Irradiance Model",
+          "equations": "P = \u03b7 \u22c5 A \u22c5 G",
+          "coding_directives": "import numpy as np; P = 0.15 * 1.0 * 1000",
+          "python_code": "import numpy as np; P = 0.15 * 1.0 * 1000",
+          "coder_notes": "Constant solar irradiance",
+          "assumptions": [
+            "Constant solar irradiance"
+          ],
+          "status": "validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-03",
+        "SR-04"
+      ],
+      "verification_plan": "T",
+      "maturity": "Low",
+      "tags": [
+        "Solar",
+        "Renewable Energy"
+      ]
+    },
+    "WT-1": {
+      "node_id": "WT-1",
+      "node_kind": "Physical",
+      "name": "Water Tank",
+      "description": "Low-cost, durable water tank for storing filtered water",
+      "embodiment": {
+        "principle": "Plastic Container",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 30.0,
+        "mass_estimate": 5.0,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Water Tank Model",
+          "equations": "V = \u03c0 \u22c5 r^2 \u22c5 h",
+          "coding_directives": "import numpy as np; V = np.pi * (0.5)**2 * 1.0",
+          "python_code": "import numpy as np; V = np.pi * (0.5)**2 * 1.0",
+          "coder_notes": "Constant water level",
+          "assumptions": [
+            "Constant water level"
+          ],
+          "status": "validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-05"
+      ],
+      "verification_plan": "T",
+      "maturity": "Medium",
+      "tags": [
+        "Water Storage",
+        "Plastic"
+      ]
+    },
+    "FS-1": {
+      "node_id": "FS-1",
+      "node_kind": "Physical",
+      "name": "Filtration System",
+      "description": "Low-cost, efficient filtration system for removing contaminants",
+      "embodiment": {
+        "principle": "Activated Carbon",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 50.0,
+        "mass_estimate": 3.0,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Filtration Model",
+          "equations": "Q = (\u0394P / R) \u22c5 A",
+          "coding_directives": "import numpy as np; Q = (10.0 / 100.0) * 0.1",
+          "python_code": "import numpy as np; Q = (10.0 / 100.0) * 0.1",
+          "coder_notes": "Constant flow rate",
+          "assumptions": [
+            "Constant flow rate"
+          ],
+          "status": "validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-02"
+      ],
+      "verification_plan": "T",
+      "maturity": "High",
+      "tags": [
+        "Filtration",
+        "Activated Carbon"
+      ]
+    },
+    "CS-1": {
+      "node_id": "CS-1",
+      "node_kind": "Physical",
+      "name": "Control System",
+      "description": "Low-cost, simple control system for monitoring and controlling filtration process",
+      "embodiment": {
+        "principle": "Microcontroller",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 20.0,
+        "mass_estimate": 1.0,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Control Model",
+          "equations": "y = f(x)",
+          "coding_directives": "import numpy as np; y = 10.0 * np.sin(5.0)",
+          "python_code": "import numpy as np; y = 10.0 * np.sin(5.0)",
+          "coder_notes": "Constant input signal",
+          "assumptions": [
+            "Constant input signal"
+          ],
+          "status": "validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-09"
+      ],
+      "verification_plan": "T",
+      "maturity": "Medium",
+      "tags": [
+        "Control",
+        "Microcontroller"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "SP-1",
+      "CS-1"
+    ],
+    [
+      "WT-1",
+      "FS-1"
+    ],
+    [
+      "CS-1",
+      "FS-1"
+    ]
+  ],
+  "workflow_complete": false
+}

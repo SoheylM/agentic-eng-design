@@ -1,0 +1,32 @@
+[
+  {
+    "run_folder": "reasoning_t0.0_mas_run00",
+    "llm_type": "reasoning",
+    "temperature": 0.0,
+    "workflow": "mas"
+  },
+  {
+    "run_folder": "reasoning_t0.0_mas_run01",
+    "llm_type": "reasoning",
+    "temperature": 0.0,
+    "workflow": "mas"
+  },
+  {
+    "run_folder": "reasoning_t0.0_mas_run02",
+    "llm_type": "reasoning",
+    "temperature": 0.0,
+    "workflow": "mas"
+  },
+  {
+    "run_folder": "reasoning_t0.0_mas_run03",
+    "llm_type": "reasoning",
+    "temperature": 0.0,
+    "workflow": "mas"
+  },
+  {
+    "run_folder": "reasoning_t0.0_mas_run04",
+    "llm_type": "reasoning",
+    "temperature": 0.0,
+    "workflow": "mas"
+  }
+]

@@ -1,0 +1,203 @@
+{
+  "nodes": {
+    "SP-1": {
+      "node_id": "SP-1",
+      "node_kind": "Physical",
+      "name": "Solar Panel",
+      "description": "15V, 10A solar panel for power generation",
+      "embodiment": {
+        "principle": "Photovoltaic",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 40.0,
+        "mass_estimate": 5.0,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Power Generation",
+          "equations": "P = \u03b7 \u22c5 A \u22c5 G",
+          "coding_directives": "import numpy as np; P = 0.15 * 0.1 * 1000",
+          "python_code": "import numpy as np; P = 0.15 * 0.1 * 1000",
+          "coder_notes": "Constant solar irradiance",
+          "assumptions": [
+            "Constant solar irradiance"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-03"
+      ],
+      "verification_plan": "Test matrices, analysis protocols, and pass/fail criteria linked to each SR",
+      "maturity": "Low",
+      "tags": [
+        "Solar",
+        "Power"
+      ]
+    },
+    "WT-1": {
+      "node_id": "WT-1",
+      "node_kind": "Physical",
+      "name": "Water Tank",
+      "description": "10L water tank for storing filtered water",
+      "embodiment": {
+        "principle": "Plastic Container",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 15.0,
+        "mass_estimate": 3.0,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Volume Calculation",
+          "equations": "V = l \u22c5 w \u22c5 h",
+          "coding_directives": "import numpy as np; V = 10 * 10 * 10",
+          "python_code": "import numpy as np; V = 10 * 10 * 10",
+          "coder_notes": "Constant water level",
+          "assumptions": [
+            "Constant water level"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01"
+      ],
+      "verification_plan": "Test matrices, analysis protocols, and pass/fail criteria linked to each SR",
+      "maturity": "Medium",
+      "tags": [
+        "Water",
+        "Storage"
+      ]
+    },
+    "FU-1": {
+      "node_id": "FU-1",
+      "node_kind": "Physical",
+      "name": "Filtration Unit",
+      "description": "Removes bacteria, viruses, and micro-plastics from water",
+      "embodiment": {
+        "principle": "Ceramic Filter",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 80.0,
+        "mass_estimate": 10.0,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Filtration Efficiency",
+          "equations": "\u03b7 = (1 - (d_p / d_f))^2",
+          "coding_directives": "import numpy as np; \u03b7 = (1 - (0.1 / 10))^2",
+          "python_code": "import numpy as np; \u03b7 = (1 - (0.1 / 10))^2",
+          "coder_notes": "Constant water flow rate",
+          "assumptions": [
+            "Constant water flow rate"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-02"
+      ],
+      "verification_plan": "Test matrices, analysis protocols, and pass/fail criteria linked to each SR",
+      "maturity": "High",
+      "tags": [
+        "Filtration",
+        "Water"
+      ]
+    },
+    "CU-1": {
+      "node_id": "CU-1",
+      "node_kind": "Physical",
+      "name": "Control Unit",
+      "description": "Controls filtration process and monitors water quality",
+      "embodiment": {
+        "principle": "Microcontroller",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 40.0,
+        "mass_estimate": 2.0,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Control Algorithm",
+          "equations": "y = f(x)",
+          "coding_directives": "import numpy as np; y = np.sin(x)",
+          "python_code": "import numpy as np; y = np.sin(x)",
+          "coder_notes": "Constant water quality",
+          "assumptions": [
+            "Constant water quality"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-09"
+      ],
+      "verification_plan": "Test matrices, analysis protocols, and pass/fail criteria linked to each SR",
+      "maturity": "Medium",
+      "tags": [
+        "Control",
+        "Water"
+      ]
+    },
+    "ES-1": {
+      "node_id": "ES-1",
+      "node_kind": "Physical",
+      "name": "Energy Storage",
+      "description": "Provides energy storage for the system",
+      "embodiment": {
+        "principle": "Battery",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": 40.0,
+        "mass_estimate": 5.0,
+        "status": "validated"
+      },
+      "physics_models": [
+        {
+          "name": "Energy Storage Capacity",
+          "equations": "E = C \u22c5 V",
+          "coding_directives": "import numpy as np; E = 10 * 12",
+          "python_code": "import numpy as np; E = 10 * 12",
+          "coder_notes": "Constant energy storage capacity",
+          "assumptions": [
+            "Constant energy storage capacity"
+          ],
+          "status": "Validated"
+        }
+      ],
+      "linked_reqs": [
+        "SR-05"
+      ],
+      "verification_plan": "Test matrices, analysis protocols, and pass/fail criteria linked to each SR",
+      "maturity": "Low",
+      "tags": [
+        "Energy",
+        "Storage"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "SP-1",
+      "CU-1"
+    ],
+    [
+      "WT-1",
+      "FU-1"
+    ],
+    [
+      "FU-1",
+      "CU-1"
+    ],
+    [
+      "CU-1",
+      "ES-1"
+    ]
+  ],
+  "workflow_complete": false
+}

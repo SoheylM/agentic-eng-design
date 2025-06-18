@@ -1,0 +1,32 @@
+[
+  {
+    "run_folder": "non_reasoning_t1.0_pair_run00",
+    "llm_type": "non_reasoning",
+    "temperature": 1.0,
+    "workflow": "pair"
+  },
+  {
+    "run_folder": "non_reasoning_t1.0_pair_run01",
+    "llm_type": "non_reasoning",
+    "temperature": 1.0,
+    "workflow": "pair"
+  },
+  {
+    "run_folder": "non_reasoning_t1.0_pair_run02",
+    "llm_type": "non_reasoning",
+    "temperature": 1.0,
+    "workflow": "pair"
+  },
+  {
+    "run_folder": "non_reasoning_t1.0_pair_run03",
+    "llm_type": "non_reasoning",
+    "temperature": 1.0,
+    "workflow": "pair"
+  },
+  {
+    "run_folder": "non_reasoning_t1.0_pair_run04",
+    "llm_type": "non_reasoning",
+    "temperature": 1.0,
+    "workflow": "pair"
+  }
+]

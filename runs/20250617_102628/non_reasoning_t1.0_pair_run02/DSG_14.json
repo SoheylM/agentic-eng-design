@@ -1,0 +1,175 @@
+{
+  "nodes": {
+    "Solar_Panel": {
+      "node_id": "Solar_Panel",
+      "node_kind": "Component",
+      "name": "Solar Panel",
+      "description": "Thin-film solar panel with higher efficiency and lighter weight",
+      "embodiment": {
+        "principle": "Photovoltaic",
+        "description": "High-efficiency thin-film solar cells",
+        "design_parameters": {},
+        "cost_estimate": 100.0,
+        "mass_estimate": 1.5,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-03"
+      ],
+      "verification_plan": "T",
+      "maturity": "High",
+      "tags": [
+        "low_weight",
+        "high_efficiency"
+      ]
+    },
+    "Water_Pump": {
+      "node_id": "Water_Pump",
+      "node_kind": "Component",
+      "name": "Water Pump",
+      "description": "Low-power DC pump with higher flow rate and lighter weight",
+      "embodiment": {
+        "principle": "Centrifugal",
+        "description": "Low-power DC pump with higher flow rate and lighter weight",
+        "design_parameters": {},
+        "cost_estimate": 35.0,
+        "mass_estimate": 0.6,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-01"
+      ],
+      "verification_plan": "T",
+      "maturity": "High",
+      "tags": [
+        "low_weight",
+        "high_flow_rate"
+      ]
+    },
+    "Filter_Module": {
+      "node_id": "Filter_Module",
+      "node_kind": "Component",
+      "name": "Filter Module",
+      "description": "Ceramic water filter with higher filtration efficiency and lighter weight",
+      "embodiment": {
+        "principle": "Filtration",
+        "description": "Ceramic water filter with higher filtration efficiency and lighter weight",
+        "design_parameters": {},
+        "cost_estimate": 45.0,
+        "mass_estimate": 1.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-02"
+      ],
+      "verification_plan": "T",
+      "maturity": "High",
+      "tags": [
+        "low_weight",
+        "high_filtration_efficiency"
+      ]
+    },
+    "Control_Unit": {
+      "node_id": "Control_Unit",
+      "node_kind": "Component",
+      "name": "Control Unit",
+      "description": "Basic microcontroller with higher processing power and lighter weight",
+      "embodiment": {
+        "principle": "Microcontroller",
+        "description": "Basic microcontroller with higher processing power and lighter weight",
+        "design_parameters": {},
+        "cost_estimate": 30.0,
+        "mass_estimate": 0.3,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-09"
+      ],
+      "verification_plan": "T",
+      "maturity": "High",
+      "tags": [
+        "low_weight",
+        "high_processing_power"
+      ]
+    },
+    "Battery": {
+      "node_id": "Battery",
+      "node_kind": "Component",
+      "name": "Battery",
+      "description": "Lightweight lithium-ion battery with moderate capacity",
+      "embodiment": {
+        "principle": "Lithium-ion",
+        "description": "Lightweight lithium-ion battery with moderate capacity",
+        "design_parameters": {},
+        "cost_estimate": 60.0,
+        "mass_estimate": 2.0,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-05"
+      ],
+      "verification_plan": "T",
+      "maturity": "High",
+      "tags": [
+        "low_weight",
+        "moderate_capacity"
+      ]
+    },
+    "Water_Quality_Sensor": {
+      "node_id": "Water_Quality_Sensor",
+      "node_kind": "Component",
+      "name": "Water Quality Sensor",
+      "description": "Single-parameter water quality sensor with higher accuracy and lighter weight",
+      "embodiment": {
+        "principle": "Optical",
+        "description": "Single-parameter water quality sensor with higher accuracy and lighter weight",
+        "design_parameters": {},
+        "cost_estimate": 40.0,
+        "mass_estimate": 0.4,
+        "status": "draft"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-09"
+      ],
+      "verification_plan": "T",
+      "maturity": "High",
+      "tags": [
+        "low_weight",
+        "high_accuracy"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "Solar_Panel",
+      "Control_Unit"
+    ],
+    [
+      "Control_Unit",
+      "Water_Pump"
+    ],
+    [
+      "Water_Pump",
+      "Filter_Module"
+    ],
+    [
+      "Filter_Module",
+      "Water_Quality_Sensor"
+    ],
+    [
+      "Water_Quality_Sensor",
+      "Control_Unit"
+    ],
+    [
+      "Control_Unit",
+      "Battery"
+    ]
+  ],
+  "workflow_complete": false
+}

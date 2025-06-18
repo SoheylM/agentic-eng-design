@@ -1,0 +1,172 @@
+{
+  "nodes": {
+    "UA-5": {
+      "node_id": "UA-5",
+      "node_kind": "Function",
+      "name": "User Authentication",
+      "description": "Basic user authentication with essential security features.",
+      "embodiment": {
+        "principle": "Firebase Authentication",
+        "description": "Basic authentication without advanced security features.",
+        "design_parameters": {},
+        "cost_estimate": 4000.0,
+        "mass_estimate": -1.0,
+        "status": "final"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "STK-001"
+      ],
+      "verification_plan": "Testing on both iOS and Android devices to ensure functionality.",
+      "maturity": "Medium",
+      "tags": [
+        "Authentication",
+        "Firebase"
+      ]
+    },
+    "TM-5": {
+      "node_id": "TM-5",
+      "node_kind": "Function",
+      "name": "Task Management",
+      "description": "Lightweight task management with essential features.",
+      "embodiment": {
+        "principle": "React Native",
+        "description": "Basic task management without additional features.",
+        "design_parameters": {},
+        "cost_estimate": 12000.0,
+        "mass_estimate": -1.0,
+        "status": "final"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "STK-002"
+      ],
+      "verification_plan": "Unit and integration testing to validate task management features.",
+      "maturity": "Medium",
+      "tags": [
+        "Task Management",
+        "React Native"
+      ]
+    },
+    "PN-5": {
+      "node_id": "PN-5",
+      "node_kind": "Function",
+      "name": "Push Notifications",
+      "description": "Basic push notifications for task deadlines.",
+      "embodiment": {
+        "principle": "Firebase Cloud Messaging",
+        "description": "Basic push notifications without personalization.",
+        "design_parameters": {},
+        "cost_estimate": 2500.0,
+        "mass_estimate": -1.0,
+        "status": "final"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "STK-003"
+      ],
+      "verification_plan": "Testing push notifications on multiple devices.",
+      "maturity": "Medium",
+      "tags": [
+        "Notifications",
+        "FCM"
+      ]
+    },
+    "DS-5": {
+      "node_id": "DS-5",
+      "node_kind": "Function",
+      "name": "Data Synchronization",
+      "description": "Basic data synchronization across devices.",
+      "embodiment": {
+        "principle": "Firebase Realtime Database",
+        "description": "Basic data synchronization without advanced features.",
+        "design_parameters": {},
+        "cost_estimate": 6000.0,
+        "mass_estimate": -1.0,
+        "status": "final"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "STK-004"
+      ],
+      "verification_plan": "Testing data synchronization across multiple devices.",
+      "maturity": "Medium",
+      "tags": [
+        "Data Sync",
+        "Firebase"
+      ]
+    },
+    "UI-5": {
+      "node_id": "UI-5",
+      "node_kind": "Function",
+      "name": "User Interface",
+      "description": "Clean and minimal user interface.",
+      "embodiment": {
+        "principle": "React Native",
+        "description": "Basic UI with minimal design elements.",
+        "design_parameters": {},
+        "cost_estimate": 8000.0,
+        "mass_estimate": -1.0,
+        "status": "final"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "STK-002",
+        "STK-005"
+      ],
+      "verification_plan": "Conducting usability testing with a focus group.",
+      "maturity": "Medium",
+      "tags": [
+        "UI",
+        "React Native"
+      ]
+    },
+    "TS-5": {
+      "node_id": "TS-5",
+      "node_kind": "Function",
+      "name": "Task Sharing",
+      "description": "Basic task sharing with essential access control.",
+      "embodiment": {
+        "principle": "Firebase Database",
+        "description": "Basic access control for shared tasks.",
+        "design_parameters": {},
+        "cost_estimate": 5000.0,
+        "mass_estimate": -1.0,
+        "status": "final"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "STK-005"
+      ],
+      "verification_plan": "Testing task sharing functionality.",
+      "maturity": "Medium",
+      "tags": [
+        "Task Sharing",
+        "Firebase"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "UA-5",
+      "TM-5"
+    ],
+    [
+      "TM-5",
+      "PN-5"
+    ],
+    [
+      "PN-5",
+      "DS-5"
+    ],
+    [
+      "DS-5",
+      "UI-5"
+    ],
+    [
+      "UI-5",
+      "TS-5"
+    ]
+  ],
+  "workflow_complete": false
+}

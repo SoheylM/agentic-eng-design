@@ -1,0 +1,32 @@
+[
+  {
+    "run_folder": "non_reasoning_t0.5_mas_run00",
+    "llm_type": "non_reasoning",
+    "temperature": 0.5,
+    "workflow": "mas"
+  },
+  {
+    "run_folder": "non_reasoning_t0.5_mas_run01",
+    "llm_type": "non_reasoning",
+    "temperature": 0.5,
+    "workflow": "mas"
+  },
+  {
+    "run_folder": "non_reasoning_t0.5_mas_run02",
+    "llm_type": "non_reasoning",
+    "temperature": 0.5,
+    "workflow": "mas"
+  },
+  {
+    "run_folder": "non_reasoning_t0.5_mas_run03",
+    "llm_type": "non_reasoning",
+    "temperature": 0.5,
+    "workflow": "mas"
+  },
+  {
+    "run_folder": "non_reasoning_t0.5_mas_run04",
+    "llm_type": "non_reasoning",
+    "temperature": 0.5,
+    "workflow": "mas"
+  }
+]

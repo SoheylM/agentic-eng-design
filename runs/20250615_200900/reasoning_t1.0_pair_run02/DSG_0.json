@@ -1,0 +1,36 @@
+{
+  "nodes": {
+    "System": {
+      "node_id": "System",
+      "node_kind": "System",
+      "name": "Solar-Powered Water Filtration System",
+      "description": "Top-level system node",
+      "embodiment": {
+        "principle": "Engineered",
+        "description": "Overall system that integrates all subsystems",
+        "design_parameters": {
+          "cost": 450.0,
+          "weight": 18.0
+        },
+        "cost_estimate": 450.0,
+        "mass_estimate": 18.0,
+        "status": "Proposed"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SN-1",
+        "SN-2",
+        "SN-3",
+        "SN-4",
+        "SN-5"
+      ],
+      "verification_plan": "To be developed during design phase",
+      "maturity": "Low",
+      "tags": [
+        "sustainable"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}

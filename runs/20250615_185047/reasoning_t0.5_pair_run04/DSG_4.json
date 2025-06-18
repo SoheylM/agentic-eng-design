@@ -1,0 +1,174 @@
+{
+  "nodes": {
+    "c55d411d-2a52-4e53-af21-62e7f8f6147c": {
+      "node_id": "c55d411d-2a52-4e53-af21-62e7f8f6147c",
+      "node_kind": "Subsystem",
+      "name": "Solar Power Subsystem",
+      "description": "Captures solar energy and stores it for system operation with a focus on cost-effectiveness.",
+      "embodiment": {
+        "principle": "Standard Photovoltaic Panels with Basic Battery Storage",
+        "description": "Uses cost-effective, rigid solar panels and lead-acid batteries for reliability.",
+        "design_parameters": {
+          "solar_panel_efficiency": 15.0,
+          "battery_capacity": 10.0,
+          "battery_type": 1.0
+        },
+        "cost_estimate": 180.0,
+        "mass_estimate": 12.0,
+        "status": "concept"
+      },
+      "physics_models": [
+        {
+          "name": "Energy_Budget",
+          "equations": "E_total = E_solar * \u03b7 * t",
+          "coding_directives": "def energy_budget(solar_irradiance, time):\n    return solar_irradiance * 0.15 * time",
+          "python_code": "def energy_budget(solar_irradiance, time):\n    return solar_irradiance * 0.15 * time",
+          "coder_notes": "Solar irradiance is constant at 300 W/m\u00b2.",
+          "assumptions": [
+            "Solar irradiance is constant at 300 W/m\u00b2."
+          ],
+          "status": "verified"
+        }
+      ],
+      "linked_reqs": [
+        "SR-03",
+        "SR-04",
+        "SR-05"
+      ],
+      "verification_plan": "Test under varying solar conditions to ensure consistent energy output.",
+      "maturity": "low",
+      "tags": [
+        "solar",
+        "power",
+        "cost-effective"
+      ]
+    },
+    "0a0c7b5a-19b4-4c4e-9d70-6d4109a4b809": {
+      "node_id": "0a0c7b5a-19b4-4c4e-9d70-6d4109a4b809",
+      "node_kind": "Subsystem",
+      "name": "Filtration Subsystem",
+      "description": "Removes contaminants from raw water to produce potable water with minimal cost.",
+      "embodiment": {
+        "principle": "Ceramic Water Filter",
+        "description": "Utilizes a ceramic filter element for basic filtration.",
+        "design_parameters": {
+          "filtration_rate": 10.0,
+          "filter_pore_size": 0.2,
+          "filter_type": 2.0
+        },
+        "cost_estimate": 50.0,
+        "mass_estimate": 4.0,
+        "status": "concept"
+      },
+      "physics_models": [
+        {
+          "name": "Flow_Rate",
+          "equations": "Flow Rate = (Filter Area * Permeability) / Viscosity",
+          "coding_directives": "def flow_rate(filter_area, permeability, viscosity):\n    return (filter_area * permeability) / viscosity",
+          "python_code": "def flow_rate(filter_area, permeability, viscosity):\n    return (filter_area * permeability) / viscosity",
+          "coder_notes": "Water viscosity at 25\u00b0C.",
+          "assumptions": [
+            "Water viscosity at 25\u00b0C."
+          ],
+          "status": "verified"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-02"
+      ],
+      "verification_plan": "Test filtration efficiency under various water quality conditions.",
+      "maturity": "low",
+      "tags": [
+        "filtration",
+        "water",
+        "cost-effective"
+      ]
+    },
+    "6d027078-0bcc-48a3-be4e-66dd77e43760": {
+      "node_id": "6d027078-0bcc-48a3-be4e-66dd77e43760",
+      "node_kind": "Subsystem",
+      "name": "Water Quality Monitoring Subsystem",
+      "description": "Monitors and displays water quality parameters with a focus on cost-effectiveness.",
+      "embodiment": {
+        "principle": "Basic Digital Water Quality Sensors",
+        "description": "Incorporates basic sensors for pH, turbidity, and TDS.",
+        "design_parameters": {
+          "sensor_accuracy": 0.3,
+          "sampling_rate": 1.0,
+          "sensor_type": 1.0
+        },
+        "cost_estimate": 30.0,
+        "mass_estimate": 0.6,
+        "status": "concept"
+      },
+      "physics_models": [
+        {
+          "name": "Sensor_Response",
+          "equations": "Response Time = (Sensor Delay + Processing Time)",
+          "coding_directives": "def sensor_response(sensor_delay, processing_time):\n    return sensor_delay + processing_time",
+          "python_code": "def sensor_response(sensor_delay, processing_time):\n    return sensor_delay + processing_time",
+          "coder_notes": "Constant sensor delay and processing time.",
+          "assumptions": [
+            "Constant sensor delay and processing time."
+          ],
+          "status": "verified"
+        }
+      ],
+      "linked_reqs": [
+        "SR-09"
+      ],
+      "verification_plan": "Test sensor accuracy and response time under various conditions.",
+      "maturity": "low",
+      "tags": [
+        "sensors",
+        "monitoring",
+        "cost-effective"
+      ]
+    },
+    "9d7fbead-c81a-4ec7-842e-1dcbd74c2af8": {
+      "node_id": "9d7fbead-c81a-4ec7-842e-1dcbd74c2af8",
+      "node_kind": "Subsystem",
+      "name": "Power Management Subsystem",
+      "description": "Manages and optimizes power distribution and storage with a focus on cost-effectiveness.",
+      "embodiment": {
+        "principle": "Basic Charge Controller with Battery Management",
+        "description": "Uses a basic charge controller and battery management system.",
+        "design_parameters": {
+          "charge_efficiency": 0.8,
+          "discharge_rate": 0.1,
+          "management_type": 1.0
+        },
+        "cost_estimate": 40.0,
+        "mass_estimate": 2.5,
+        "status": "concept"
+      },
+      "physics_models": [
+        {
+          "name": "Charge_Discharge",
+          "equations": "Battery Level = Initial Charge - (Discharge Rate * Time)",
+          "coding_directives": "def battery_level(initial_charge, discharge_rate, time):\n    return initial_charge - (discharge_rate * time)",
+          "python_code": "def battery_level(initial_charge, discharge_rate, time):\n    return initial_charge - (discharge_rate * time)",
+          "coder_notes": "Constant discharge rate.",
+          "assumptions": [
+            "Constant discharge rate."
+          ],
+          "status": "verified"
+        }
+      ],
+      "linked_reqs": [
+        "SR-04",
+        "SR-05"
+      ],
+      "verification_plan": "Test battery life and charging efficiency under various loads.",
+      "maturity": "low",
+      "tags": [
+        "power",
+        "management",
+        "cost-effective"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}

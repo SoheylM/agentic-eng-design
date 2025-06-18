@@ -1,0 +1,171 @@
+{
+  "nodes": {
+    "SP-2": {
+      "node_id": "SP-2",
+      "node_kind": "Component",
+      "name": "Solar Panel",
+      "description": "Provides power to the system",
+      "embodiment": {
+        "principle": "Photovoltaic",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 10.0,
+        "status": "proposed"
+      },
+      "physics_models": [
+        {
+          "name": "Efficiency",
+          "equations": "\u03b7 = 0.20",
+          "coding_directives": "Use Python to calculate efficiency",
+          "python_code": "## Reasoning Process\n\nThe problem involves creating a high-fidelity physics node for a solar panel efficiency model. Given the equation `\u03b7 = 0.20`, which represents the efficiency of the solar panel, and the assumption of a constant temperature, we can develop a simple yet effective model.\n\nThe key components of this node will include:\n\n1.  **Model Definition**: A function that calculates the efficiency of the solar panel based on the given equation.\n2.  **Input/Output Handling**: The ability to accept input parameters and produce output in a suitable format.\n3.  **Command-Line Interface (CLI)**: Exposing key parameters via `argparse` for easy execution and customization.\n4.  **Logging**: Implementing Python's `logging` module to provide informative messages and control verbosity.\n5.  **Output Generation**: Writing results to an `./outputs` folder in a portable format (e.g., CSV) and optionally generating a quick-look plot.\n6.  **Testing/Verification**: Including a minimal pytest suite to validate the model against an analytic case.\n\n## Code Implementation\n\n```python\nimport numpy as np\nimport argparse\nimport logging\nimport os\nimport csv\nimport matplotlib.pyplot as plt\n\n# Set up logging\nlogging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')\n\ndef calculate_efficiency(efficiency_value):\n    \"\"\"\n    Calculates the efficiency of the solar panel.\n\n    Args:\n    efficiency_value (float): The efficiency value of the solar panel.\n\n    Returns:\n    float: The calculated efficiency.\n    \"\"\"\n    return efficiency_value\n\ndef main():\n    # Parse command-line arguments\n    parser = argparse.ArgumentParser(description='Solar Panel Efficiency Model')\n    parser.add_argument('--efficiency', type=float, default=0.20, help='Efficiency value of the solar panel')\n    parser.add_argument('--verbosity', type=int, default=1, help='Verbosity level (0-2)')\n    args = parser.parse_args()\n\n    # Adjust logging level based on verbosity\n    if args.verbosity == 0:\n        logging.basicConfig(level=logging.ERROR)\n    elif args.verbosity == 1:\n        logging.basicConfig(level=logging.INFO)\n    elif args.verbosity == 2:\n        logging.basicConfig(level=logging.DEBUG)\n\n    # Calculate efficiency\n    efficiency = calculate_efficiency(args.efficiency)\n\n    # Create output directory if it doesn't exist\n    output_dir = './outputs'\n    if not os.path.exists(output_dir):\n        os.makedirs(output_dir)\n\n    # Write efficiency to CSV file\n    with open(os.path.join(output_dir, 'efficiency.csv'), 'w', newline='') as csvfile:\n        writer = csv.writer(csvfile)\n        writer.writerow(['Efficiency'])\n        writer.writerow([efficiency])\n\n    # Generate quick-look plot\n    plt.plot([1], [efficiency], marker='o')\n    plt.xlabel('Solar Panel')\n    plt.ylabel('Efficiency')\n    plt.title('Solar Panel Efficiency')\n    plt.savefig(os.path.join(output_dir, 'efficiency_plot.png'))\n\n    # Log result\n    logging.info(f'Efficiency: {efficiency}')\n\n    # Coupling stub: Send/receive data if this node were composited with others\n    def send_data(data):\n        # TO DO: Implement data sending logic\n        pass\n\n    def receive_data():\n        # TO DO: Implement data receiving logic\n        pass\n\n    # Example usage of coupling stubs\n    # send_data(efficiency)\n    # received_data = receive_data()\n\nif __name__ == '__main__':\n    main()\n\n# Testing/Verification using pytest\nimport pytest\n\ndef test_calculate_efficiency():\n    efficiency_value = 0.20\n    assert calculate_efficiency(efficiency_value) == efficiency_value\n```\n\n## Usage\n\nTo run the script, save it as `solar_panel_efficiency.py` and execute it using Python:\n\n```bash\npython solar_panel_efficiency.py\n```\n\nYou can customize the efficiency value and verbosity level using command-line arguments:\n\n```bash\npython solar_panel_efficiency.py --efficiency 0.25 --verbosity 2\n```\n\nThe script will generate a CSV file containing the efficiency value and a quick-look plot in the `./outputs` directory.\n\n## Testing\n\nTo run the tests, install pytest and execute the following command:\n\n```bash\npytest solar_panel_efficiency.py\n```",
+          "coder_notes": "",
+          "assumptions": [
+            "Constant temperature"
+          ],
+          "status": "proposed"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-03",
+        "SR-04"
+      ],
+      "verification_plan": "Testing under controlled conditions",
+      "maturity": "low",
+      "tags": [
+        "renewable energy",
+        "solar panel"
+      ]
+    },
+    "WFU-2": {
+      "node_id": "WFU-2",
+      "node_kind": "SubSystem",
+      "name": "Water Filtration Unit",
+      "description": "Removes contaminants from water",
+      "embodiment": {
+        "principle": "Reverse Osmosis",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 20.0,
+        "status": "proposed"
+      },
+      "physics_models": [
+        {
+          "name": "Flow Rate",
+          "equations": "Q = 20 L/h",
+          "coding_directives": "Use Python to calculate flow rate",
+          "python_code": "## Reasoning Process\n\nThe problem involves modeling the flow rate of a water filtration unit. The given equation is Q = 20 L/h, which represents a constant flow rate. The assumption is that the pressure is constant.\n\nTo create a high-fidelity physics node, we will:\n\n1. Define the flow rate as a constant value.\n2. Create a function to calculate the flow rate.\n3. Use the `argparse` library to expose key parameters via the command line.\n4. Use the `logging` library to log messages with a verbosity flag.\n5. Write the results to an output file in a portable format (NumPy).\n6. Include a minimal pytest suite to check the flow rate calculation.\n\n## Python Code\n\n```python\nimport numpy as np\nimport argparse\nimport logging\nimport os\nimport pytest\n\n# Define the flow rate as a constant value\nFLOW_RATE_CONSTANT = 20  # L/h\n\ndef calculate_flow_rate():\n    \"\"\"\n    Calculate the flow rate of the water filtration unit.\n\n    Returns:\n        float: The flow rate in L/h.\n    \"\"\"\n    return FLOW_RATE_CONSTANT\n\ndef main():\n    # Parse command line arguments\n    parser = argparse.ArgumentParser(description='Water Filtration Unit Flow Rate Model')\n    parser.add_argument('--verbosity', type=int, default=1, help='Verbosity level (0-2)')\n    args = parser.parse_args()\n\n    # Set up logging\n    logging.basicConfig(level=logging.INFO if args.verbosity > 0 else logging.WARNING)\n\n    # Calculate the flow rate\n    flow_rate = calculate_flow_rate()\n    logging.info(f'Flow rate: {flow_rate} L/h')\n\n    # Write the results to an output file\n    output_dir = './outputs'\n    if not os.path.exists(output_dir):\n        os.makedirs(output_dir)\n    np.save(os.path.join(output_dir, 'flow_rate.npy'), flow_rate)\n\n    # Optional: quick-look plot\n    import matplotlib.pyplot as plt\n    plt.plot([0, 1], [flow_rate, flow_rate])\n    plt.xlabel('Time (h)')\n    plt.ylabel('Flow Rate (L/h)')\n    plt.title('Water Filtration Unit Flow Rate')\n    plt.savefig(os.path.join(output_dir, 'flow_rate_plot.png'))\n\ndef coupling_stub(flow_rate):\n    \"\"\"\n    Stub function to send/receive data if this node were composited with others.\n\n    Args:\n        flow_rate (float): The flow rate to send/receive.\n    \"\"\"\n    # TO DO: implement coupling logic here\n    pass\n\n# Pytest suite\ndef test_calculate_flow_rate():\n    assert calculate_flow_rate() == FLOW_RATE_CONSTANT\n\nif __name__ == '__main__':\n    main()\n    pytest.main([__file__])\n```\n\n## Usage\n\n1. Save this code in a file named `water_filtration_unit.py`.\n2. Run the code using `python water_filtration_unit.py`.\n3. The flow rate will be calculated and logged to the console.\n4. The results will be written to an output file named `flow_rate.npy` in the `./outputs` directory.\n5. An optional quick-look plot will be saved to `flow_rate_plot.png` in the same directory.\n\nNote: This code assumes a constant flow rate and does not account for any time-dependent effects. In a real-world scenario, you would need to consider additional factors such as pressure, temperature, and fluid properties to create a more accurate model.",
+          "coder_notes": "",
+          "assumptions": [
+            "Constant pressure"
+          ],
+          "status": "proposed"
+        }
+      ],
+      "linked_reqs": [
+        "SR-01",
+        "SR-02"
+      ],
+      "verification_plan": "Testing under controlled conditions",
+      "maturity": "low",
+      "tags": [
+        "water treatment",
+        "reverse osmosis"
+      ]
+    },
+    "B-2": {
+      "node_id": "B-2",
+      "node_kind": "Component",
+      "name": "Battery",
+      "description": "Stores energy for the system",
+      "embodiment": {
+        "principle": "Lithium-Ion",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 10.0,
+        "status": "proposed"
+      },
+      "physics_models": [
+        {
+          "name": "Capacity",
+          "equations": "C = 20 Ah",
+          "coding_directives": "Use Python to calculate capacity",
+          "python_code": "### Reasoning Process\n\nThe problem involves creating a high-fidelity physics/data-generation node for a battery capacity model. Given the equation `C = 20 Ah`, which represents the capacity of the battery, and the assumption of constant temperature, we can develop a simple Python script to model this behavior.\n\nSince the capacity is given as a constant value, we don't need to implement any complex numerical methods or time-integration approaches. However, we can still create a structured code that allows for easy extension or modification in the future.\n\nWe will use the following steps to develop the code:\n\n1. Define a `Battery` class to encapsulate the properties and behavior of the battery.\n2. Initialize the battery with the given capacity and temperature assumption.\n3. Create a method to calculate the capacity of the battery.\n4. Use `argparse` to expose key parameters via the command line interface.\n5. Implement logging using Python's `logging` module.\n6. Write the results to an output file in a portable format (e.g., CSV).\n7. Include a minimal pytest suite to verify the correctness of the code.\n\n### Code\n\n```python\nimport numpy as np\nimport argparse\nimport logging\nimport csv\nimport pytest\n\n# Define the Battery class\nclass Battery:\n    def __init__(self, capacity, temperature_assumption):\n        \"\"\"\n        Initialize the battery with the given capacity and temperature assumption.\n\n        Args:\n            capacity (float): The capacity of the battery in Ah.\n            temperature_assumption (str): The assumption about the temperature.\n        \"\"\"\n        self.capacity = capacity\n        self.temperature_assumption = temperature_assumption\n\n    def calculate_capacity(self):\n        \"\"\"\n        Calculate the capacity of the battery.\n\n        Returns:\n            float: The capacity of the battery in Ah.\n        \"\"\"\n        return self.capacity\n\n# Define the main function\ndef main():\n    # Parse command line arguments\n    parser = argparse.ArgumentParser(description='Battery Capacity Model')\n    parser.add_argument('--capacity', type=float, default=20, help='The capacity of the battery in Ah')\n    parser.add_argument('--temperature_assumption', type=str, default='Constant temperature', help='The assumption about the temperature')\n    parser.add_argument('--verbosity', type=int, default=0, help='The level of verbosity')\n    args = parser.parse_args()\n\n    # Set up logging\n    logging.basicConfig(level=logging.INFO if args.verbosity > 0 else logging.WARNING)\n\n    # Create a Battery instance\n    battery = Battery(args.capacity, args.temperature_assumption)\n\n    # Calculate the capacity\n    capacity = battery.calculate_capacity()\n\n    # Log the result\n    logging.info(f'Capacity: {capacity} Ah')\n\n    # Write the result to an output file\n    with open('outputs/battery_capacity.csv', 'w', newline='') as csvfile:\n        writer = csv.writer(csvfile)\n        writer.writerow(['Capacity (Ah)'])\n        writer.writerow([capacity])\n\n# Define a test function\ndef test_battery_capacity():\n    battery = Battery(20, 'Constant temperature')\n    assert battery.calculate_capacity() == 20\n\n# Run the main function\nif __name__ == '__main__':\n    main()\n\n# Run the test function\npytest.main([__file__, '-v'])\n```\n\n### Usage\n\nTo run the code, save it to a file (e.g., `battery_capacity.py`) and execute it using Python:\n```bash\npython battery_capacity.py\n```\nThis will calculate the capacity of the battery and write the result to an output file `outputs/battery_capacity.csv`. You can also use the command line arguments to modify the capacity and temperature assumption:\n```bash\npython battery_capacity.py --capacity 30 --temperature_assumption 'Variable temperature'\n```\nTo run the test function, use the following command:\n```bash\npytest battery_capacity.py\n```\nThis will verify that the `calculate_capacity` method returns the correct result.",
+          "coder_notes": "",
+          "assumptions": [
+            "Constant temperature"
+          ],
+          "status": "proposed"
+        }
+      ],
+      "linked_reqs": [
+        "SR-05"
+      ],
+      "verification_plan": "Testing under controlled conditions",
+      "maturity": "low",
+      "tags": [
+        "energy storage",
+        "lithium-ion battery"
+      ]
+    },
+    "CU-2": {
+      "node_id": "CU-2",
+      "node_kind": "Component",
+      "name": "Control Unit",
+      "description": "Controls the system's operation",
+      "embodiment": {
+        "principle": "Microcontroller",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 2.0,
+        "status": "proposed"
+      },
+      "physics_models": [
+        {
+          "name": "Power Consumption",
+          "equations": "P = 10 W",
+          "coding_directives": "Use Python to calculate power consumption",
+          "python_code": "### Reasoning Process\n\nThe problem involves creating a high-fidelity physics-based simulation node for a control unit's power consumption. The governing equation is given as P = 10 W, with the assumption of constant voltage. \n\nGiven the simplicity of the equation, we can create a basic Python script that calculates the power consumption and provides options for logging, outputting results, and testing.\n\n### Code\n\n```python\nimport numpy as np\nimport argparse\nimport logging\nimport os\nimport pytest\n\n# Set up logging\nlogging.basicConfig(level=logging.INFO)\nlogger = logging.getLogger(__name__)\n\ndef calculate_power_consumption():\n    \"\"\"\n    Calculates the power consumption of the control unit.\n\n    Returns:\n        float: The power consumption in Watts.\n    \"\"\"\n    power_consumption = 10  # W\n    return power_consumption\n\ndef save_results(power_consumption, output_dir):\n    \"\"\"\n    Saves the power consumption results to a file.\n\n    Args:\n        power_consumption (float): The power consumption in Watts.\n        output_dir (str): The directory to save the results in.\n    \"\"\"\n    if not os.path.exists(output_dir):\n        os.makedirs(output_dir)\n    np.save(os.path.join(output_dir, 'power_consumption.npy'), power_consumption)\n\ndef plot_results(power_consumption):\n    \"\"\"\n    Plots the power consumption results.\n\n    Args:\n        power_consumption (float): The power consumption in Watts.\n    \"\"\"\n    import matplotlib.pyplot as plt\n    plt.plot([power_consumption])\n    plt.xlabel('Time')\n    plt.ylabel('Power Consumption (W)')\n    plt.title('Power Consumption Over Time')\n    plt.show()\n\ndef coupling_stub(power_consumption):\n    \"\"\"\n    A stub function for sending/receiving data to/from other nodes.\n\n    Args:\n        power_consumption (float): The power consumption in Watts.\n\n    Returns:\n        float: The power consumption in Watts.\n    \"\"\"\n    # TO DO: implement coupling logic here\n    return power_consumption\n\ndef main():\n    parser = argparse.ArgumentParser(description='Control Unit Power Consumption Node')\n    parser.add_argument('--output_dir', default='./outputs', help='Directory to save results in')\n    parser.add_argument('--verbosity', choices=['INFO', 'DEBUG', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help='Logging verbosity')\n    args = parser.parse_args()\n\n    logger.setLevel(getattr(logging, args.verbosity))\n\n    power_consumption = calculate_power_consumption()\n    logger.info(f'Power consumption: {power_consumption} W')\n\n    save_results(power_consumption, args.output_dir)\n    plot_results(power_consumption)\n\n    coupling_stub(power_consumption)\n\ndef test_calculate_power_consumption():\n    assert calculate_power_consumption() == 10\n\nif __name__ == '__main__':\n    main()\n```\n\n### Usage\n\nTo run the script, save it to a file (e.g., `control_unit.py`) and execute it using Python:\n```bash\npython control_unit.py\n```\nThis will calculate the power consumption, save the results to a file, plot the results, and log the power consumption at the specified verbosity level.\n\nTo test the `calculate_power_consumption` function, run the following command:\n```bash\npytest control_unit.py\n```\nThis will run the test case and report any failures or errors.",
+          "coder_notes": "",
+          "assumptions": [
+            "Constant voltage"
+          ],
+          "status": "proposed"
+        }
+      ],
+      "linked_reqs": [
+        "SR-04",
+        "SR-09"
+      ],
+      "verification_plan": "Testing under controlled conditions",
+      "maturity": "low",
+      "tags": [
+        "control system",
+        "microcontroller"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "SP-2",
+      "CU-2"
+    ],
+    [
+      "CU-2",
+      "WFU-2"
+    ],
+    [
+      "WFU-2",
+      "B-2"
+    ],
+    [
+      "B-2",
+      "CU-2"
+    ]
+  ],
+  "workflow_complete": false
+}

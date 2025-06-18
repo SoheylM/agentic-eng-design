@@ -1,0 +1,179 @@
+{
+  "nodes": {
+    "Node-1": {
+      "node_id": "Node-1",
+      "node_kind": "Subsystem",
+      "name": "Solar Power Generation",
+      "description": "Compact and lightweight solar panels for easy portability.",
+      "embodiment": {
+        "principle": "Flexible thin-film solar panels",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 8.0,
+        "status": "Complete"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-003",
+        "SR-004",
+        "SR-005"
+      ],
+      "verification_plan": "Testing under varying solar irradiance conditions.",
+      "maturity": "High",
+      "tags": []
+    },
+    "Node-2": {
+      "node_id": "Node-2",
+      "node_kind": "Subsystem",
+      "name": "Water Filtration",
+      "description": "Lightweight and compact filtration unit using microfiltration technology.",
+      "embodiment": {
+        "principle": "Microfiltration (MF) membranes",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 4.0,
+        "status": "Complete"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-001",
+        "SR-002"
+      ],
+      "verification_plan": "Third-party testing for water quality.",
+      "maturity": "High",
+      "tags": []
+    },
+    "Node-3": {
+      "node_id": "Node-3",
+      "node_kind": "Component",
+      "name": "Water Pump",
+      "description": "Compact and lightweight DC pump for water extraction and filtration feed.",
+      "embodiment": {
+        "principle": "Low-weight DC diaphragm pump",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 1.5,
+        "status": "Complete"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-001",
+        "SR-004"
+      ],
+      "verification_plan": "Performance testing under load.",
+      "maturity": "High",
+      "tags": []
+    },
+    "Node-4": {
+      "node_id": "Node-4",
+      "node_kind": "Subsystem",
+      "name": "Energy Storage",
+      "description": "Lightweight battery solution using lithium-ion technology for portability.",
+      "embodiment": {
+        "principle": "Compact lithium-ion batteries",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 10.0,
+        "status": "Complete"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-005"
+      ],
+      "verification_plan": "Capacity and discharge rate testing.",
+      "maturity": "High",
+      "tags": []
+    },
+    "Node-5": {
+      "node_id": "Node-5",
+      "node_kind": "Component",
+      "name": "Control Unit",
+      "description": "Microcontroller-based unit optimized for low power consumption and portability.",
+      "embodiment": {
+        "principle": "Low-power microcontroller system",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 0.8,
+        "status": "Complete"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-009"
+      ],
+      "verification_plan": "User interface and functional testing.",
+      "maturity": "High",
+      "tags": []
+    },
+    "Node-6": {
+      "node_id": "Node-6",
+      "node_kind": "Component",
+      "name": "Water Quality Sensors",
+      "description": "Lightweight and compact sensors for essential water quality monitoring.",
+      "embodiment": {
+        "principle": "Compact TDS and pH sensors",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 0.3,
+        "status": "Complete"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-002",
+        "SR-009"
+      ],
+      "verification_plan": "Accuracy testing under varying water conditions.",
+      "maturity": "High",
+      "tags": []
+    },
+    "Node-7": {
+      "node_id": "Node-7",
+      "node_kind": "Component",
+      "name": "User Interface",
+      "description": "Simple and intuitive interface with minimal controls for ease of use.",
+      "embodiment": {
+        "principle": "Basic LCD display with push buttons",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 0.2,
+        "status": "Complete"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-009"
+      ],
+      "verification_plan": "User testing with untrained participants.",
+      "maturity": "High",
+      "tags": []
+    },
+    "Node-8": {
+      "node_id": "Node-8",
+      "node_kind": "Component",
+      "name": "Housing",
+      "description": "Lightweight and durable enclosure using lightweight materials.",
+      "embodiment": {
+        "principle": "Lightweight polypropylene enclosure",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 3.0,
+        "status": "Complete"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-006"
+      ],
+      "verification_plan": "Environmental testing for durability.",
+      "maturity": "High",
+      "tags": []
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}

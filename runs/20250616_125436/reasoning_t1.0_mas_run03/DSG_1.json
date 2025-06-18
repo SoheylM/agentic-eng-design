@@ -1,0 +1,179 @@
+{
+  "nodes": {
+    "Node-1": {
+      "node_id": "Node-1",
+      "node_kind": "Subsystem",
+      "name": "Solar Power Generation",
+      "description": "High-efficiency solar panels and advanced charge controller to maximize power generation.",
+      "embodiment": {
+        "principle": "Monocrystalline solar panels with high-efficiency MPPT controller",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 12.0,
+        "status": "Complete"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-003",
+        "SR-004",
+        "SR-005"
+      ],
+      "verification_plan": "Testing under varying solar irradiance conditions.",
+      "maturity": "High",
+      "tags": []
+    },
+    "Node-2": {
+      "node_id": "Node-2",
+      "node_kind": "Subsystem",
+      "name": "Water Filtration",
+      "description": "High-performance filtration unit using UF and activated carbon for superior water quality.",
+      "embodiment": {
+        "principle": "Ultrafiltration (UF) membrane and activated carbon filter",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 6.0,
+        "status": "Complete"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-001",
+        "SR-002"
+      ],
+      "verification_plan": "Third-party testing for water quality.",
+      "maturity": "High",
+      "tags": []
+    },
+    "Node-3": {
+      "node_id": "Node-3",
+      "node_kind": "Component",
+      "name": "Water Pump",
+      "description": "High-flow DC pump for increased water throughput and efficiency.",
+      "embodiment": {
+        "principle": "High-pressure DC pump",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 3.0,
+        "status": "Complete"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-001",
+        "SR-004"
+      ],
+      "verification_plan": "Performance testing under load.",
+      "maturity": "High",
+      "tags": []
+    },
+    "Node-4": {
+      "node_id": "Node-4",
+      "node_kind": "Subsystem",
+      "name": "Energy Storage",
+      "description": "Advanced lithium-ion battery bank for higher energy storage capacity and efficiency.",
+      "embodiment": {
+        "principle": "Lithium-ion deep cycle batteries",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 18.0,
+        "status": "Complete"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-005"
+      ],
+      "verification_plan": "Capacity and discharge rate testing.",
+      "maturity": "High",
+      "tags": []
+    },
+    "Node-5": {
+      "node_id": "Node-5",
+      "node_kind": "Component",
+      "name": "Control Unit",
+      "description": "Advanced microcontroller-based unit with real-time monitoring and data logging capabilities.",
+      "embodiment": {
+        "principle": "Advanced PLC control system",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 2.0,
+        "status": "Complete"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-009"
+      ],
+      "verification_plan": "User interface and functional testing.",
+      "maturity": "High",
+      "tags": []
+    },
+    "Node-6": {
+      "node_id": "Node-6",
+      "node_kind": "Component",
+      "name": "Water Quality Sensors",
+      "description": "Advanced sensors for precise monitoring of water quality parameters.",
+      "embodiment": {
+        "principle": "Multi-parameter water quality sensors",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 0.7,
+        "status": "Complete"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-002",
+        "SR-009"
+      ],
+      "verification_plan": "Accuracy testing under varying water conditions.",
+      "maturity": "High",
+      "tags": []
+    },
+    "Node-7": {
+      "node_id": "Node-7",
+      "node_kind": "Component",
+      "name": "User Interface",
+      "description": "High-resolution touchscreen display for enhanced user interaction and monitoring.",
+      "embodiment": {
+        "principle": "LCD touchscreen display with integrated controls",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 0.4,
+        "status": "Complete"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-009"
+      ],
+      "verification_plan": "User testing with untrained participants.",
+      "maturity": "High",
+      "tags": []
+    },
+    "Node-8": {
+      "node_id": "Node-8",
+      "node_kind": "Component",
+      "name": "Housing",
+      "description": "Durable, weather-resistant enclosure with enhanced thermal management for electrical components.",
+      "embodiment": {
+        "principle": "Aluminum enclosure with thermal insulation",
+        "description": "",
+        "design_parameters": {},
+        "cost_estimate": -1.0,
+        "mass_estimate": 7.0,
+        "status": "Complete"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-006"
+      ],
+      "verification_plan": "Environmental testing for durability.",
+      "maturity": "High",
+      "tags": []
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}

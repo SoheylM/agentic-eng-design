@@ -1,0 +1,125 @@
+{
+  "nodes": {
+    "SP-1": {
+      "node_id": "SP-1",
+      "node_kind": "Component",
+      "name": "Solar Panels",
+      "description": "Generate electrical power from sunlight.",
+      "embodiment": {
+        "principle": "Photovoltaic Cells",
+        "description": "Standard efficiency photovoltaic cells with basic mounting system.",
+        "design_parameters": {},
+        "cost_estimate": 300.0,
+        "mass_estimate": 70.0,
+        "status": "detailed"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-003",
+        "SR-005"
+      ],
+      "verification_plan": "Outdoor performance testing in different environmental conditions.",
+      "maturity": "Prototype",
+      "tags": [
+        "Solar Power"
+      ]
+    },
+    "PMU-1": {
+      "node_id": "PMU-1",
+      "node_kind": "Component",
+      "name": "Power Management Unit",
+      "description": "Regulate and store electrical energy for the system.",
+      "embodiment": {
+        "principle": "PWM Charge Controller",
+        "description": "Basic PWM charge controller with essential protection features.",
+        "design_parameters": {},
+        "cost_estimate": 200.0,
+        "mass_estimate": 20.0,
+        "status": "detailed"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-004",
+        "SR-005"
+      ],
+      "verification_plan": "Power consumption testing under load.",
+      "maturity": "Prototype",
+      "tags": [
+        "Power Management"
+      ]
+    },
+    "FU-1": {
+      "node_id": "FU-1",
+      "node_kind": "Component",
+      "name": "Filtration Unit",
+      "description": "Removes contaminants from raw water.",
+      "embodiment": {
+        "principle": "Ceramic Filter Elements",
+        "description": "Ceramic filter with 0.2 \u00b5m pore size for basic filtration needs.",
+        "design_parameters": {},
+        "cost_estimate": 150.0,
+        "mass_estimate": 15.0,
+        "status": "detailed"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-001",
+        "SR-002"
+      ],
+      "verification_plan": "Third-party laboratory testing for water quality.",
+      "maturity": "Prototype",
+      "tags": [
+        "Water Filtration"
+      ]
+    },
+    "ST-1": {
+      "node_id": "ST-1",
+      "node_kind": "Component",
+      "name": "Storage Tank",
+      "description": "Holds filtered potable water.",
+      "embodiment": {
+        "principle": "Plastic Container",
+        "description": "Standard food-grade plastic tank for water storage.",
+        "design_parameters": {},
+        "cost_estimate": 50.0,
+        "mass_estimate": 10.0,
+        "status": "detailed"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-001",
+        "SR-005"
+      ],
+      "verification_plan": "Capacity and leakage testing.",
+      "maturity": "Prototype",
+      "tags": [
+        "Water Storage"
+      ]
+    },
+    "CP-1": {
+      "node_id": "CP-1",
+      "node_kind": "Component",
+      "name": "Control Panel",
+      "description": "User interface and control electronics.",
+      "embodiment": {
+        "principle": "Microcontroller-based System",
+        "description": "Basic control panel with essential user interface features.",
+        "design_parameters": {},
+        "cost_estimate": 100.0,
+        "mass_estimate": 5.0,
+        "status": "detailed"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-009"
+      ],
+      "verification_plan": "User interface testing with untrained participants.",
+      "maturity": "Prototype",
+      "tags": [
+        "Control System"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": true
+}

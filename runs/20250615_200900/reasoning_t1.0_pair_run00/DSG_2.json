@@ -1,0 +1,56 @@
+{
+  "nodes": {
+    "WaterIn": {
+      "node_id": "WaterIn",
+      "node_kind": "Component",
+      "name": "Water Inlet",
+      "description": "Intake for raw water source",
+      "embodiment": {
+        "principle": "Engineered",
+        "description": "Screen or simple valve",
+        "design_parameters": {
+          "cost": 15.0,
+          "weight": 1.5
+        },
+        "cost_estimate": 15.0,
+        "mass_estimate": 1.5,
+        "status": "Proposed"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SN-5",
+        "SR-03"
+      ],
+      "verification_plan": "Ensure inlet doesn't restrict flow rate below 10 L/h",
+      "maturity": "Low",
+      "tags": []
+    },
+    "PreFiltration": {
+      "node_id": "PreFiltration",
+      "node_kind": "Component",
+      "name": "Pre-Filtration",
+      "description": "Coarse filter to remove large particles",
+      "embodiment": {
+        "principle": "Engineered",
+        "description": "Simple mesh filter",
+        "design_parameters": {
+          "cost": 20.0,
+          "weight": 0.8
+        },
+        "cost_estimate": 20.0,
+        "mass_estimate": 0.8,
+        "status": "Proposed"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SN-2",
+        "SR-02"
+      ],
+      "verification_plan": "Test filtration efficiency with 1 \u03bcm particles",
+      "maturity": "Low",
+      "tags": []
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}
