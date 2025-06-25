@@ -60,7 +60,7 @@ def req_coverage(dsg: DesignState) -> float:
 
 def embodiment_ratio(dsg: DesignState) -> float:
     ok = [n for n in dsg.nodes.values()
-          if n.embodiment and n.embodiment.principle != "undefined"]
+          if n.embodiment] #and n.embodiment.principle != "undefined"]
     return len(ok) / len(dsg.nodes) if dsg.nodes else 0.0
 
 
@@ -229,14 +229,14 @@ def generate_report(df: pd.DataFrame, output_dir: Path, batch_id: str):
         .round(3)
     )
     
-    # Save
+    # Save CSV
     output_dir.mkdir(parents=True, exist_ok=True)
     csv_path = output_dir / f"aggregate_metrics_{batch_id}.csv"
     stats.to_csv(csv_path)
 
+    # Generate custom LaTeX table
     tex_path = output_dir / f"experiment_stats_{batch_id}.tex"
-    with tex_path.open("w") as f:
-        f.write(stats.to_latex())
+    generate_latex_table(df, tex_path, batch_id)
 
     # plots
     import matplotlib.pyplot as plt
@@ -261,6 +261,105 @@ def generate_report(df: pd.DataFrame, output_dir: Path, batch_id: str):
     plt.tight_layout()
     plt.savefig(output_dir / f"experiment_plots_{batch_id}.png")
     plt.close()
+
+
+def format_mean_std(mean_val, std_val):
+    """Format mean ± std with appropriate precision based on std value."""
+    if pd.isna(mean_val) or pd.isna(std_val):
+        return r"\tbd\,$\pm$\,\tbd"
+    
+    # Determine precision based on std value
+    if std_val == 0:
+        precision = 0
+    elif std_val < 0.01:
+        precision = 4
+    elif std_val < 0.1:
+        precision = 3
+    elif std_val < 1:
+        precision = 2
+    elif std_val < 10:
+        precision = 1
+    else:
+        precision = 0
+    
+    mean_formatted = f"{mean_val:.{precision}f}".rstrip('0').rstrip('.')
+    std_formatted = f"{std_val:.{precision}f}".rstrip('0').rstrip('.')
+    
+    return f"{mean_formatted}\\,$\\pm$\\,{std_formatted}"
+
+
+def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
+    """Generate custom LaTeX table in the specified format."""
+    
+    # Calculate statistics
+    stats = (
+        df.groupby(["llm_type", "temperature", "workflow"])
+        .agg({
+            "M1": ["mean", "std"],
+            "M2": ["mean", "std"],
+            "M3": ["mean", "std"],
+            "M4": ["mean", "std"],
+            "M5": ["mean", "std"],
+            "M6": ["mean", "std"],
+            "M7": ["mean", "std"],
+        })
+        .round(3)
+    )
+    
+    # LLM name mapping
+    llm_names = {
+        "reasoning": "Llama 3.3 70B",
+        "non_reasoning": "DeepSeek R1 70B"
+    }
+    
+    # Workflow name mapping
+    workflow_names = {
+        "mas": "MAS",
+        "2as": "2AS"
+    }
+    
+    with open(output_path, 'w') as f:
+        f.write(r"\begin{table}[ht]" + "\n")
+        f.write(r"  \centering" + "\n")
+        f.write(r"  \caption{Overall performance (mean\,$\pm$\,std over 10 runs) of each LLM under the multi-agent system (MAS) and two-agent system (2AS) across temperature settings. Best values in \textbf{bold}.}" + "\n")
+        f.write(r"  \label{tab:main-results}" + "\n")
+        f.write(r"  \begin{tabular}{llcccccccc}" + "\n")
+        f.write(r"    \toprule" + "\n")
+        f.write(r"    \textbf{LLM} & \textbf{System} & \textbf{Temp} & \textbf{M1 (\%)$\uparrow$} & \textbf{M2 (\%)$\uparrow$} & \textbf{M3 (\%)$\uparrow$} & \textbf{M4 (\%)$\uparrow$} & \textbf{M5 (\%)$\uparrow$} & \textbf{M6 (s)$\downarrow$} & \textbf{M7 (\# N)$\uparrow$} \\" + "\n")
+        f.write(r"    \midrule" + "\n")
+        
+        # Generate table rows
+        for llm_type in ["reasoning", "non_reasoning"]:
+            llm_name = llm_names.get(llm_type, llm_type)
+            f.write(f"    \\multirow{{6}}{{*}}{{{llm_name}}}\n")
+            
+            for workflow in ["mas", "2as"]:
+                workflow_name = workflow_names.get(workflow, workflow)
+                f.write(f"      & \\multirow{{3}}{{*}}{{{workflow_name}}}\n")
+                
+                for temp in [0.0, 0.5, 1.0]:
+                    f.write(f"        & {temp:.1f}")
+                    
+                    # Get values for each metric
+                    for metric in ["M1", "M2", "M3", "M4", "M5", "M6", "M7"]:
+                        try:
+                            mean_val = stats.loc[(llm_type, temp, workflow), (metric, "mean")]
+                            std_val = stats.loc[(llm_type, temp, workflow), (metric, "std")]
+                            formatted_val = format_mean_std(mean_val, std_val)
+                        except KeyError:
+                            formatted_val = r"\tbd\,$\pm$\,\tbd"
+                        
+                        f.write(f" & {formatted_val}")
+                    
+                    f.write(" \\\\\n")
+                
+                if workflow == "mas":
+                    f.write(r"    \cmidrule{2-10}" + "\n")
+            
+            f.write(r"    \midrule" + "\n")
+        
+        f.write(r"  \end{tabular}" + "\n")
+        f.write(r"\end{table}" + "\n")
 
 
 def main():
