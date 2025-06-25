@@ -287,7 +287,15 @@ def generate_report(df: pd.DataFrame, output_dir: Path, batch_id: str):
 
 def format_mean_std(mean_val, std_val):
     """Format mean ± std with appropriate precision based on std value."""
-    if pd.isna(mean_val) or pd.isna(std_val):
+    # Check for missing or invalid values
+    if pd.isna(mean_val) or pd.isna(std_val) or pd.isna(mean_val) or pd.isna(std_val):
+        return r"\tbd\,$\pm$\,\tbd"
+    
+    # Convert to float to handle any numeric types
+    try:
+        mean_val = float(mean_val)
+        std_val = float(std_val)
+    except (ValueError, TypeError):
         return r"\tbd\,$\pm$\,\tbd"
     
     # Determine precision based on std value
@@ -304,8 +312,15 @@ def format_mean_std(mean_val, std_val):
     else:
         precision = 0
     
+    # Format with proper precision
     mean_formatted = f"{mean_val:.{precision}f}".rstrip('0').rstrip('.')
     std_formatted = f"{std_val:.{precision}f}".rstrip('0').rstrip('.')
+    
+    # Handle edge cases
+    if mean_formatted == "":
+        mean_formatted = "0"
+    if std_formatted == "":
+        std_formatted = "0"
     
     return f"{mean_formatted}\\,$\\pm$\\,{std_formatted}"
 
@@ -347,7 +362,7 @@ def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
         # Workflow name mapping
         workflow_names = {
             "mas": "MAS",
-            "2as": "2AS"
+            "pair": "2AS"  # Fixed: was "2as" but data has "pair"
         }
         
         with open(output_path, 'w') as f:
@@ -376,9 +391,13 @@ def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
                         # Get values for each metric
                         for metric in ["M1", "M2", "M3", "M4", "M5", "M6", "M7"]:
                             try:
-                                mean_val = stats.loc[(llm_type, temp, workflow), (metric, "mean")]
-                                std_val = stats.loc[(llm_type, temp, workflow), (metric, "std")]
-                                formatted_val = format_mean_std(mean_val, std_val)
+                                # Check if the combination exists in stats
+                                if (llm_type, temp, workflow) in stats.index:
+                                    mean_val = stats.loc[(llm_type, temp, workflow), (metric, "mean")]
+                                    std_val = stats.loc[(llm_type, temp, workflow), (metric, "std")]
+                                    formatted_val = format_mean_std(mean_val, std_val)
+                                else:
+                                    formatted_val = r"\tbd\,$\pm$\,\tbd"
                             except Exception as e:
                                 print(f"Warning: Could not get {metric} for {llm_type}, {temp}, {workflow}: {e}")
                                 formatted_val = r"\tbd\,$\pm$\,\tbd"
