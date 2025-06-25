@@ -306,6 +306,11 @@ def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
         .round(3)
     )
     
+    # Get unique values from data
+    llm_types = sorted(df["llm_type"].unique())
+    workflows = sorted(df["workflow"].unique())
+    temperatures = sorted(df["temperature"].unique())
+    
     # LLM name mapping
     llm_names = {
         "reasoning": "Llama 3.3 70B",
@@ -329,15 +334,16 @@ def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
         f.write(r"    \midrule" + "\n")
         
         # Generate table rows
-        for llm_type in ["reasoning", "non_reasoning"]:
+        for i, llm_type in enumerate(llm_types):
             llm_name = llm_names.get(llm_type, llm_type)
-            f.write(f"    \\multirow{{6}}{{*}}{{{llm_name}}}\n")
+            num_rows = len(workflows) * len(temperatures)
+            f.write(f"    \\multirow{{{num_rows}}}{{*}}{{{llm_name}}}\n")
             
-            for workflow in ["mas", "2as"]:
+            for j, workflow in enumerate(workflows):
                 workflow_name = workflow_names.get(workflow, workflow)
-                f.write(f"      & \\multirow{{3}}{{*}}{{{workflow_name}}}\n")
+                f.write(f"      & \\multirow{{{len(temperatures)}}}{{*}}{{{workflow_name}}}\n")
                 
-                for temp in [0.0, 0.5, 1.0]:
+                for k, temp in enumerate(temperatures):
                     f.write(f"        & {temp:.1f}")
                     
                     # Get values for each metric
@@ -353,10 +359,13 @@ def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
                     
                     f.write(" \\\\\n")
                 
-                if workflow == "mas":
+                # Add cmidrule between workflows (except after the last one)
+                if j < len(workflows) - 1:
                     f.write(r"    \cmidrule{2-10}" + "\n")
             
-            f.write(r"    \midrule" + "\n")
+            # Add midrule between LLM types (except after the last one)
+            if i < len(llm_types) - 1:
+                f.write(r"    \midrule" + "\n")
         
         f.write(r"  \end{tabular}" + "\n")
         f.write(r"\end{table}" + "\n")
