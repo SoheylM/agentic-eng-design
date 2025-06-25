@@ -236,31 +236,53 @@ def generate_report(df: pd.DataFrame, output_dir: Path, batch_id: str):
 
     # Generate custom LaTeX table
     tex_path = output_dir / f"experiment_stats_{batch_id}.tex"
-    generate_latex_table(df, tex_path, batch_id)
+    try:
+        generate_latex_table(df, tex_path, batch_id)
+        print(f"✅ LaTeX table generated: {tex_path}")
+    except Exception as e:
+        print(f"⚠️  LaTeX table generation failed: {e}")
 
     # plots
-    import matplotlib.pyplot as plt
-    # plot all percentage metrics plus M7 (node counts)
-    metrics = ["M1", "M2", "M3", "M4", "M5", "M7"]
-    fig, axes = plt.subplots(len(metrics), 1, figsize=(10, 4 * len(metrics)))
-    for ax, metric in zip(axes, metrics):
-        for (llm, wf), grp in df.groupby(["llm_type", "workflow"]):
-            summary = grp.groupby("temperature")[metric].agg(["mean", "std"])
-            ax.errorbar(
-                summary.index,
-                summary["mean"],
-                yerr=summary["std"],
-                marker="o",
-                label=f"{llm}-{wf}",
-            )
-        ax.set_title(f"{metric} by Temperature")
-        ax.set_xlabel("Temperature")
-        ax.set_ylabel(metric)
-        ax.legend()
-        ax.grid(True)
-    plt.tight_layout()
-    plt.savefig(output_dir / f"experiment_plots_{batch_id}.png")
-    plt.close()
+    try:
+        import matplotlib.pyplot as plt
+        print(f"Generating plots for batch: {batch_id}")
+        print(f"DataFrame shape: {df.shape}")
+        print(f"DataFrame columns: {df.columns.tolist()}")
+        
+        # plot all percentage metrics plus M7 (node counts)
+        metrics = ["M1", "M2", "M3", "M4", "M5", "M7"]
+        fig, axes = plt.subplots(len(metrics), 1, figsize=(10, 4 * len(metrics)))
+        for ax, metric in zip(axes, metrics):
+            print(f"  Plotting metric: {metric}")
+            for (llm, wf), grp in df.groupby(["llm_type", "workflow"]):
+                print(f"    Group: {llm}, {wf}, size: {len(grp)}")
+                summary = grp.groupby("temperature")[metric].agg(["mean", "std"])
+                print(f"      Summary index: {summary.index.tolist()}")
+                if summary.empty:
+                    print(f"      No data for {llm}, {wf}, {metric}")
+                    continue
+                ax.errorbar(
+                    summary.index,
+                    summary["mean"],
+                    yerr=summary["std"],
+                    marker="o",
+                    label=f"{llm}-{wf}",
+                )
+            ax.set_title(f"{metric} by Temperature")
+            ax.set_xlabel("Temperature")
+            ax.set_ylabel(metric)
+            ax.legend()
+            ax.grid(True)
+        plt.tight_layout()
+        plot_path = output_dir / f"experiment_plots_{batch_id}.png"
+        print(f"Saving plot to: {plot_path}")
+        plt.savefig(plot_path)
+        plt.close()
+        print(f"✅ Plot generated: {plot_path}")
+    except Exception as e:
+        print(f"⚠️  Plot generation failed: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 def format_mean_std(mean_val, std_val):
@@ -291,84 +313,96 @@ def format_mean_std(mean_val, std_val):
 def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
     """Generate custom LaTeX table in the specified format."""
     
-    # Calculate statistics
-    stats = (
-        df.groupby(["llm_type", "temperature", "workflow"])
-        .agg({
-            "M1": ["mean", "std"],
-            "M2": ["mean", "std"],
-            "M3": ["mean", "std"],
-            "M4": ["mean", "std"],
-            "M5": ["mean", "std"],
-            "M6": ["mean", "std"],
-            "M7": ["mean", "std"],
-        })
-        .round(3)
-    )
-    
-    # Get unique values from data
-    llm_types = sorted(df["llm_type"].unique())
-    workflows = sorted(df["workflow"].unique())
-    temperatures = sorted(df["temperature"].unique())
-    
-    # LLM name mapping
-    llm_names = {
-        "reasoning": "Llama 3.3 70B",
-        "non_reasoning": "DeepSeek R1 70B"
-    }
-    
-    # Workflow name mapping
-    workflow_names = {
-        "mas": "MAS",
-        "2as": "2AS"
-    }
-    
-    with open(output_path, 'w') as f:
-        f.write(r"\begin{table}[ht]" + "\n")
-        f.write(r"  \centering" + "\n")
-        f.write(r"  \caption{Overall performance (mean\,$\pm$\,std over 10 runs) of each LLM under the multi-agent system (MAS) and two-agent system (2AS) across temperature settings. Best values in \textbf{bold}.}" + "\n")
-        f.write(r"  \label{tab:main-results}" + "\n")
-        f.write(r"  \begin{tabular}{llcccccccc}" + "\n")
-        f.write(r"    \toprule" + "\n")
-        f.write(r"    \textbf{LLM} & \textbf{System} & \textbf{Temp} & \textbf{M1 (\%)$\uparrow$} & \textbf{M2 (\%)$\uparrow$} & \textbf{M3 (\%)$\uparrow$} & \textbf{M4 (\%)$\uparrow$} & \textbf{M5 (\%)$\uparrow$} & \textbf{M6 (s)$\downarrow$} & \textbf{M7 (\# N)$\uparrow$} \\" + "\n")
-        f.write(r"    \midrule" + "\n")
+    try:
+        # Calculate statistics
+        stats = (
+            df.groupby(["llm_type", "temperature", "workflow"])
+            .agg({
+                "M1": ["mean", "std"],
+                "M2": ["mean", "std"],
+                "M3": ["mean", "std"],
+                "M4": ["mean", "std"],
+                "M5": ["mean", "std"],
+                "M6": ["mean", "std"],
+                "M7": ["mean", "std"],
+            })
+            .round(3)
+        )
         
-        # Generate table rows
-        for i, llm_type in enumerate(llm_types):
-            llm_name = llm_names.get(llm_type, llm_type)
-            num_rows = len(workflows) * len(temperatures)
-            f.write(f"    \\multirow{{{num_rows}}}{{*}}{{{llm_name}}}\n")
+        # Get unique values from data
+        llm_types = sorted(df["llm_type"].unique())
+        workflows = sorted(df["workflow"].unique())
+        temperatures = sorted(df["temperature"].unique())
+        
+        print(f"LaTeX table - LLM types: {llm_types}")
+        print(f"LaTeX table - Workflows: {workflows}")
+        print(f"LaTeX table - Temperatures: {temperatures}")
+        
+        # LLM name mapping
+        llm_names = {
+            "reasoning": "Llama 3.3 70B",
+            "non_reasoning": "DeepSeek R1 70B"
+        }
+        
+        # Workflow name mapping
+        workflow_names = {
+            "mas": "MAS",
+            "2as": "2AS"
+        }
+        
+        with open(output_path, 'w') as f:
+            f.write(r"\begin{table}[ht]" + "\n")
+            f.write(r"  \centering" + "\n")
+            f.write(r"  \caption{Overall performance (mean\,$\pm$\,std over 10 runs) of each LLM under the multi-agent system (MAS) and two-agent system (2AS) across temperature settings. Best values in \textbf{bold}.}" + "\n")
+            f.write(r"  \label{tab:main-results}" + "\n")
+            f.write(r"  \begin{tabular}{llcccccccc}" + "\n")
+            f.write(r"    \toprule" + "\n")
+            f.write(r"    \textbf{LLM} & \textbf{System} & \textbf{Temp} & \textbf{M1 (\%)$\uparrow$} & \textbf{M2 (\%)$\uparrow$} & \textbf{M3 (\%)$\uparrow$} & \textbf{M4 (\%)$\uparrow$} & \textbf{M5 (\%)$\uparrow$} & \textbf{M6 (s)$\downarrow$} & \textbf{M7 (\# N)$\uparrow$} \\" + "\n")
+            f.write(r"    \midrule" + "\n")
             
-            for j, workflow in enumerate(workflows):
-                workflow_name = workflow_names.get(workflow, workflow)
-                f.write(f"      & \\multirow{{{len(temperatures)}}}{{*}}{{{workflow_name}}}\n")
+            # Generate table rows
+            for i, llm_type in enumerate(llm_types):
+                llm_name = llm_names.get(llm_type, llm_type)
+                num_rows = len(workflows) * len(temperatures)
+                f.write(f"    \\multirow{{{num_rows}}}{{*}}{{{llm_name}}}\n")
                 
-                for k, temp in enumerate(temperatures):
-                    f.write(f"        & {temp:.1f}")
+                for j, workflow in enumerate(workflows):
+                    workflow_name = workflow_names.get(workflow, workflow)
+                    f.write(f"      & \\multirow{{{len(temperatures)}}}{{*}}{{{workflow_name}}}\n")
                     
-                    # Get values for each metric
-                    for metric in ["M1", "M2", "M3", "M4", "M5", "M6", "M7"]:
-                        try:
-                            mean_val = stats.loc[(llm_type, temp, workflow), (metric, "mean")]
-                            std_val = stats.loc[(llm_type, temp, workflow), (metric, "std")]
-                            formatted_val = format_mean_std(mean_val, std_val)
-                        except KeyError:
-                            formatted_val = r"\tbd\,$\pm$\,\tbd"
+                    for k, temp in enumerate(temperatures):
+                        f.write(f"        & {temp:.1f}")
                         
-                        f.write(f" & {formatted_val}")
+                        # Get values for each metric
+                        for metric in ["M1", "M2", "M3", "M4", "M5", "M6", "M7"]:
+                            try:
+                                mean_val = stats.loc[(llm_type, temp, workflow), (metric, "mean")]
+                                std_val = stats.loc[(llm_type, temp, workflow), (metric, "std")]
+                                formatted_val = format_mean_std(mean_val, std_val)
+                            except Exception as e:
+                                print(f"Warning: Could not get {metric} for {llm_type}, {temp}, {workflow}: {e}")
+                                formatted_val = r"\tbd\,$\pm$\,\tbd"
+                            
+                            f.write(f" & {formatted_val}")
+                        
+                        f.write(" \\\\\n")
                     
-                    f.write(" \\\\\n")
+                    # Add cmidrule between workflows (except after the last one)
+                    if j < len(workflows) - 1:
+                        f.write(r"    \cmidrule{2-10}" + "\n")
                 
-                # Add cmidrule between workflows (except after the last one)
-                if j < len(workflows) - 1:
-                    f.write(r"    \cmidrule{2-10}" + "\n")
+                # Add midrule between LLM types (except after the last one)
+                if i < len(llm_types) - 1:
+                    f.write(r"    \midrule" + "\n")
             
-            # Add midrule between LLM types (except after the last one)
-            if i < len(llm_types) - 1:
-                f.write(r"    \midrule" + "\n")
-        
-        f.write(r"  \end{tabular}" + "\n")
-        f.write(r"\end{table}" + "\n")
+            f.write(r"  \end{tabular}" + "\n")
+            f.write(r"\end{table}" + "\n")
+    
+    except Exception as e:
+        print(f"Error in generate_latex_table: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 
 def main():
