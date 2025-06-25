@@ -2,7 +2,7 @@
 """eval_saved.py – quality audit for Design–State Graphs (DSG)
 
 Processes a single batch of runs (identified by a timestamped batch folder)
-and calculates metrics M1–M6 for each experiment configuration within that batch.
+and calculates metrics M1–M7 for each experiment configuration within that batch.
 """
 
 import json
@@ -99,33 +99,15 @@ def _script_ok(p: Path) -> bool:
 # Evaluate a single run-folder (all snapshots)
 # ──────────────────────────────────────────────
 
-def evaluate_folder(folder: Path) -> Dict[str, Any]:
-    """Calculate aggregated metrics for one run folder."""
-    snaps = sorted(folder.glob("*.json"))
-    if not snaps:
-        return {"run": folder.name, "error": "no_json_files"}
-
-    per_snap = [evaluate_snapshot(fp) for fp in snaps]
-    n = len(per_snap)
-    # aggregate
-    agg = {
-        "run": folder.name,
-        "n_snapshots": n,
-        # average of each metric
-        **{m: sum(p[m] for p in per_snap) / n for m in ("M1", "M2", "M3", "M4")},
-        "M5": per_snap[-1]["_complete"],
-        # wall time from file modification timestamps
-        "M6": _compute_wall_time(snaps)
-    }
-    return agg
-
-
 def evaluate_snapshot(path: Path) -> Dict[str, float]:
     """Return metrics for one snapshot JSON."""
-    res = {"M1": 0.0, "M2": 0.0, "M3": 0.0, "M4": 0.0, "_complete": 0.0}
+    # now includes M7: number of nodes in this DSG
+    res = {"M1": 0.0, "M2": 0.0, "M3": 0.0, "M4": 0.0, "_complete": 0.0, "M7": 0}
+
     dsg = try_load_dsg(path)
     if dsg is None:
         return res
+
     res["M1"] = 1.0
     res["M2"] = req_coverage(dsg)
     res["M3"] = embodiment_ratio(dsg)
@@ -136,7 +118,36 @@ def evaluate_snapshot(path: Path) -> Dict[str, float]:
     if scripts:
         good = sum(_script_ok(p) for p in scripts)
         res["M4"] = good / len(scripts)
+
+    # M7: number of nodes in this DSG snapshot
+    res["M7"] = len(dsg.nodes)
     return res
+
+
+def evaluate_folder(folder: Path) -> Dict[str, Any]:
+    """Calculate aggregated metrics for one run folder."""
+    snaps = sorted(folder.glob("*.json"))
+    if not snaps:
+        return {"run": folder.name, "error": "no_json_files"}
+
+    per_snap = [evaluate_snapshot(fp) for fp in snaps]
+    n = len(per_snap)
+
+    # aggregate per-run:
+    #  - average M1–M4 across snapshots
+    #  - M5 from the final snapshot's workflow_complete flag
+    #  - M6 = wall-time from first to last snapshot
+    #  - M7 = node-count in the final snapshot
+    agg = {
+        "run": folder.name,
+        "n_snapshots": n,
+        **{m: sum(p[m] for p in per_snap) / n for m in ("M1", "M2", "M3", "M4")},
+        "M5": per_snap[-1]["_complete"],
+        "M6": _compute_wall_time(snaps),
+        "M7": per_snap[-1]["M7"],
+    }
+
+    return agg
 
 
 def _compute_wall_time(snaps: List[Path]) -> float:
@@ -148,6 +159,25 @@ def _compute_wall_time(snaps: List[Path]) -> float:
 # Main batch processing and report generation
 # ──────────────────────────────────────────────
 
+def load_experiment_logs(batch_id: str) -> Dict[str, Dict]:
+    """Load experimental logs for the batch and create a mapping from run_id to success status."""
+    log_file = Path("experiment_logs") / f"experiment_log_{batch_id}.jsonl"
+    if not log_file.exists():
+        return {}
+    
+    run_success_map = {}
+    with open(log_file, 'r') as f:
+        for line in f:
+            if line.strip():
+                data = json.loads(line)
+                config = data["config"]
+                run_id = config["run_id"]
+                success = data["success"]
+                run_success_map[run_id] = success
+    
+    return run_success_map
+
+
 def process_batch(base_dir: Path, batch_id: str) -> pd.DataFrame:
     """Load manifest.json and evaluate each run-folder in the batch."""
     batch_dir = base_dir / batch_id
@@ -158,13 +188,21 @@ def process_batch(base_dir: Path, batch_id: str) -> pd.DataFrame:
     with manifest_path.open() as f:
         runs = json.load(f)
 
+    # Load experimental logs for success/failure data
+    experiment_logs = load_experiment_logs(batch_id)
+
     records = []
-    for entry in runs:
+    for i, entry in enumerate(runs):
         folder = entry["run_folder"]
         folder_path = batch_dir / folder
         metrics = evaluate_folder(folder_path)
         if "error" in metrics:
             continue
+        
+        # Update M5 with success status from experimental logs
+        if i in experiment_logs:
+            metrics["M5"] = 1.0 if experiment_logs[i] else 0.0
+        
         records.append({
             **entry,
             **metrics
@@ -175,6 +213,7 @@ def process_batch(base_dir: Path, batch_id: str) -> pd.DataFrame:
 
 def generate_report(df: pd.DataFrame, output_dir: Path, batch_id: str):
     """Generate CSV, LaTeX, and plots for the batch."""
+    # include M7 node counts in the summary statistics
     stats = (
         df.groupby(["llm_type", "temperature", "workflow"])
         .agg({
@@ -184,7 +223,8 @@ def generate_report(df: pd.DataFrame, output_dir: Path, batch_id: str):
             "M4": ["mean", "std"],
             "M5": ["mean", "std"],
             "M6": ["mean", "std"],
-            "n_snapshots": ["mean", "std"]
+            "M7": ["mean", "std"],
+            "n_snapshots": ["mean", "std"],
         })
         .round(3)
     )
@@ -200,7 +240,8 @@ def generate_report(df: pd.DataFrame, output_dir: Path, batch_id: str):
 
     # plots
     import matplotlib.pyplot as plt
-    metrics = ["M1", "M2", "M3", "M4", "M5"]
+    # plot all percentage metrics plus M7 (node counts)
+    metrics = ["M1", "M2", "M3", "M4", "M5", "M7"]
     fig, axes = plt.subplots(len(metrics), 1, figsize=(10, 4 * len(metrics)))
     for ax, metric in zip(axes, metrics):
         for (llm, wf), grp in df.groupby(["llm_type", "workflow"]):
@@ -210,7 +251,7 @@ def generate_report(df: pd.DataFrame, output_dir: Path, batch_id: str):
                 summary["mean"],
                 yerr=summary["std"],
                 marker="o",
-                label=f"{llm}-{wf}"
+                label=f"{llm}-{wf}",
             )
         ax.set_title(f"{metric} by Temperature")
         ax.set_xlabel("Temperature")
