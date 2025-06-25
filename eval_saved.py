@@ -386,7 +386,13 @@ def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
                     f.write(f"      & \\multirow{{{len(temperatures)}}}{{*}}{{{workflow_name}}}\n")
                     
                     for k, temp in enumerate(temperatures):
-                        f.write(f"        & {temp:.1f}")
+                        # For continuation rows, we need empty cells for the multirow columns
+                        if k == 0:
+                            # First row of this workflow group - has both multirow cells
+                            f.write(f"        & {temp:.1f}")
+                        else:
+                            # Continuation row - needs empty cells for both multirow columns
+                            f.write(f"    & & {temp:.1f}")
                         
                         # Get values for each metric
                         for metric in ["M1", "M2", "M3", "M4", "M5", "M6", "M7"]:
