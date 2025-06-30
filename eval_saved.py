@@ -401,6 +401,10 @@ def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
                                 if (llm_type, temp, workflow) in stats.index:
                                     mean_val = stats.loc[(llm_type, temp, workflow), (metric, "mean")]
                                     std_val = stats.loc[(llm_type, temp, workflow), (metric, "std")]
+                                    # Convert to percent for display for M1-M5
+                                    if metric in ["M1", "M2", "M3", "M4", "M5"]:
+                                        mean_val *= 100
+                                        std_val *= 100
                                     formatted_val = format_mean_std(mean_val, std_val)
                                 else:
                                     formatted_val = r"\tbd\,$\pm$\,\tbd"
