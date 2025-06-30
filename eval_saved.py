@@ -288,7 +288,7 @@ def generate_report(df: pd.DataFrame, output_dir: Path, batch_id: str):
 def format_mean_std(mean_val, std_val):
     """Format mean ± std with appropriate precision based on std value."""
     # Check for missing or invalid values
-    if pd.isna(mean_val) or pd.isna(std_val) or pd.isna(mean_val) or pd.isna(std_val):
+    if pd.isna(mean_val) or pd.isna(std_val):
         return r"\tbd\,$\pm$\,\tbd"
     
     # Convert to float to handle any numeric types
@@ -312,17 +312,18 @@ def format_mean_std(mean_val, std_val):
     else:
         precision = 0
     
-    # Format with proper precision
-    mean_formatted = f"{mean_val:.{precision}f}".rstrip('0').rstrip('.')
-    std_formatted = f"{std_val:.{precision}f}".rstrip('0').rstrip('.')
+    # Format with fixed precision
+    mf = f"{mean_val:.{precision}f}"
+    sf = f"{std_val:.{precision}f}"
     
-    # Handle edge cases
-    if mean_formatted == "":
-        mean_formatted = "0"
-    if std_formatted == "":
-        std_formatted = "0"
+    # Only strip trailing zeros and dot if there's a decimal point
+    if "." in mf:
+        mf = mf.rstrip("0").rstrip(".")
+    if "." in sf:
+        sf = sf.rstrip("0").rstrip(".")
     
-    return f"{mean_formatted}\\,$\\pm$\\,{std_formatted}"
+    return f"{mf}\\,$\\pm$\\,{sf}"
+
 
 
 def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
