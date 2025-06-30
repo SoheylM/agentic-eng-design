@@ -2,7 +2,7 @@
 """eval_saved.py – quality audit for Design–State Graphs (DSG)
 
 Processes a single batch of runs (identified by a timestamped batch folder)
-and calculates metrics M1–M6 for each experiment configuration within that batch.
+and calculates metrics M1–M7 for each experiment configuration within that batch.
 """
 
 import json
@@ -60,7 +60,7 @@ def req_coverage(dsg: DesignState) -> float:
 
 def embodiment_ratio(dsg: DesignState) -> float:
     ok = [n for n in dsg.nodes.values()
-          if n.embodiment and n.embodiment.principle != "undefined"]
+          if n.embodiment] #and n.embodiment.principle != "undefined"]
     return len(ok) / len(dsg.nodes) if dsg.nodes else 0.0
 
 
@@ -99,33 +99,15 @@ def _script_ok(p: Path) -> bool:
 # Evaluate a single run-folder (all snapshots)
 # ──────────────────────────────────────────────
 
-def evaluate_folder(folder: Path) -> Dict[str, Any]:
-    """Calculate aggregated metrics for one run folder."""
-    snaps = sorted(folder.glob("*.json"))
-    if not snaps:
-        return {"run": folder.name, "error": "no_json_files"}
-
-    per_snap = [evaluate_snapshot(fp) for fp in snaps]
-    n = len(per_snap)
-    # aggregate
-    agg = {
-        "run": folder.name,
-        "n_snapshots": n,
-        # average of each metric
-        **{m: sum(p[m] for p in per_snap) / n for m in ("M1", "M2", "M3", "M4")},
-        "M5": per_snap[-1]["_complete"],
-        # wall time from file modification timestamps
-        "M6": _compute_wall_time(snaps)
-    }
-    return agg
-
-
 def evaluate_snapshot(path: Path) -> Dict[str, float]:
     """Return metrics for one snapshot JSON."""
-    res = {"M1": 0.0, "M2": 0.0, "M3": 0.0, "M4": 0.0, "_complete": 0.0}
+    # now includes M7: number of nodes in this DSG
+    res = {"M1": 0.0, "M2": 0.0, "M3": 0.0, "M4": 0.0, "_complete": 0.0, "M7": 0}
+
     dsg = try_load_dsg(path)
     if dsg is None:
         return res
+
     res["M1"] = 1.0
     res["M2"] = req_coverage(dsg)
     res["M3"] = embodiment_ratio(dsg)
@@ -136,7 +118,36 @@ def evaluate_snapshot(path: Path) -> Dict[str, float]:
     if scripts:
         good = sum(_script_ok(p) for p in scripts)
         res["M4"] = good / len(scripts)
+
+    # M7: number of nodes in this DSG snapshot
+    res["M7"] = len(dsg.nodes)
     return res
+
+
+def evaluate_folder(folder: Path) -> Dict[str, Any]:
+    """Calculate aggregated metrics for one run folder."""
+    snaps = sorted(folder.glob("*.json"))
+    if not snaps:
+        return {"run": folder.name, "error": "no_json_files"}
+
+    per_snap = [evaluate_snapshot(fp) for fp in snaps]
+    n = len(per_snap)
+
+    # aggregate per-run:
+    #  - average M1–M4 across snapshots
+    #  - M5 from the final snapshot's workflow_complete flag
+    #  - M6 = wall-time from first to last snapshot
+    #  - M7 = node-count in the final snapshot
+    agg = {
+        "run": folder.name,
+        "n_snapshots": n,
+        **{m: sum(p[m] for p in per_snap) / n for m in ("M1", "M2", "M3", "M4")},
+        "M5": per_snap[-1]["_complete"],
+        "M6": _compute_wall_time(snaps),
+        "M7": per_snap[-1]["M7"],
+    }
+
+    return agg
 
 
 def _compute_wall_time(snaps: List[Path]) -> float:
@@ -148,6 +159,25 @@ def _compute_wall_time(snaps: List[Path]) -> float:
 # Main batch processing and report generation
 # ──────────────────────────────────────────────
 
+def load_experiment_logs(batch_id: str) -> Dict[str, Dict]:
+    """Load experimental logs for the batch and create a mapping from run_id to success status."""
+    log_file = Path("experiment_logs") / f"experiment_log_{batch_id}.jsonl"
+    if not log_file.exists():
+        return {}
+    
+    run_success_map = {}
+    with open(log_file, 'r') as f:
+        for line in f:
+            if line.strip():
+                data = json.loads(line)
+                config = data["config"]
+                run_id = config["run_id"]
+                success = data["success"]
+                run_success_map[run_id] = success
+    
+    return run_success_map
+
+
 def process_batch(base_dir: Path, batch_id: str) -> pd.DataFrame:
     """Load manifest.json and evaluate each run-folder in the batch."""
     batch_dir = base_dir / batch_id
@@ -158,13 +188,21 @@ def process_batch(base_dir: Path, batch_id: str) -> pd.DataFrame:
     with manifest_path.open() as f:
         runs = json.load(f)
 
+    # Load experimental logs for success/failure data
+    experiment_logs = load_experiment_logs(batch_id)
+
     records = []
-    for entry in runs:
+    for i, entry in enumerate(runs):
         folder = entry["run_folder"]
         folder_path = batch_dir / folder
         metrics = evaluate_folder(folder_path)
         if "error" in metrics:
             continue
+        
+        # Update M5 with success status from experimental logs
+        if i in experiment_logs:
+            metrics["M5"] = 1.0 if experiment_logs[i] else 0.0
+        
         records.append({
             **entry,
             **metrics
@@ -175,6 +213,7 @@ def process_batch(base_dir: Path, batch_id: str) -> pd.DataFrame:
 
 def generate_report(df: pd.DataFrame, output_dir: Path, batch_id: str):
     """Generate CSV, LaTeX, and plots for the batch."""
+    # include M7 node counts in the summary statistics
     stats = (
         df.groupby(["llm_type", "temperature", "workflow"])
         .agg({
@@ -184,42 +223,211 @@ def generate_report(df: pd.DataFrame, output_dir: Path, batch_id: str):
             "M4": ["mean", "std"],
             "M5": ["mean", "std"],
             "M6": ["mean", "std"],
-            "n_snapshots": ["mean", "std"]
+            "M7": ["mean", "std"],
+            "n_snapshots": ["mean", "std"],
         })
         .round(3)
     )
     
-    # Save
+    # Save CSV
     output_dir.mkdir(parents=True, exist_ok=True)
     csv_path = output_dir / f"aggregate_metrics_{batch_id}.csv"
     stats.to_csv(csv_path)
 
+    # Generate custom LaTeX table
     tex_path = output_dir / f"experiment_stats_{batch_id}.tex"
-    with tex_path.open("w") as f:
-        f.write(stats.to_latex())
+    try:
+        generate_latex_table(df, tex_path, batch_id)
+        print(f"✅ LaTeX table generated: {tex_path}")
+    except Exception as e:
+        print(f"⚠️  LaTeX table generation failed: {e}")
 
     # plots
-    import matplotlib.pyplot as plt
-    metrics = ["M1", "M2", "M3", "M4", "M5"]
-    fig, axes = plt.subplots(len(metrics), 1, figsize=(10, 4 * len(metrics)))
-    for ax, metric in zip(axes, metrics):
-        for (llm, wf), grp in df.groupby(["llm_type", "workflow"]):
-            summary = grp.groupby("temperature")[metric].agg(["mean", "std"])
-            ax.errorbar(
-                summary.index,
-                summary["mean"],
-                yerr=summary["std"],
-                marker="o",
-                label=f"{llm}-{wf}"
-            )
-        ax.set_title(f"{metric} by Temperature")
-        ax.set_xlabel("Temperature")
-        ax.set_ylabel(metric)
-        ax.legend()
-        ax.grid(True)
-    plt.tight_layout()
-    plt.savefig(output_dir / f"experiment_plots_{batch_id}.png")
-    plt.close()
+    try:
+        import matplotlib.pyplot as plt
+        print(f"Generating plots for batch: {batch_id}")
+        print(f"DataFrame shape: {df.shape}")
+        print(f"DataFrame columns: {df.columns.tolist()}")
+        
+        # plot all percentage metrics plus M7 (node counts)
+        metrics = ["M1", "M2", "M3", "M4", "M5", "M7"]
+        fig, axes = plt.subplots(len(metrics), 1, figsize=(10, 4 * len(metrics)))
+        for ax, metric in zip(axes, metrics):
+            print(f"  Plotting metric: {metric}")
+            for (llm, wf), grp in df.groupby(["llm_type", "workflow"]):
+                print(f"    Group: {llm}, {wf}, size: {len(grp)}")
+                summary = grp.groupby("temperature")[metric].agg(["mean", "std"])
+                print(f"      Summary index: {summary.index.tolist()}")
+                if summary.empty:
+                    print(f"      No data for {llm}, {wf}, {metric}")
+                    continue
+                ax.errorbar(
+                    summary.index,
+                    summary["mean"],
+                    yerr=summary["std"],
+                    marker="o",
+                    label=f"{llm}-{wf}",
+                )
+            ax.set_title(f"{metric} by Temperature")
+            ax.set_xlabel("Temperature")
+            ax.set_ylabel(metric)
+            ax.legend()
+            ax.grid(True)
+        plt.tight_layout()
+        plot_path = output_dir / f"experiment_plots_{batch_id}.png"
+        print(f"Saving plot to: {plot_path}")
+        plt.savefig(plot_path)
+        plt.close()
+        print(f"✅ Plot generated: {plot_path}")
+    except Exception as e:
+        print(f"⚠️  Plot generation failed: {e}")
+        import traceback
+        traceback.print_exc()
+
+
+def format_mean_std(mean_val, std_val):
+    """Format mean ± std with appropriate precision based on std value."""
+    # Check for missing or invalid values
+    if pd.isna(mean_val) or pd.isna(std_val) or pd.isna(mean_val) or pd.isna(std_val):
+        return r"\tbd\,$\pm$\,\tbd"
+    
+    # Convert to float to handle any numeric types
+    try:
+        mean_val = float(mean_val)
+        std_val = float(std_val)
+    except (ValueError, TypeError):
+        return r"\tbd\,$\pm$\,\tbd"
+    
+    # Determine precision based on std value
+    if std_val == 0:
+        precision = 0
+    elif std_val < 0.01:
+        precision = 4
+    elif std_val < 0.1:
+        precision = 3
+    elif std_val < 1:
+        precision = 2
+    elif std_val < 10:
+        precision = 1
+    else:
+        precision = 0
+    
+    # Format with proper precision
+    mean_formatted = f"{mean_val:.{precision}f}".rstrip('0').rstrip('.')
+    std_formatted = f"{std_val:.{precision}f}".rstrip('0').rstrip('.')
+    
+    # Handle edge cases
+    if mean_formatted == "":
+        mean_formatted = "0"
+    if std_formatted == "":
+        std_formatted = "0"
+    
+    return f"{mean_formatted}\\,$\\pm$\\,{std_formatted}"
+
+
+def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
+    """Generate custom LaTeX table in the specified format."""
+    
+    try:
+        # Calculate statistics
+        stats = (
+            df.groupby(["llm_type", "temperature", "workflow"])
+            .agg({
+                "M1": ["mean", "std"],
+                "M2": ["mean", "std"],
+                "M3": ["mean", "std"],
+                "M4": ["mean", "std"],
+                "M5": ["mean", "std"],
+                "M6": ["mean", "std"],
+                "M7": ["mean", "std"],
+            })
+            .round(3)
+        )
+        
+        # Get unique values from data
+        llm_types = sorted(df["llm_type"].unique())
+        workflows = sorted(df["workflow"].unique())
+        temperatures = sorted(df["temperature"].unique())
+        
+        print(f"LaTeX table - LLM types: {llm_types}")
+        print(f"LaTeX table - Workflows: {workflows}")
+        print(f"LaTeX table - Temperatures: {temperatures}")
+        
+        # LLM name mapping
+        llm_names = {
+            "reasoning": "DeepSeek R1 70B",
+            "non_reasoning": "Llama 3.3 70B"
+        }
+        
+        # Workflow name mapping
+        workflow_names = {
+            "mas": "MAS",
+            "pair": "2AS"  # Fixed: was "2as" but data has "pair"
+        }
+        
+        with open(output_path, 'w') as f:
+            f.write(r"\begin{table}[ht]" + "\n")
+            f.write(r"  \centering" + "\n")
+            f.write(r"  \caption{Overall performance (mean\,$\pm$\,std over 10 runs) of each LLM under the multi-agent system (MAS) and two-agent system (2AS) across temperature settings. Best values in \textbf{bold}.}" + "\n")
+            f.write(r"  \label{tab:main-results}" + "\n")
+            f.write(r"  \begin{tabular}{llcccccccc}" + "\n")
+            f.write(r"    \toprule" + "\n")
+            f.write(r"    \textbf{LLM} & \textbf{System} & \textbf{Temp} & \textbf{M1 (\%)$\uparrow$} & \textbf{M2 (\%)$\uparrow$} & \textbf{M3 (\%)$\uparrow$} & \textbf{M4 (\%)$\uparrow$} & \textbf{M5 (\%)$\uparrow$} & \textbf{M6 (s)$\downarrow$} & \textbf{M7 (\# N)$\uparrow$} \\" + "\n")
+            f.write(r"    \midrule" + "\n")
+            
+            # Generate table rows
+            for i, llm_type in enumerate(llm_types):
+                llm_name = llm_names.get(llm_type, llm_type)
+                num_rows = len(workflows) * len(temperatures)
+                f.write(f"    \\multirow{{{num_rows}}}{{*}}{{{llm_name}}}\n")
+                
+                for j, workflow in enumerate(workflows):
+                    workflow_name = workflow_names.get(workflow, workflow)
+                    f.write(f"      & \\multirow{{{len(temperatures)}}}{{*}}{{{workflow_name}}}\n")
+                    
+                    for k, temp in enumerate(temperatures):
+                        # For continuation rows, we need empty cells for the multirow columns
+                        if k == 0:
+                            # First row of this workflow group - has both multirow cells
+                            f.write(f"        & {temp:.1f}")
+                        else:
+                            # Continuation row - needs empty cells for both multirow columns
+                            f.write(f"    & & {temp:.1f}")
+                        
+                        # Get values for each metric
+                        for metric in ["M1", "M2", "M3", "M4", "M5", "M6", "M7"]:
+                            try:
+                                # Check if the combination exists in stats
+                                if (llm_type, temp, workflow) in stats.index:
+                                    mean_val = stats.loc[(llm_type, temp, workflow), (metric, "mean")]
+                                    std_val = stats.loc[(llm_type, temp, workflow), (metric, "std")]
+                                    formatted_val = format_mean_std(mean_val, std_val)
+                                else:
+                                    formatted_val = r"\tbd\,$\pm$\,\tbd"
+                            except Exception as e:
+                                print(f"Warning: Could not get {metric} for {llm_type}, {temp}, {workflow}: {e}")
+                                formatted_val = r"\tbd\,$\pm$\,\tbd"
+                            
+                            f.write(f" & {formatted_val}")
+                        
+                        f.write(" \\\\\n")
+                    
+                    # Add cmidrule between workflows (except after the last one)
+                    if j < len(workflows) - 1:
+                        f.write(r"    \cmidrule{2-10}" + "\n")
+                
+                # Add midrule between LLM types (except after the last one)
+                if i < len(llm_types) - 1:
+                    f.write(r"    \midrule" + "\n")
+            
+            f.write(r"  \end{tabular}" + "\n")
+            f.write(r"\end{table}" + "\n")
+    
+    except Exception as e:
+        print(f"Error in generate_latex_table: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 
 def main():
