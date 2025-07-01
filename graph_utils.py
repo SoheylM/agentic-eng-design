@@ -172,12 +172,17 @@ def visualize_design_state_func(design_graph: DesignState) -> str:
         if src in G and dst in G:
             G.add_edge(src, dst)
 
-    pos = nx.spring_layout(G, seed=42)
+    # Use spring layout with tighter spacing (k=1.0 instead of default ~3.0)
+    # and more iterations for better convergence
+    pos = nx.spring_layout(G, k=1.0, iterations=50, seed=42)
+    
     color_map = {
         "function":    "gold",
         "subfunction": "orange",
         "requirement": "lightgreen",
         "constraint":  "salmon",
+        "component":   "lightblue",
+        "subsystem":   "lightcoral",
         # add others as needed
     }
 
@@ -199,7 +204,7 @@ def visualize_design_state_func(design_graph: DesignState) -> str:
         node_colors.append(color_map.get(data["kind"], "gray"))
         annotations.append(dict(
             x=x+0.02, y=y+0.02, text=nid, showarrow=False,
-            font=dict(size=10, color="black")
+            font=dict(size=16, color="black", family="Arial Black")  # Increased font size
         ))
 
     edge_x, edge_y = [], []
@@ -211,21 +216,29 @@ def visualize_design_state_func(design_graph: DesignState) -> str:
                                showarrow=True, arrowhead=3,
                                arrowsize=1.5, arrowwidth=1.5))
 
-    edge_trace = go.Scatter(x=edge_x, y=edge_y, mode="lines", line=dict(width=1))
+    edge_trace = go.Scatter(x=edge_x, y=edge_y, mode="lines", line=dict(width=2))  # Increased line width
     node_trace = go.Scatter(
-        x=node_x, y=node_y, mode="markers", marker=dict(color=node_colors, size=20),
+        x=node_x, y=node_y, mode="markers", marker=dict(color=node_colors, size=25),  # Increased node size
         hoverinfo="text", text=node_text
     )
 
     fig = go.Figure(
         data=[edge_trace, node_trace],
         layout=go.Layout(
-            title="Design Graph",
+            title=dict(
+                text="Design Graph - Solar Water Filtration System",
+                font=dict(size=20, family="Arial Black")  # Larger title
+            ),
             showlegend=False,
             hovermode="closest",
             annotations=annotations + arrow_anns,
             xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
             yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            # Reduce margins to bring nodes closer to edges
+            margin=dict(l=20, r=20, t=40, b=20),
+            # Set a fixed height and width for better control
+            height=700,
+            width=900
         )
     )
     fig.show()
