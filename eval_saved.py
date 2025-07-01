@@ -338,6 +338,74 @@ def format_mean_std(mean_val, std_val):
     return f"{mf}\\,$\\pm$\\,{sf}"
 
 
+def find_best_values(stats: pd.DataFrame) -> Dict[str, Any]:
+    """Find the best values for each metric column to determine which should be bold."""
+    best_values = {}
+    
+    # For M5 (count), higher is better
+    if ("M5", "sum") in stats.columns:
+        best_values["M5"] = stats[("M5", "sum")].max()
+    
+    # For M6 (time), lower is better
+    if ("M6", "mean") in stats.columns:
+        best_values["M6"] = stats[("M6", "mean")].min()
+    
+    # For M7 (node count), higher is better
+    if ("M7", "mean") in stats.columns:
+        best_values["M7"] = stats[("M7", "mean")].max()
+    
+    # For M1-M4 (percentages), higher is better
+    for metric in ["M1", "M2", "M3", "M4"]:
+        if (metric, "mean") in stats.columns:
+            best_values[metric] = stats[(metric, "mean")].max()
+    
+    return best_values
+
+
+def format_value_with_bold(value: str, metric: str, best_values: Dict[str, Any], stats: pd.DataFrame, llm_type: str, temp: float, workflow: str) -> str:
+    """Format a value, making it bold if it's the best in its column."""
+    try:
+        if metric == "M5":
+            # M5 is a count
+            if (llm_type, temp, workflow) in stats.index:
+                count_val = stats.loc[(llm_type, temp, workflow), (metric, "sum")]
+                is_best = count_val == best_values.get(metric, 0)
+                return f"\\textbf{{{int(count_val)}}}" if is_best else f"{int(count_val)}"
+            return "0"
+        elif metric == "M6":
+            # M6 is time (lower is better)
+            if (llm_type, temp, workflow) in stats.index:
+                mean_val = stats.loc[(llm_type, temp, workflow), (metric, "mean")]
+                is_best = abs(mean_val - best_values.get(metric, float('inf'))) < 1e-6
+                formatted_val = format_mean_std(mean_val, stats.loc[(llm_type, temp, workflow), (metric, "std")])
+                return f"\\textbf{{{formatted_val}}}" if is_best else formatted_val
+            return r"\tbd\,$\pm$\,\tbd"
+        elif metric == "M7":
+            # M7 is node count (higher is better)
+            if (llm_type, temp, workflow) in stats.index:
+                mean_val = stats.loc[(llm_type, temp, workflow), (metric, "mean")]
+                std_val = stats.loc[(llm_type, temp, workflow), (metric, "std")]
+                is_best = abs(mean_val - best_values.get(metric, 0)) < 1e-6
+                formatted_val = format_mean_std(mean_val, std_val)
+                return f"\\textbf{{{formatted_val}}}" if is_best else formatted_val
+            return r"\tbd\,$\pm$\,\tbd"
+        else:
+            # M1-M4 are percentages (higher is better)
+            if (llm_type, temp, workflow) in stats.index:
+                mean_val = stats.loc[(llm_type, temp, workflow), (metric, "mean")]
+                std_val = stats.loc[(llm_type, temp, workflow), (metric, "std")]
+                # Convert to percent for comparison
+                mean_val_pct = mean_val * 100
+                std_val_pct = std_val * 100
+                is_best = abs(mean_val_pct - best_values.get(metric, 0) * 100) < 1e-6
+                formatted_val = format_mean_std(mean_val_pct, std_val_pct)
+                return f"\\textbf{{{formatted_val}}}" if is_best else formatted_val
+            return r"\tbd\,$\pm$\,\tbd"
+    except Exception as e:
+        print(f"Warning: Could not format {metric} for {llm_type}, {temp}, {workflow}: {e}")
+        return r"\tbd\,$\pm$\,\tbd"
+
+
 def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
     """Generate custom LaTeX table in the specified format."""
     
@@ -366,6 +434,9 @@ def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
         
         # Combine the statistics
         stats = pd.concat([stats_m5, stats_others], axis=1)
+        
+        # Find best values for each metric
+        best_values = find_best_values(stats)
         
         # Get unique values from data
         llm_types = sorted(df["llm_type"].unique())
@@ -417,36 +488,9 @@ def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
                             # Continuation row - needs empty cells for both multirow columns
                             f.write(f"    & & {temp:.1f}")
                         
-                        # Get values for each metric
+                        # Get values for each metric with bold formatting for best values
                         for metric in ["M1", "M2", "M3", "M4", "M5", "M6", "M7"]:
-                            try:
-                                # Check if the combination exists in stats
-                                if (llm_type, temp, workflow) in stats.index:
-                                    if metric == "M5":
-                                        # M5 is a count, no standard deviation
-                                        count_val = stats.loc[(llm_type, temp, workflow), (metric, "sum")]
-                                        formatted_val = f"{int(count_val)}"
-                                    else:
-                                        # Other metrics have mean and std
-                                        mean_val = stats.loc[(llm_type, temp, workflow), (metric, "mean")]
-                                        std_val = stats.loc[(llm_type, temp, workflow), (metric, "std")]
-                                        # Convert to percent for display for M1-M4
-                                        if metric in ["M1", "M2", "M3", "M4"]:
-                                            mean_val *= 100
-                                            std_val *= 100
-                                        formatted_val = format_mean_std(mean_val, std_val)
-                                else:
-                                    if metric == "M5":
-                                        formatted_val = "0"  # No successful runs
-                                    else:
-                                        formatted_val = r"\tbd\,$\pm$\,\tbd"
-                            except Exception as e:
-                                print(f"Warning: Could not get {metric} for {llm_type}, {temp}, {workflow}: {e}")
-                                if metric == "M5":
-                                    formatted_val = "0"
-                                else:
-                                    formatted_val = r"\tbd\,$\pm$\,\tbd"
-                            
+                            formatted_val = format_value_with_bold("", metric, best_values, stats, llm_type, temp, workflow)
                             f.write(f" & {formatted_val}")
                         
                         f.write(" \\\\\n")
