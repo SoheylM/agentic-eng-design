@@ -135,15 +135,14 @@ def evaluate_folder(folder: Path) -> Dict[str, Any]:
 
     # aggregate per-run:
     #  - average M1–M4 across snapshots
-    #  - M5 from the final snapshot's workflow_complete flag
-    #  - M6 = wall-time from first to last snapshot
+    #  - M5 and M6 will be set from experiment logs in process_batch
     #  - M7 = node-count in the final snapshot
     agg = {
         "run": folder.name,
         "n_snapshots": n,
         **{m: sum(p[m] for p in per_snap) / n for m in ("M1", "M2", "M3", "M4")},
-        "M5": per_snap[-1]["_complete"],
-        "M6": _compute_wall_time(snaps),
+        "M5": per_snap[-1]["_complete"],  # Will be overridden by experiment logs
+        "M6": _compute_wall_time(snaps),  # Will be overridden by experiment logs
         "M7": per_snap[-1]["M7"],
     }
 
@@ -160,12 +159,12 @@ def _compute_wall_time(snaps: List[Path]) -> float:
 # ──────────────────────────────────────────────
 
 def load_experiment_logs(batch_id: str) -> Dict[str, Dict]:
-    """Load experimental logs for the batch and create a mapping from run_id to success status."""
+    """Load experimental logs for the batch and create a mapping from run_id to success status and wall_time."""
     log_file = Path("experiment_logs") / f"experiment_log_{batch_id}.jsonl"
     if not log_file.exists():
         return {}
     
-    run_success_map = {}
+    run_data_map = {}
     with open(log_file, 'r') as f:
         for line in f:
             if line.strip():
@@ -173,9 +172,13 @@ def load_experiment_logs(batch_id: str) -> Dict[str, Dict]:
                 config = data["config"]
                 run_id = config["run_id"]
                 success = data["success"]
-                run_success_map[run_id] = success
+                wall_time = data.get("wall_time", 0.0)  # Get wall_time from experiment logs
+                run_data_map[run_id] = {
+                    "success": success,
+                    "wall_time": wall_time
+                }
     
-    return run_success_map
+    return run_data_map
 
 
 def process_batch(base_dir: Path, batch_id: str) -> pd.DataFrame:
@@ -199,9 +202,10 @@ def process_batch(base_dir: Path, batch_id: str) -> pd.DataFrame:
         if "error" in metrics:
             continue
         
-        # Update M5 with success status from experimental logs
+        # Update M5 and M6 with data from experimental logs
         if i in experiment_logs:
-            metrics["M5"] = 1.0 if experiment_logs[i] else 0.0
+            metrics["M5"] = 1.0 if experiment_logs[i]["success"] else 0.0
+            metrics["M6"] = experiment_logs[i]["wall_time"]
         
         records.append({
             **entry,
@@ -213,21 +217,30 @@ def process_batch(base_dir: Path, batch_id: str) -> pd.DataFrame:
 
 def generate_report(df: pd.DataFrame, output_dir: Path, batch_id: str):
     """Generate CSV, LaTeX, and plots for the batch."""
-    # include M7 node counts in the summary statistics
-    stats = (
+    # Calculate statistics - M5 as count, others as mean/std
+    stats_m5 = (
+        df.groupby(["llm_type", "temperature", "workflow"])
+        .agg({
+            "M5": ["sum"],  # Count successful runs
+        })
+        .round(0)  # No decimals for counts
+    )
+    
+    stats_others = (
         df.groupby(["llm_type", "temperature", "workflow"])
         .agg({
             "M1": ["mean", "std"],
             "M2": ["mean", "std"],
             "M3": ["mean", "std"],
             "M4": ["mean", "std"],
-            "M5": ["mean", "std"],
             "M6": ["mean", "std"],
             "M7": ["mean", "std"],
-            "n_snapshots": ["mean", "std"],
         })
         .round(3)
     )
+    
+    # Combine the statistics
+    stats = pd.concat([stats_m5, stats_others], axis=1)
     
     # Save CSV
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -250,7 +263,7 @@ def generate_report(df: pd.DataFrame, output_dir: Path, batch_id: str):
         print(f"DataFrame columns: {df.columns.tolist()}")
         
         # plot all percentage metrics plus M7 (node counts)
-        metrics = ["M1", "M2", "M3", "M4", "M5", "M7"]
+        metrics = ["M1", "M2", "M3", "M4", "M7"]
         fig, axes = plt.subplots(len(metrics), 1, figsize=(10, 4 * len(metrics)))
         for ax, metric in zip(axes, metrics):
             print(f"  Plotting metric: {metric}")
@@ -325,25 +338,34 @@ def format_mean_std(mean_val, std_val):
     return f"{mf}\\,$\\pm$\\,{sf}"
 
 
-
 def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
     """Generate custom LaTeX table in the specified format."""
     
     try:
-        # Calculate statistics
-        stats = (
+        # Calculate statistics - M5 as count, others as mean/std
+        stats_m5 = (
+            df.groupby(["llm_type", "temperature", "workflow"])
+            .agg({
+                "M5": ["sum"],  # Count successful runs
+            })
+            .round(0)  # No decimals for counts
+        )
+        
+        stats_others = (
             df.groupby(["llm_type", "temperature", "workflow"])
             .agg({
                 "M1": ["mean", "std"],
                 "M2": ["mean", "std"],
                 "M3": ["mean", "std"],
                 "M4": ["mean", "std"],
-                "M5": ["mean", "std"],
                 "M6": ["mean", "std"],
                 "M7": ["mean", "std"],
             })
             .round(3)
         )
+        
+        # Combine the statistics
+        stats = pd.concat([stats_m5, stats_others], axis=1)
         
         # Get unique values from data
         llm_types = sorted(df["llm_type"].unique())
@@ -373,7 +395,7 @@ def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
             f.write(r"  \label{tab:main-results}" + "\n")
             f.write(r"  \begin{tabular}{llcccccccc}" + "\n")
             f.write(r"    \toprule" + "\n")
-            f.write(r"    \textbf{LLM} & \textbf{System} & \textbf{Temp} & \textbf{M1 (\%)$\uparrow$} & \textbf{M2 (\%)$\uparrow$} & \textbf{M3 (\%)$\uparrow$} & \textbf{M4 (\%)$\uparrow$} & \textbf{M5 (\%)$\uparrow$} & \textbf{M6 (s)$\downarrow$} & \textbf{M7 (\# N)$\uparrow$} \\" + "\n")
+            f.write(r"    \textbf{LLM} & \textbf{System} & \textbf{Temp} & \textbf{M1 (\%)$\uparrow$} & \textbf{M2 (\%)$\uparrow$} & \textbf{M3 (\%)$\uparrow$} & \textbf{M4 (\%)$\uparrow$} & \textbf{M5 (\#)$\uparrow$} & \textbf{M6 (s)$\downarrow$} & \textbf{M7 (\# N)$\uparrow$} \\" + "\n")
             f.write(r"    \midrule" + "\n")
             
             # Generate table rows
@@ -400,18 +422,30 @@ def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
                             try:
                                 # Check if the combination exists in stats
                                 if (llm_type, temp, workflow) in stats.index:
-                                    mean_val = stats.loc[(llm_type, temp, workflow), (metric, "mean")]
-                                    std_val = stats.loc[(llm_type, temp, workflow), (metric, "std")]
-                                    # Convert to percent for display for M1-M5
-                                    if metric in ["M1", "M2", "M3", "M4", "M5"]:
-                                        mean_val *= 100
-                                        std_val *= 100
-                                    formatted_val = format_mean_std(mean_val, std_val)
+                                    if metric == "M5":
+                                        # M5 is a count, no standard deviation
+                                        count_val = stats.loc[(llm_type, temp, workflow), (metric, "sum")]
+                                        formatted_val = f"{int(count_val)}"
+                                    else:
+                                        # Other metrics have mean and std
+                                        mean_val = stats.loc[(llm_type, temp, workflow), (metric, "mean")]
+                                        std_val = stats.loc[(llm_type, temp, workflow), (metric, "std")]
+                                        # Convert to percent for display for M1-M4
+                                        if metric in ["M1", "M2", "M3", "M4"]:
+                                            mean_val *= 100
+                                            std_val *= 100
+                                        formatted_val = format_mean_std(mean_val, std_val)
                                 else:
-                                    formatted_val = r"\tbd\,$\pm$\,\tbd"
+                                    if metric == "M5":
+                                        formatted_val = "0"  # No successful runs
+                                    else:
+                                        formatted_val = r"\tbd\,$\pm$\,\tbd"
                             except Exception as e:
                                 print(f"Warning: Could not get {metric} for {llm_type}, {temp}, {workflow}: {e}")
-                                formatted_val = r"\tbd\,$\pm$\,\tbd"
+                                if metric == "M5":
+                                    formatted_val = "0"
+                                else:
+                                    formatted_val = r"\tbd\,$\pm$\,\tbd"
                             
                             f.write(f" & {formatted_val}")
                         
