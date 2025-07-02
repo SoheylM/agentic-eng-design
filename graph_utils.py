@@ -155,6 +155,25 @@ def update_node_func(design_graph: DesignState, op: NodeOp) -> str:
 def visualize_design_state_func(design_graph: DesignState) -> str:
     import plotly.graph_objects as go
     import networkx as nx
+    import re
+
+    def is_uuid(text):
+        """Check if a string is a UUID format."""
+        uuid_pattern = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', re.IGNORECASE)
+        return bool(uuid_pattern.match(text))
+    
+    def get_display_name(node_id, node_name):
+        """Get the display name for a node - use name if available, otherwise ID."""
+        if is_uuid(node_id):
+            # If it's a UUID, prefer the name if it exists and is not empty
+            if node_name and node_name.strip():
+                return node_name
+            else:
+                # If no name, use a shortened version of the UUID
+                return node_id[:8] + "..."
+        else:
+            # If it's not a UUID, use the ID as is
+            return node_id
 
     G = nx.DiGraph()
     for nid, node in design_graph.nodes.items():
@@ -191,6 +210,10 @@ def visualize_design_state_func(design_graph: DesignState) -> str:
     for nid, data in G.nodes(data=True):
         x, y = pos[nid]
         node_x.append(x); node_y.append(y)
+        
+        # Get display name for the annotation
+        display_name = get_display_name(nid, data['name'])
+        
         hover = (
             f"ID: {nid}<br>"
             f"Name: {data['name']}<br>"
@@ -203,7 +226,7 @@ def visualize_design_state_func(design_graph: DesignState) -> str:
         node_text.append(hover)
         node_colors.append(color_map.get(data["kind"], "gray"))
         annotations.append(dict(
-            x=x+0.02, y=y+0.02, text=nid, showarrow=False,
+            x=x+0.02, y=y+0.02, text=display_name, showarrow=False,
             font=dict(size=16, color="black", family="Arial Black")  # Increased font size
         ))
 
