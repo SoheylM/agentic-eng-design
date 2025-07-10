@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# The output files
+IDETC-25-Extended_full_traces_2025-07-04.json
+IDETC-25-Extended_full_traces_2025-07-04.csv
+
 # OS related files
 .DS_Store
 
