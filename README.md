@@ -27,6 +27,13 @@ cp .env.example .env
 # Edit .env with your API keys
 ```
 
+3. **Configure LLM Backend**:
+Edit `llm_models.py` to use your preferred LLM backend:
+- **OpenAI API**: Set `openai_api_key` and `openai_api_base`
+- **Local vLLM**: Set `openai_api_base="http://localhost:8000/v1"`
+- **Local Ollama**: Set `openai_api_base="http://localhost:11434/v1"`
+- **Local SGLang**: Set `openai_api_base="http://localhost:8002/v1"`
+
 ## Demo Workflow
 
 ### Step 1: Run Experiments
