@@ -1,0 +1,34 @@
+{
+  "nodes": {
+    "Root": {
+      "node_id": "Root",
+      "node_kind": "system",
+      "name": "Lightweight eVTOL",
+      "description": "An optimized eVTOL design focusing on lightweight materials and efficient structures to maximize range and reduce energy consumption.",
+      "embodiment": {
+        "principle": "Minimize mass while maintaining strength",
+        "description": "Use lightweight composite materials throughout the airframe and components to reduce overall mass without compromising safety.",
+        "design_parameters": {
+          "mass": 450.0,
+          "power": 120.0
+        },
+        "cost_estimate": 2100000.0,
+        "mass_estimate": 450.0,
+        "status": "proposed"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-1",
+        "SR-3"
+      ],
+      "verification_plan": "Structural testing and mass audit.",
+      "maturity": "medium",
+      "tags": [
+        "lightweight",
+        "efficient"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}

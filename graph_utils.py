@@ -249,7 +249,7 @@ def visualize_design_state_func(design_graph: DesignState) -> str:
         data=[edge_trace, node_trace],
         layout=go.Layout(
             title=dict(
-                text="Design Graph - Solar Water Filtration System",
+                text="Design State Graph",
                 font=dict(size=20, family="Arial Black")  # Larger title
             ),
             showlegend=False,
