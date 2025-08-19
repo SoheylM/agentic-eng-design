@@ -852,6 +852,68 @@ Design decisions must explicitly trace to stakeholder needs and system requireme
 Implement this cahier des charges and **write 'FINALIZED' at the end of it** IT IS AN IMPORTANT TRIGGER.
 """
 
+CAHIER_DES_CHARGES_UAM = """
+Here is exactly what I want:
+Cahier des Charges: Urban Air Mobility (UAM) Electric Vertical Takeoff and Landing (eVTOL) Aircraft
+
+1 Project Overview
+
+Title: Design of an Urban Air Mobility Electric Vertical Takeoff and Landing Aircraft
+Client Objective: Develop a safe, efficient, and commercially viable eVTOL aircraft for urban passenger transportation, capable of vertical takeoff/landing and efficient forward flight in urban environments.
+
+2 Stakeholder Needs
+
+✅ SN-1: Provide safe, reliable urban air transportation for passengers (1-4 passengers).
+✅ SN-2: Achieve noise levels acceptable for urban operations (≤ 65 dB at 500m distance).
+✅ SN-3: Be cost-competitive with premium ground transportation (≤ $3/mile operational cost).
+✅ SN-4: Use sustainable energy sources and minimize environmental impact.
+✅ SN-5: Integrate seamlessly with existing urban infrastructure and air traffic management.
+
+3 System-Level Requirements
+
+✅ SR-01: Carry 1-4 passengers (max 400 kg payload) with 100 km range at 200 km/h cruise speed.
+✅ SR-02: Achieve vertical takeoff and landing in ≤ 50m × 50m area with ≤ 15m height clearance.
+✅ SR-03: Maintain stable hover and transition smoothly between vertical and forward flight modes.
+✅ SR-04: Achieve ≥ 99.9% system reliability for critical flight systems (10^-3 failure rate).
+✅ SR-05: Operate in urban weather conditions (wind ≤ 25 knots, visibility ≥ 3 km, ceiling ≥ 300m).
+✅ SR-06: Meet aviation safety standards (FAA Part 23/27 or EASA CS-23/27 equivalent).
+✅ SR-07: Achieve ≤ 65 dB noise level at 500m distance during takeoff/landing operations.
+✅ SR-08: Use ≥ 80% electric propulsion with ≤ 20% hybrid/backup systems by mass.
+✅ SR-09: Complete pre-flight checks in ≤ 5 minutes and achieve 95% dispatch reliability.
+✅ SR-10: Achieve ≤ $2M unit cost at 1000 units/year production rate.
+
+4 Constraints & Interfaces
+
+✅ Regulatory: Must comply with FAA/EASA certification requirements for commercial passenger operations.
+✅ Infrastructure: Must operate from existing helipads or designated UAM vertiports.
+✅ Air Traffic: Must integrate with UTM (Unmanned Traffic Management) and ADS-B systems.
+✅ Environmental: Must meet urban noise regulations and emissions standards.
+
+5 Verification Strategy
+
+Each system requirement (SR) will be verified through:
+- I = Inspection
+- A = Analysis  
+- T = Test
+- D = Demonstration
+
+A detailed Requirements Verification Matrix (RVM) will be developed during the design phase.
+
+6 Expected Deliverables
+
+✅ Functional Decomposition: Hierarchical breakdown of flight, propulsion, control, and safety functions.
+✅ Subsystem Architecture: Alternative mappings of functions to physical subsystems (propulsion, airframe, avionics, energy storage).
+✅ Numerical Models: Aerodynamic, structural, and propulsion models for performance predictions.
+✅ Trade Study: At least three design variants evaluated against SR-01 to SR-10.
+✅ Verification Plan: Test matrices, analysis protocols, and pass/fail criteria linked to each SR.
+
+📌 Final Note
+
+Design decisions must explicitly trace to stakeholder needs and system requirements, with documented engineering process supporting safety, performance, and commercial viability.
+
+Implement this cahier des charges and **write 'FINALIZED' at the end of it** IT IS AN IMPORTANT TRIGGER.
+"""
+
 
 ######################## 2AS Prompt #########################################
 GE_PAIR_PROMPT = """

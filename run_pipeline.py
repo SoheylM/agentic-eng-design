@@ -22,7 +22,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List
 
-from prompts import CAHIER_DES_CHARGES_REV_C, CAHIER_DES_CHARGES_REV_C_PAIR
+from prompts import CAHIER_DES_CHARGES_REV_C, CAHIER_DES_CHARGES_REV_C_PAIR, CAHIER_DES_CHARGES_UAM
 from experiment_config import (
     ExperimentConfig,
     generate_experiment_configs,
@@ -32,18 +32,26 @@ from experiment_config import (
 )
 
 
-def default_request(workflow_type: str = "mas") -> str:
-    """Single-line prompt that embeds the Rev-C Cahier-des-Charges."""
-    prompt = (
-        CAHIER_DES_CHARGES_REV_C_PAIR
-        if workflow_type == "pair"
-        else CAHIER_DES_CHARGES_REV_C
-    )
-    return (
-        "I want to create a solar-powered water-filtration system that satisfies "
-        "the following Cahier-des-Charges Rev C:\n\n"
-        + prompt
-    )
+def default_request(workflow_type: str = "mas", system_type: str = "water") -> str:
+    """Single-line prompt that embeds the appropriate Cahier-des-Charges."""
+    if system_type == "uam":
+        prompt = CAHIER_DES_CHARGES_UAM
+        return (
+            "I want to create an Urban Air Mobility (UAM) eVTOL aircraft that satisfies "
+            "the following Cahier-des-Charges:\n\n"
+            + prompt
+        )
+    else:  # water system
+        prompt = (
+            CAHIER_DES_CHARGES_REV_C_PAIR
+            if workflow_type == "pair"
+            else CAHIER_DES_CHARGES_REV_C
+        )
+        return (
+            "I want to create a solar-powered water-filtration system that satisfies "
+            "the following Cahier-des-Charges Rev C:\n\n"
+            + prompt
+        )
 
 
 def _run_once(
@@ -138,6 +146,12 @@ if __name__ == "__main__":
     ap.add_argument(
         "--request", default=None, help="Initial user request (overrides default prompt)"
     )
+    ap.add_argument(
+        "--system", 
+        choices=["water", "uam"], 
+        default="water",
+        help="System type: water (solar-powered water filtration) or uam (eVTOL aircraft)"
+    )
     ap.add_argument("--llm", choices=LLM_TYPES, help="Run only this LLM type")
     ap.add_argument("--temp", type=float, choices=TEMPERATURES, help="Only this temperature")
     ap.add_argument(
@@ -184,7 +198,7 @@ if __name__ == "__main__":
     with log_file.open("w") as lf:
         for idx, cfg in enumerate(configs, start=1):
             print(f"[{idx}/{total}] {cfg.run_folder_name} …")
-            request = args.request or default_request(cfg.workflow_type)
+            request = args.request or default_request(cfg.workflow_type, args.system)
 
             metadata = _run_once(cfg, request, batch_id, base_dir)
             lf.write(json.dumps(metadata) + "\n")
