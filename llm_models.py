@@ -22,7 +22,7 @@ def configure_models(llm_type: str, temperature: float, seed: int):
             model="deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
             openai_api_key="None",
             openai_api_base="http://127.0.0.1:8002/v1",
-            max_tokens=64000,
+            max_tokens=35000,
             temperature=temperature,
             seed=seed,
             streaming=False
