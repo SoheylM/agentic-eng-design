@@ -1,11 +1,35 @@
-langgraph>=0.0.15
-langchain>=0.1.0
-langchain-core>=0.1.0
-python-dotenv>=1.0.0
-pydantic>=2.0.0
-langchain-openai>=0.0.5
-langchain-ollama>=0.0.1
-networkx>=3.1
-ipython>=8.0.0
-numpy>=1.24.0
-scipy>=1.10.0 
+# Core LangChain and LangGraph packages
+langgraph>=0.2.72
+langchain>=0.3.18
+langchain-core>=0.3.35
+langchain-community>=0.3.17
+langchain-experimental>=0.3.4
+langchain-openai>=0.3.5
+langchain-ollama>=0.2.3
+
+# Data processing and scientific computing
+pydantic>=2.10.6
+numpy>=1.26.4
+scipy>=1.15.2
+pandas>=2.2.3
+networkx>=3.4.2
+
+# Visualization packages
+plotly>=6.0.0
+matplotlib>=3.10.0
+seaborn>=0.13.2
+
+# LLM providers
+openai>=1.61.0
+ollama>=0.4.7
+
+# Search and information retrieval tools
+arxiv>=2.1.3
+duckduckgo-search>=7.5.1
+wikipedia>=1.4.0
+
+# Development and utilities
+python-dotenv>=1.0.1
+ipython>=8.27.0
+requests>=2.32.3
+langsmith>=0.3.4 
