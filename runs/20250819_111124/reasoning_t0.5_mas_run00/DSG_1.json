@@ -1,0 +1,253 @@
+{
+  "nodes": {
+    "1": {
+      "node_id": "1",
+      "node_kind": "Function",
+      "name": "Propulsion",
+      "description": "High-efficiency electric propulsion system",
+      "embodiment": {
+        "principle": "Advanced Electric Ducted Fans",
+        "description": "High-speed, high-efficiency electric ducted fans with variable pitch",
+        "design_parameters": {
+          "number_of_fans": 6.0,
+          "fan_diameter": 2.0,
+          "motor_power": 100.0
+        },
+        "cost_estimate": 300000.0,
+        "mass_estimate": 700.0,
+        "status": "Concept Design"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "F.1",
+        "F.2",
+        "S.6"
+      ],
+      "verification_plan": "Performance testing.",
+      "maturity": "Low",
+      "tags": [
+        "Propulsion"
+      ]
+    },
+    "2": {
+      "node_id": "2",
+      "node_kind": "Function",
+      "name": "Energy Storage",
+      "description": "Advanced high-density battery system",
+      "embodiment": {
+        "principle": "Solid-State Batteries",
+        "description": "High energy density solid-state batteries for extended range and performance",
+        "design_parameters": {
+          "capacity": 80.0,
+          "voltage": 400.0,
+          "weight": 400.0
+        },
+        "cost_estimate": 200000.0,
+        "mass_estimate": 400.0,
+        "status": "Concept Design"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "F.1",
+        "S.6"
+      ],
+      "verification_plan": "Capacity and discharge testing.",
+      "maturity": "Low",
+      "tags": [
+        "Energy"
+      ]
+    },
+    "3": {
+      "node_id": "3",
+      "node_kind": "Function",
+      "name": "Airframe",
+      "description": "Lightweight and durable airframe structure",
+      "embodiment": {
+        "principle": "Advanced Composite Materials",
+        "description": "Use of cutting-edge composites for minimal weight and maximum strength",
+        "design_parameters": {
+          "material": 3.0,
+          "thickness": 3.0,
+          "weight": 600.0
+        },
+        "cost_estimate": 300000.0,
+        "mass_estimate": 600.0,
+        "status": "Concept Design"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "F.1",
+        "F.2"
+      ],
+      "verification_plan": "Structural integrity testing.",
+      "maturity": "Low",
+      "tags": [
+        "Structure"
+      ]
+    },
+    "4": {
+      "node_id": "4",
+      "node_kind": "Function",
+      "name": "Avionics",
+      "description": "Advanced avionics for optimal flight control",
+      "embodiment": {
+        "principle": "Fly-by-Wire with AI",
+        "description": "AI-enhanced fly-by-wire systems for improved stability and control",
+        "design_parameters": {
+          "redundancy": 3.0,
+          "response_time": 0.05,
+          "weight": 150.0
+        },
+        "cost_estimate": 100000.0,
+        "mass_estimate": 150.0,
+        "status": "Concept Design"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "F.2"
+      ],
+      "verification_plan": "System performance testing.",
+      "maturity": "Low",
+      "tags": [
+        "Avionics"
+      ]
+    },
+    "5": {
+      "node_id": "5",
+      "node_kind": "Function",
+      "name": "Noise Reduction",
+      "description": "Advanced noise reduction systems",
+      "embodiment": {
+        "principle": "Active Noise Cancellation",
+        "description": "Active noise cancellation technology integrated into the propulsion and airframe",
+        "design_parameters": {
+          "number_of_speakers": 12.0,
+          "power": 100.0,
+          "weight": 100.0
+        },
+        "cost_estimate": 150000.0,
+        "mass_estimate": 100.0,
+        "status": "Concept Design"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "S.5"
+      ],
+      "verification_plan": "Noise level testing.",
+      "maturity": "Low",
+      "tags": [
+        "Noise Reduction"
+      ]
+    },
+    "6": {
+      "node_id": "6",
+      "node_kind": "Function",
+      "name": "Safety Systems",
+      "description": "Multiple redundant safety systems",
+      "embodiment": {
+        "principle": "Triple Redundant Power and Control",
+        "description": "Triple redundancy in power and control systems for maximum safety",
+        "design_parameters": {
+          "number_of_redundancies": 4.0,
+          "response_time": 0.02,
+          "weight": 250.0
+        },
+        "cost_estimate": 150000.0,
+        "mass_estimate": 250.0,
+        "status": "Concept Design"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "S.4"
+      ],
+      "verification_plan": "Safety and redundancy testing.",
+      "maturity": "Low",
+      "tags": [
+        "Safety"
+      ]
+    },
+    "7": {
+      "node_id": "7",
+      "node_kind": "Function",
+      "name": "Landing Gear",
+      "description": "Advanced retractable landing gear",
+      "embodiment": {
+        "principle": "Hydraulic Actuation",
+        "description": "Hydraulically actuated landing gear for quick and reliable operation",
+        "design_parameters": {
+          "retraction_time": 3.0,
+          "weight": 150.0,
+          "diameter": 1.0
+        },
+        "cost_estimate": 50000.0,
+        "mass_estimate": 150.0,
+        "status": "Concept Design"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "F.2"
+      ],
+      "verification_plan": "Functional testing.",
+      "maturity": "Low",
+      "tags": [
+        "Landing"
+      ]
+    },
+    "8": {
+      "node_id": "8",
+      "node_kind": "Function",
+      "name": "Control Electronics",
+      "description": "High-performance control electronics",
+      "embodiment": {
+        "principle": "Distributed Control Units",
+        "description": "Distributed control units for faster processing and redundancy",
+        "design_parameters": {
+          "processing_power": 20.0,
+          "memory": 32.0,
+          "weight": 30.0
+        },
+        "cost_estimate": 60000.0,
+        "mass_estimate": 30.0,
+        "status": "Concept Design"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "F.2"
+      ],
+      "verification_plan": "Performance and integration testing.",
+      "maturity": "Low",
+      "tags": [
+        "Electronics"
+      ]
+    },
+    "9": {
+      "node_id": "9",
+      "node_kind": "Function",
+      "name": "Cabin and Interior",
+      "description": "Luxury cabin with advanced comfort systems",
+      "embodiment": {
+        "principle": "Premium Materials",
+        "description": "Use of premium materials for comfort and aesthetics",
+        "design_parameters": {
+          "material": 2.0,
+          "thickness": 3.0,
+          "weight": 300.0
+        },
+        "cost_estimate": 150000.0,
+        "mass_estimate": 300.0,
+        "status": "Concept Design"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "S.1"
+      ],
+      "verification_plan": "Comfort and structural testing.",
+      "maturity": "Low",
+      "tags": [
+        "Cabin"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}
