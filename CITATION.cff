@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: "Massoudi"
+    given-names: "Soheyl"
+  - family-names: "Fuge"
+    given-names: "Mark"
+title: "Agentic Large Language Models for Conceptual Systems Engineering and Design"
+version: "1.0.0"
+doi: "10.48550/arXiv.2507.08619"
+date-released: 2025-07-11
+url: "https://arxiv.org/abs/2507.08619"
+repository-code: "https://github.com/SoheylM/agentic-eng-design"
+keywords:
+  - "artificial intelligence"
+  - "large language models"
+  - "multi-agent systems"
+  - "engineering design"
+  - "conceptual design"
+  - "systems engineering"
+license: MIT
