@@ -1,0 +1,50 @@
+{
+  "nodes": {
+    "1": {
+      "node_id": "1",
+      "node_kind": "Function",
+      "name": "Propulsion System",
+      "description": "Provides thrust and lift for the aircraft.",
+      "embodiment": {
+        "principle": "Electric Ducted Fans",
+        "description": "Uses electric motors with ducted fans for efficient thrust.",
+        "design_parameters": {
+          "cost": 0.8,
+          "performance": 0.7,
+          "mass": 0.6
+        },
+        "cost_estimate": 800000.0,
+        "mass_estimate": 500.0,
+        "status": "Complete"
+      },
+      "physics_models": [
+        {
+          "name": "Aerodynamics",
+          "equations": "Lift = 0.5 * rho * v^2 * Cl * A",
+          "coding_directives": "Use Python for simulations.",
+          "python_code": "Okay, so I need to create a Python script for an aerodynamics model that calculates lift. The user provided a simple equation and some assumptions, but the current code is very basic. I should think about how to expand this into a full-featured script that meets all the requirements.\n\nFirst, the script needs to be correct and runnable. The current code is a single line, so I'll need to structure it properly. I'll start by importing necessary libraries like numpy, argparse, and logging. Maybe also matplotlib for plotting.\n\nNext, I should consider the governing equations. The lift equation is given, but I might need to include other aerodynamic parameters like drag if time permits, but for now, focusing on lift is fine.\n\nI'll structure the script into functions. A calculate_lift function makes sense, taking in parameters like air_density, velocity, lift_coefficient, and area. Then, a main function to handle arguments and execute the calculation.\n\nCommand-line interfaces are important, so I'll use argparse to accept inputs. Parameters like velocity, lift coefficient, and area should be\u53ef\u914d\u7f6e\u7684. I'll set default values so the user can run the script without arguments.\n\nLogging is another requirement. I'll add a logger and a verbosity flag. This way, the user can see more detailed output if needed.\n\nOutput handling is crucial. I'll create an outputs directory and save the results in a JSON file for easy access. Also, a quick-look plot using matplotlib would be helpful for visualization.\n\nTesting is necessary. I'll include a pytest function that checks the lift calculation against known values. This ensures the code works correctly.\n\nThe coupling stub is a bit tricky. I'll create a function that can pass data to other nodes, maybe returning the lift value. This way, it can integrate into a larger system.\n\nPerformance-wise, since the calculation is straightforward, vectorization isn't a big issue here. But using numpy ensures it's efficient.\n\nI'll also add a README section at the end with example usage and explanation of features. This makes the script user-friendly.\n\nPutting it all together, I'll structure the script with functions, handle CLI arguments, logging, output saving, and testing. I'll make sure everything is self-contained and runs smoothly.\n</think>\n\n```python\n\"\"\"\nAerodynamics Model for Lift Calculation\n\nThis module calculates lift force using aerodynamic equations and provides:\n- Command-line interface for parameter input\n- Logging capabilities\n- Output storage in JSON format\n- Basic testing through pytest\n- Coupling stub for integration with other systems\n\nAuthor: [Your Name]\nDate: [Today's Date]\n\"\"\"\n\nimport numpy as np\nimport argparse\nimport logging\nimport json\nimport os\nimport matplotlib.pyplot as plt\n\n# Set up logging\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s - %(levelname)s - %(message)s'\n)\nlogger = logging.getLogger(__name__)\n\ndef calculate_lift(air_density: float, velocity: float, lift_coefficient: float, planform_area: float) -> float:\n    \"\"\"\n    Calculates lift force using the formula:\n    L = 0.5 * air_density * velocity^2 * lift_coefficient * planform_area\n    \n    Args:\n        air_density (float): Air density in kg/m\u00b3\n        velocity (float): Velocity in m/s\n        lift_coefficient (float): Lift coefficient (Cl)\n        planform_area (float): Wing planform area in m\u00b2\n    \n    Returns:\n        float: Lift force in Newtons\n    \"\"\"\n    lift = 0.5 * air_density * velocity**2 * lift_coefficient * planform_area\n    return lift\n\ndef main(args):\n    # Extract arguments\n    air_density = args.air_density\n    velocity = args.velocity\n    lift_coefficient = args.lift_coefficient\n    planform_area = args.planform_area\n    \n    # Calculate lift\n    lift = calculate_lift(air_density, velocity, lift_coefficient, planform_area)\n    \n    # Create output directory if it doesn't exist\n    output_dir = \"outputs\"\n    os.makedirs(output_dir, exist_ok=True)\n    \n    # Save results to JSON\n    results = {\n        \"lift\": lift,\n        \"parameters\": {\n            \"air_density\": air_density,\n            \"velocity\": velocity,\n            \"lift_coefficient\": lift_coefficient,\n            \"planform_area\": planform_area\n        }\n    }\n    \n    with open(os.path.join(output_dir, \"aerodynamics_results.json\"), \"w\") as f:\n        json.dump(results, f, indent=2)\n    \n    # Generate quick-look plot\n    plt.figure(figsize=(8, 6))\n    plt.plot([velocity], [lift], 'bo', markersize=10)\n    plt.xlabel('Velocity (m/s)')\n    plt.ylabel('Lift Force (N)')\n    plt.title('Lift Force vs Velocity')\n    plt.grid(True)\n    plt.savefig(os.path.join(output_dir, \"lift_plot.png\"))\n    plt.close()\n    \n    logger.info(f\"Lift force calculated: {lift} N\")\n    logger.info(f\"Results saved to {output_dir}\")\n\ndef parse_arguments():\n    parser = argparse.ArgumentParser(description='Calculate lift force')\n    parser.add_argument('--air_density', type=float, default=1.225,\n                       help='Air density in kg/m\u00b3 (default: 1.225)')\n    parser.add_argument('--velocity', type=float, default=50,\n                       help='Velocity in m/s (default: 50)')\n    parser.add_argument('--lift_coefficient', type=float, default=0.5,\n                       help='Lift coefficient (Cl) (default: 0.5)')\n    parser.add_argument('--planform_area', type=float, default=10,\n                       help='Wing planform area in m\u00b2 (default: 10)')\n    parser.add_argument('--verbosity', type=int, default=0,\n                       help='Logging verbosity level')\n    return parser.parse_args()\n\n# Coupling stub\ndef get_lift_for_propulsion(velocity: float, planform_area: float) -> float:\n    \"\"\"\n    Stub function to integrate with propulsion system calculations\n    Returns lift force for given velocity and planform area\n    \"\"\"\n    air_density = 1.225  # Standard air density\n    lift_coefficient = 0.5  # Typical Cl value\n    return calculate_lift(air_density, velocity, lift_coefficient, planform_area)\n\n# Testing\ndef test_calculate_lift():\n    # Test case 1: Standard conditions\n    air_density = 1.225\n    velocity = 50\n    lift_coefficient = 0.5\n    planform_area = 10\n    expected_lift = 0.5 * air_density * velocity**2 * lift_coefficient * planform_area\n    assert np.isclose(calculate_lift(air_density, velocity, lift_coefficient, planform_area), expected_lift, rtol=1e-4)\n\nif __name__ == \"__main__\":\n    args = parse_arguments()\n    logger.setLevel(logging.INFO if args.verbosity == 0 else logging.DEBUG)\n    main(args)\n\n# Example usage:\n\"\"\"\npython aerodynamics.py --air_density 1.2 --velocity 60 --lift_coefficient 0.6 --planform_area 15\n\"\"\"\n\n# Features:\n\"\"\"\n- Calculates lift force using standard aerodynamic formula\n- Accepts command-line arguments for all parameters\n- Saves results in JSON format\n- Generates quick-look plot\n- Includes logging with adjustable verbosity\n- Provides coupling stub for integration\n- Includes basic test case\n\"\"\"\n```\n\nThis script provides a complete solution for aerodynamic lift calculation with:\n1. Proper command-line argument handling\n2. Logging system\n3. Output storage in JSON format\n4. Quick-look visualization\n5. Coupling stub for system integration\n6. Basic testing through pytest\n7. Clear documentation and example usage\n\nTo use:\n1. Save as `aerodynamics.py`\n2. Install requirements: `pip install numpy matplotlib`\n3. Run: `python aerodynamics.py --help` for usage\n4. Example: `python aerodynamics.py --velocity 100 --planform_area 20`\n\nThe script will calculate lift, save results to `outputs/`, and generate a plot.",
+          "coder_notes": "",
+          "assumptions": [
+            "Assumption 1: Steady state conditions.",
+            "Assumption 2: Incompressible flow."
+          ],
+          "status": "Complete"
+        }
+      ],
+      "linked_reqs": [
+        "SR1",
+        "SR2",
+        "SR3"
+      ],
+      "verification_plan": "Test the propulsion system under various load conditions to ensure it meets the required thrust and efficiency.",
+      "maturity": "Low",
+      "tags": [
+        "Propulsion",
+        "Electric",
+        "Cost-Effective"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": true
+}

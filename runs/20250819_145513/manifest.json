@@ -1,0 +1,8 @@
+[
+  {
+    "run_folder": "reasoning_t0.5_mas_run00",
+    "llm_type": "reasoning",
+    "temperature": 0.5,
+    "workflow": "mas"
+  }
+]

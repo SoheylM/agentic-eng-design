@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script to visualize UAM/eVTOL DSG files from the runs directory.
+Script to visualize the latest DSG from the most recent run in the runs directory.
 Usage: python visualization/visualize_uam_dsg.py [run_folder_name]
 """
 
@@ -71,8 +71,8 @@ def load_dsg_from_json(file_path: str) -> DesignState:
     
     return design_state
 
-def find_latest_uam_run() -> str:
-    """Find the most recent UAM run folder."""
+def find_latest_run_and_dsg() -> tuple[str, str]:
+    """Find the most recent run folder and its latest DSG file."""
     runs_dir = Path("runs")
     if not runs_dir.exists():
         raise FileNotFoundError("No runs directory found")
@@ -85,30 +85,41 @@ def find_latest_uam_run() -> str:
     # Sort by creation time (newest first)
     batch_dirs.sort(key=lambda x: x.stat().st_mtime, reverse=True)
     
-    # Look for UAM runs in the most recent batch
+    # Look through the most recent batch for any run with DSG files
     latest_batch = batch_dirs[0]
-    uam_runs = [d for d in latest_batch.iterdir() if d.is_dir() and "uam" in d.name.lower()]
+    print(f"🔍 Checking latest batch: {latest_batch.name}")
     
-    if not uam_runs:
-        # If no UAM runs found, look for any recent run
-        all_runs = [d for d in latest_batch.iterdir() if d.is_dir()]
-        if all_runs:
-            return all_runs[0].name
-        else:
-            raise FileNotFoundError("No run directories found in latest batch")
+    # Find all run directories in the latest batch
+    run_dirs = [d for d in latest_batch.iterdir() if d.is_dir()]
+    if not run_dirs:
+        raise FileNotFoundError("No run directories found in latest batch")
     
-    return uam_runs[0].name
+    # Sort run directories by creation time (newest first)
+    run_dirs.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+    
+    # Find the first run directory that has DSG files
+    for run_dir in run_dirs:
+        dsg_files = list(run_dir.glob("*.json"))
+        if dsg_files:
+            # Sort DSG files and get the latest one
+            dsg_files.sort(key=lambda x: x.name)
+            latest_dsg = dsg_files[-1].name
+            return run_dir.name, latest_dsg
+    
+    raise FileNotFoundError("No DSG files found in any run directory in the latest batch")
 
 def main():
-    """Main function to load and visualize UAM DSG."""
+    """Main function to load and visualize the latest DSG from the most recent run."""
     
-    # Get run folder name from command line or find latest
+    # Get run folder name and DSG file from command line or find latest
     if len(sys.argv) > 1:
         run_folder_name = sys.argv[1]
+        dsg_file_name = None  # Will find the latest DSG in the specified run
     else:
         try:
-            run_folder_name = find_latest_uam_run()
+            run_folder_name, dsg_file_name = find_latest_run_and_dsg()
             print(f"🔍 Found latest run: {run_folder_name}")
+            print(f"📄 Found latest DSG: {dsg_file_name}")
         except FileNotFoundError as e:
             print(f"❌ Error: {e}")
             print("Usage: python visualization/visualize_uam_dsg.py [run_folder_name]")
@@ -130,18 +141,26 @@ def main():
         print(f"❌ Error: Could not find run folder '{run_folder_name}' in any batch directory")
         return
     
-    print(f"🚁 Loading UAM/eVTOL DSG from: {run_path}")
+    print(f"🚁 Loading DSG from: {run_path}")
     print("=" * 60)
     
     # Find DSG files
-    dsg_files = list(run_path.glob("*.json"))
-    if not dsg_files:
-        print(f"❌ Error: No DSG files found in {run_path}")
-        return
-    
-    # Use the latest DSG file (highest step number)
-    dsg_files.sort(key=lambda x: x.name)
-    latest_dsg = dsg_files[-1]
+    if dsg_file_name:
+        # Use the specified DSG file
+        latest_dsg = run_path / dsg_file_name
+        if not latest_dsg.exists():
+            print(f"❌ Error: DSG file '{dsg_file_name}' not found in {run_path}")
+            return
+    else:
+        # Find the latest DSG file in the specified run
+        dsg_files = list(run_path.glob("*.json"))
+        if not dsg_files:
+            print(f"❌ Error: No DSG files found in {run_path}")
+            return
+        
+        # Use the latest DSG file (highest step number)
+        dsg_files.sort(key=lambda x: x.name)
+        latest_dsg = dsg_files[-1]
     
     print(f"📄 Using DSG file: {latest_dsg.name}")
     print()
@@ -154,7 +173,7 @@ def main():
         print()
         
         # Print a summary of the nodes
-        print("📊 UAM/eVTOL DSG Node Summary:")
+        print("📊 DSG Node Summary:")
         print("-" * 50)
         for node_id, node in design_state.nodes.items():
             print(f"🔹 {node_id}: {node.name} ({node.node_kind})")
@@ -168,7 +187,7 @@ def main():
         
         # Print edge information
         if design_state.edges:
-            print("🔗 UAM/eVTOL System Connections:")
+            print("🔗 System Connections:")
             print("-" * 50)
             for edge in design_state.edges:
                 source_name = design_state.nodes[edge[0]].name if edge[0] in design_state.nodes else edge[0]
@@ -180,7 +199,7 @@ def main():
         total_cost = sum(node.embodiment.cost_estimate for node in design_state.nodes.values() if node.embodiment.cost_estimate > 0)
         total_mass = sum(node.embodiment.mass_estimate for node in design_state.nodes.values() if node.embodiment.mass_estimate > 0)
         
-        print("💰 UAM/eVTOL System Analysis:")
+        print("💰 System Analysis:")
         print("-" * 50)
         if total_cost > 0:
             print(f"   Total System Cost: ${total_cost:,.0f}")
@@ -191,14 +210,14 @@ def main():
         print()
         
         # Visualize the design state
-        print("🎨 Generating UAM/eVTOL visualization...")
+        print("🎨 Generating visualization...")
         print("=" * 60)
         
         result = visualize_design_state_func(design_state)
         print(result)
         
         # Also provide a detailed summary
-        print("\n📋 Detailed UAM/eVTOL DSG Summary:")
+        print("\n📋 Detailed DSG Summary:")
         print("=" * 60)
         
         summary = summarize_design_state_func(design_state)

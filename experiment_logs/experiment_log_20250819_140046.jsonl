@@ -1,0 +1,1 @@
+{"config": {"llm_type": "reasoning", "temperature": 0.5, "workflow_type": "mas", "run_id": 0, "seed": 0}, "start_time": "2025-08-19T14:00:46.713942", "success": true, "error": null, "n_dsgs": 2, "wall_time": 1489.4092919826508}

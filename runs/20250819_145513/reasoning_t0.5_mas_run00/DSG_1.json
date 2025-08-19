@@ -1,0 +1,44 @@
+{
+  "nodes": {
+    "node_1": {
+      "node_id": "node_1",
+      "node_kind": "system",
+      "name": "eVTOL Aircraft",
+      "description": "Top-level system node representing the entire eVTOL aircraft.",
+      "embodiment": {
+        "principle": "Fixed-wing with tilt rotors",
+        "description": "A fixed-wing design with tilt rotors for vertical takeoff and landing.",
+        "design_parameters": {
+          "mass": 1500.0,
+          "unit": 1.0
+        },
+        "cost_estimate": 1.5,
+        "mass_estimate": 1500.0,
+        "status": "complete"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "SR-001",
+        "SR-002",
+        "SR-003",
+        "SR-004",
+        "SR-005",
+        "SR-006",
+        "SR-007",
+        "SR-008",
+        "SR-009",
+        "SR-010"
+      ],
+      "verification_plan": "Flight tests and simulations to verify performance and safety requirements.",
+      "maturity": "low",
+      "tags": [
+        "lightweight",
+        "portable",
+        "eVTOL",
+        "tilt rotor"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}
