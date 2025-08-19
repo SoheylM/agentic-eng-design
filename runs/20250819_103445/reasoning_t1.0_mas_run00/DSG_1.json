@@ -1,0 +1,46 @@
+{
+  "nodes": {
+    "eVTOL_Aircraft": {
+      "node_id": "eVTOL_Aircraft",
+      "node_kind": "Subsystem",
+      "name": "eVTOL Aircraft",
+      "description": "Top-level system",
+      "embodiment": {
+        "principle": "Quadcopter Configuration",
+        "description": "A quadcopter layout for simplicity and cost-effectiveness",
+        "design_parameters": {
+          "mass": 2000.0,
+          "power": 500.0,
+          "length": 20.0,
+          "width": 20.0,
+          "height": 10.0
+        },
+        "cost_estimate": 1.5,
+        "mass_estimate": 2000.0,
+        "status": "Initial Design Proposal"
+      },
+      "physics_models": [],
+      "linked_reqs": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8",
+        "F9",
+        "F10",
+        "F11"
+      ],
+      "verification_plan": "As per CDC",
+      "maturity": "Concept Design",
+      "tags": [
+        "Cost-Effective",
+        "Quadcopter"
+      ]
+    }
+  },
+  "edges": [],
+  "workflow_complete": false
+}

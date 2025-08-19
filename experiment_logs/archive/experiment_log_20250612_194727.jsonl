@@ -1,2 +1,0 @@
-{"config": {"llm_type": "reasoning", "temperature": 0.3, "workflow_type": "mas", "run_id": 0, "seed": 0}, "start_time": "2025-06-12T19:47:27.315511", "success": false, "error": "Connection error.", "n_dsgs": 0, "wall_time": 601.0117208957672}
-{"config": {"llm_type": "reasoning", "temperature": 0.3, "workflow_type": "mas", "run_id": 1, "seed": 1}, "start_time": "2025-06-12T19:57:28.327498", "success": false, "error": "Connection error.", "n_dsgs": 0, "wall_time": 1.512563943862915}

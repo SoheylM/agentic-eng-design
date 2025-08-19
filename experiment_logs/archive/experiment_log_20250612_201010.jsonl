@@ -1,5 +1,0 @@
-{"config": {"llm_type": "reasoning", "temperature": 0.3, "workflow_type": "mas", "run_id": 0, "seed": 0}, "start_time": "2025-06-12T20:10:10.068614", "success": true, "error": null, "n_dsgs": 2, "wall_time": 229.00982308387756}
-{"config": {"llm_type": "reasoning", "temperature": 0.3, "workflow_type": "mas", "run_id": 1, "seed": 1}, "start_time": "2025-06-12T20:13:59.078611", "success": true, "error": null, "n_dsgs": 1, "wall_time": 296.34650683403015}
-{"config": {"llm_type": "reasoning", "temperature": 0.3, "workflow_type": "mas", "run_id": 2, "seed": 2}, "start_time": "2025-06-12T20:18:55.425263", "success": true, "error": null, "n_dsgs": 1, "wall_time": 278.83948016166687}
-{"config": {"llm_type": "reasoning", "temperature": 0.3, "workflow_type": "mas", "run_id": 3, "seed": 3}, "start_time": "2025-06-12T20:23:34.264864", "success": true, "error": null, "n_dsgs": 1, "wall_time": 285.46185278892517}
-{"config": {"llm_type": "reasoning", "temperature": 0.3, "workflow_type": "mas", "run_id": 4, "seed": 4}, "start_time": "2025-06-12T20:28:19.726885", "success": true, "error": null, "n_dsgs": 2, "wall_time": 341.914559841156}
