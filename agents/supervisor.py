@@ -105,7 +105,7 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
                 save_folder=save_folder,
             )
             print(f"💾 [Supervisor] DSG snapshot saved → {out_path}")
-            visualize_design_state_func(dsg_now)
+            # visualize_design_state_func(dsg_now)  # Commented out to prevent popup during runs
         except Exception as e:
             print(f"⚠️  [Supervisor] failed to save/visualize DSG: {e}")
 

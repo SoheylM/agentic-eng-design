@@ -95,7 +95,7 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
                 save_folder=save_folder,
             )
             print(f"💾 [Reflection] DSG snapshot saved → {out_path}")
-            visualize_design_state_func(chosen_dsg)
+            # visualize_design_state_func(chosen_dsg)  # Commented out to prevent popup during runs
         except Exception as e:
             print(f"⚠️  [Reflection] failed to save/visualize DSG: {e}")
 
