@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 import pandas as pd
-from eval_saved import process_batch, generate_report
+from eval_saved import process_batch, generate_report, detect_system_type_from_batch
 
 base_dir = Path("runs")
 output_dir = Path("experiment_results")
@@ -11,8 +11,13 @@ for folder in base_dir.iterdir():
     if folder.is_dir() and folder.name != "unnamed_run":
         batch_id = folder.name
         try:
-            df = process_batch(base_dir, batch_id)
+            # Auto-detect system type for each batch
+            system_type = detect_system_type_from_batch(folder)
+            print(f"🔍 Processing {batch_id} with system type: {system_type}")
+            
+            df = process_batch(base_dir, batch_id, system_type)
             df["batch_id"] = batch_id  # Optionally track source
+            df["system_type"] = system_type  # Track system type
             all_dfs.append(df)
         except Exception as e:
             print(f"Skipping {batch_id}: {e}")

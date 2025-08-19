@@ -18,11 +18,167 @@ from typing import Dict, List, Any
 import pandas as pd
 import networkx as nx
 from data_models import DesignState
+from prompts import CAHIER_DES_CHARGES_REV_C, CAHIER_DES_CHARGES_UAM
 
 # ──────────────────────────────────────────────
-# Static patterns / constants
+# Dynamic requirement pattern generation
 # ──────────────────────────────────────────────
-REQ_PATTS: Dict[str, str] = {
+
+def parse_requirements_from_cdc(cdc_text: str) -> Dict[str, str]:
+    """
+    Automatically parse system requirements from Cahier des Charges text
+    and generate regex patterns for matching.
+    """
+    req_patterns = {}
+    
+    # Find all SR-XX requirements in the text
+    sr_pattern = re.compile(r'✅\s*(SR-\d+):\s*(.+?)(?=\n✅\s*SR-|\n\n|\n\d+\s|$)', re.DOTALL)
+    matches = sr_pattern.findall(cdc_text)
+    
+    for sr_id, requirement in matches:
+        # Clean up the requirement text
+        req_text = requirement.strip()
+        
+        # Generate regex pattern based on key values in the requirement
+        pattern = generate_regex_from_requirement(req_text)
+        if pattern:
+            req_patterns[sr_id] = pattern
+    
+    return req_patterns
+
+def generate_regex_from_requirement(req_text: str) -> str:
+    """
+    Generate a regex pattern from a requirement text by extracting key numerical values.
+    """
+    # Common patterns to look for in requirements
+    patterns = []
+    
+    # Flow rates (L/h, L/min, etc.)
+    flow_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:L|liter)s?\s*[\/\/]?\s*(?:h|hour|min|minute)', req_text, re.I)
+    if flow_match:
+        value = flow_match.group(1)
+        patterns.append(f"{value}\\s*l[\\/? ]h")
+    
+    # Percentages
+    pct_match = re.search(r'(\d+(?:\.\d+)?)\s*%', req_text)
+    if pct_match:
+        value = pct_match.group(1)
+        if value == "99.99":
+            patterns.append(r"(4[- ]?log|99\.99\s*%)")
+        else:
+            patterns.append(f"{value}\\s*%")
+    
+    # Power (W, kW)
+    power_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:W|watt)', req_text, re.I)
+    if power_match:
+        value = power_match.group(1)
+        if "300" in req_text and ("w/m" in req_text.lower() or "watt/m" in req_text.lower()):
+            patterns.append(r"300\s*w\s*/\s*m(?:\^?2|²)")
+        else:
+            patterns.append(f"{value}\\s*w\\b")
+    
+    # Time (hours, minutes, seconds)
+    time_match = re.search(r'(\d+(?:\.\d+)?)\s*(h|hour|min|minute|s|second)', req_text, re.I)
+    if time_match:
+        value = time_match.group(1)
+        unit = time_match.group(2).lower()
+        if unit in ['h', 'hour']:
+            patterns.append(f"{value}\\s*h(?:ours?)?")
+        elif unit in ['min', 'minute']:
+            patterns.append(f"{value}\\s*min(?:utes?)?")
+        elif unit in ['s', 'second']:
+            patterns.append(f"{value}\\s*s(?:econds?)?")
+    
+    # Temperature ranges
+    temp_match = re.search(r'(-?\d+(?:\.\d+)?)\s*°?\s*[Cc].*?(\d+(?:\.\d+)?)\s*°?\s*[Cc]', req_text)
+    if temp_match:
+        low_temp = temp_match.group(1)
+        high_temp = temp_match.group(2)
+        patterns.append(f"{low_temp}\\s*°?\\s*c.*{high_temp}\\s*°?\\s*c")
+    
+    # Mass/weight (kg, lb)
+    mass_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:kg|kilogram)', req_text, re.I)
+    if mass_match:
+        value = mass_match.group(1)
+        patterns.append(f"{value}\\s*kg")
+    
+    # Cost ($)
+    cost_match = re.search(r'(\d+(?:,\d+)?)\s*\$', req_text)
+    if cost_match:
+        value = cost_match.group(1)
+        # Handle comma-separated numbers
+        if ',' in value:
+            patterns.append(f"(?:{value.replace(',', '')}|{value})\\s*\\$")
+        else:
+            patterns.append(f"{value}\\s*\\$")
+    
+    # Distance/speed (km, km/h, m)
+    dist_match = re.search(r'(\d+(?:\.\d+)?)\s*(km|m|meter)', req_text, re.I)
+    if dist_match:
+        value = dist_match.group(1)
+        unit = dist_match.group(2).lower()
+        if unit == 'km':
+            patterns.append(f"{value}\\s*km")
+        elif unit in ['m', 'meter']:
+            patterns.append(f"{value}\\s*m")
+    
+    # Reliability/failure rates
+    reliability_match = re.search(r'(\d+(?:\.\d+)?)\s*%', req_text)
+    if reliability_match and ("reliability" in req_text.lower() or "failure" in req_text.lower()):
+        value = reliability_match.group(1)
+        patterns.append(f"{value}\\s*%")
+    
+    # Noise levels (dB)
+    noise_match = re.search(r'(\d+(?:\.\d+)?)\s*dB', req_text, re.I)
+    if noise_match:
+        value = noise_match.group(1)
+        patterns.append(f"{value}\\s*dB")
+    
+    # Special cases for specific requirements
+    if "start/stop" in req_text.lower() and "3" in req_text:
+        patterns.append(r"start\/stop.*3.*action")
+    if "recycl" in req_text.lower():
+        patterns.append(r".*recycl")
+    
+    # If no specific patterns found, create a general one based on key words
+    if not patterns:
+        # Extract key words and numbers
+        words = re.findall(r'\b\w+\b', req_text.lower())
+        numbers = re.findall(r'\d+(?:\.\d+)?', req_text)
+        if words and numbers:
+            # Create a simple pattern with key words and numbers
+            key_words = [w for w in words if len(w) > 3 and w not in ['the', 'and', 'for', 'with', 'that', 'this', 'from', 'into', 'during', 'until', 'against', 'among', 'throughout', 'despite', 'towards', 'upon']]
+            if key_words:
+                patterns.append(f".*({'|'.join(key_words[:3])}).*")
+    
+    # Combine patterns with OR logic
+    if patterns:
+        return '|'.join(patterns)
+    else:
+        return None
+
+# Cache for requirement patterns
+REQ_PATTS_CACHE: Dict[str, Dict[str, str]] = {}
+
+def get_requirement_patterns(system_type: str = "water") -> Dict[str, str]:
+    """
+    Get requirement patterns for the specified system type.
+    """
+    if system_type not in REQ_PATTS_CACHE:
+        if system_type == "water":
+            cdc_text = CAHIER_DES_CHARGES_REV_C
+        elif system_type == "uam":
+            cdc_text = CAHIER_DES_CHARGES_UAM
+        else:
+            # Fallback to water system
+            cdc_text = CAHIER_DES_CHARGES_REV_C
+        
+        REQ_PATTS_CACHE[system_type] = parse_requirements_from_cdc(cdc_text)
+    
+    return REQ_PATTS_CACHE[system_type]
+
+# Legacy hardcoded patterns for backward compatibility
+LEGACY_REQ_PATTS: Dict[str, str] = {
     "SR-01": r"10\s*l[\/? ]h",
     "SR-02": r"(4[- ]?log|99\.99\s*%)",
     "SR-03": r"300\s*w\s*/\s*m(?:\^?2|²)",
@@ -48,14 +204,28 @@ def try_load_dsg(path: Path) -> DesignState | None:
         return None
 
 
-def req_coverage(dsg: DesignState) -> float:
-    hits = {k: False for k in REQ_PATTS}
+def req_coverage(dsg: DesignState, system_type: str = "water") -> float:
+    """
+    Calculate requirement coverage for a DSG.
+    
+    Args:
+        dsg: DesignState object
+        system_type: "water" or "uam" to determine which requirements to check
+    """
+    # Get the appropriate requirement patterns
+    req_patterns = get_requirement_patterns(system_type)
+    
+    if not req_patterns:
+        # Fallback to legacy patterns for backward compatibility
+        req_patterns = LEGACY_REQ_PATTS
+    
+    hits = {k: False for k in req_patterns}
     for node in dsg.nodes.values():
         blob = json.dumps(node.model_dump()).lower()
-        for k, patt in REQ_PATTS.items():
+        for k, patt in req_patterns.items():
             if re.search(patt, blob):
                 hits[k] = True
-    return sum(hits.values()) / len(hits)
+    return sum(hits.values()) / len(hits) if hits else 0.0
 
 
 def embodiment_ratio(dsg: DesignState) -> float:
@@ -99,7 +269,7 @@ def _script_ok(p: Path) -> bool:
 # Evaluate a single run-folder (all snapshots)
 # ──────────────────────────────────────────────
 
-def evaluate_snapshot(path: Path) -> Dict[str, float]:
+def evaluate_snapshot(path: Path, system_type: str = "water") -> Dict[str, float]:
     """Return metrics for one snapshot JSON."""
     # now includes M7: number of nodes in this DSG
     res = {"M1": 0.0, "M2": 0.0, "M3": 0.0, "M4": 0.0, "_complete": 0.0, "M7": 0}
@@ -109,7 +279,7 @@ def evaluate_snapshot(path: Path) -> Dict[str, float]:
         return res
 
     res["M1"] = 1.0
-    res["M2"] = req_coverage(dsg)
+    res["M2"] = req_coverage(dsg, system_type)
     res["M3"] = embodiment_ratio(dsg)
     res["_complete"] = 1.0 if dsg.workflow_complete else 0.0
 
@@ -124,13 +294,13 @@ def evaluate_snapshot(path: Path) -> Dict[str, float]:
     return res
 
 
-def evaluate_folder(folder: Path) -> Dict[str, Any]:
+def evaluate_folder(folder: Path, system_type: str = "water") -> Dict[str, Any]:
     """Calculate aggregated metrics for one run folder."""
     snaps = sorted(folder.glob("*.json"))
     if not snaps:
         return {"run": folder.name, "error": "no_json_files"}
 
-    per_snap = [evaluate_snapshot(fp) for fp in snaps]
+    per_snap = [evaluate_snapshot(fp, system_type) for fp in snaps]
     n = len(per_snap)
 
     # aggregate per-run:
@@ -181,7 +351,7 @@ def load_experiment_logs(batch_id: str) -> Dict[str, Dict]:
     return run_data_map
 
 
-def process_batch(base_dir: Path, batch_id: str) -> pd.DataFrame:
+def process_batch(base_dir: Path, batch_id: str, system_type: str = "water") -> pd.DataFrame:
     """Load manifest.json and evaluate each run-folder in the batch."""
     batch_dir = base_dir / batch_id
     manifest_path = batch_dir / "manifest.json"
@@ -198,7 +368,7 @@ def process_batch(base_dir: Path, batch_id: str) -> pd.DataFrame:
     for i, entry in enumerate(runs):
         folder = entry["run_folder"]
         folder_path = batch_dir / folder
-        metrics = evaluate_folder(folder_path)
+        metrics = evaluate_folder(folder_path, system_type)
         if "error" in metrics:
             continue
         
@@ -513,6 +683,28 @@ def generate_latex_table(df: pd.DataFrame, output_path: Path, batch_id: str):
         raise
 
 
+def detect_system_type_from_batch(batch_dir: Path) -> str:
+    """
+    Detect the system type (water or uam) from the batch directory.
+    Looks for UAM-related keywords in run folder names or manifest.
+    """
+    manifest_path = batch_dir / "manifest.json"
+    if manifest_path.exists():
+        try:
+            with manifest_path.open() as f:
+                manifest = json.load(f)
+            
+            # Check if any run folder contains UAM keywords
+            for entry in manifest:
+                run_folder = entry.get("run_folder", "").lower()
+                if "uam" in run_folder or "evtol" in run_folder or "aircraft" in run_folder:
+                    return "uam"
+        except Exception:
+            pass
+    
+    # Default to water system
+    return "water"
+
 def main():
     import argparse
 
@@ -531,13 +723,25 @@ def main():
         "--output-dir", default="experiment_results",
         help="Directory to save aggregated results and plots"
     )
+    ap.add_argument(
+        "--system-type", choices=["water", "uam"], default=None,
+        help="System type for requirement parsing (auto-detected if not specified)"
+    )
     args = ap.parse_args()
 
     base_dir = Path(args.base_dir)
     batch_id = args.batch_id
     output_dir = Path(args.output_dir)
+    batch_dir = base_dir / batch_id
 
-    df = process_batch(base_dir, batch_id)
+    # Detect system type if not specified
+    if args.system_type is None:
+        system_type = detect_system_type_from_batch(batch_dir)
+        print(f"🔍 Auto-detected system type: {system_type}")
+    else:
+        system_type = args.system_type
+
+    df = process_batch(base_dir, batch_id, system_type)
     generate_report(df, output_dir, batch_id)
 
     print(f"✅ Batch {batch_id} evaluation complete.")
