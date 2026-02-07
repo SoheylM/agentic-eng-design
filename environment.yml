@@ -1,0 +1,11 @@
+name: agentic-eng-design
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12.7
+  - pip
+  - pip:
+      # Install project in editable mode with dev tools.
+      # Core dependencies (langchain, langgraph, etc.) are pulled from pyproject.toml.
+      # For a minimal install without dev tools: pip install -e .
+      - -e .[dev]

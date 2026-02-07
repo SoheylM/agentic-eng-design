@@ -180,10 +180,24 @@ cython_debug/
 # Ruff stuff:
 .ruff_cache/
 
+# Pre-commit cache
+.pre-commit-cache/
+
 # PyPI configuration file
 .pypirc
+
+# ──── Project-specific ────
+
+# Experiment outputs (generated at runtime)
+runs/
+experiment_logs/
+
+# LangSmith traces
+langsmith_traces/
+
+# Data export artifacts
 IDETC-25-Extended_summary_2025-07-04.csv
-langsmith_traces/IDETC-25-Extended_full_traces_2025-07-04.json
 IDETC-25-Extended_full_traces_2025-07-04.json
-langsmith_traces/IDETC-25-Extended_full_traces_2025-07-04.json
+
+# Local env var overrides (should never be committed)
 os_en_vars.py

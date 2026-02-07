@@ -14,20 +14,30 @@ This repository implements the framework described in the paper **"Agentic Large
 
 ## Quick Start
 
-1. **Clone and install**:
+### Option A — Conda (recommended)
+
 ```bash
 git clone https://github.com/SoheylM/agentic-eng-design.git
 cd agentic-eng-design
-pip install -r requirements.txt
+python bootstrap_env.py          # creates env, installs deps + pre-commit hooks
+conda activate agentic-eng-design
+cp .env.example .env             # edit with your API keys
 ```
 
-2. **Configure environment**:
+### Option B — pip only
+
 ```bash
-cp .env.example .env
-# Edit .env with your API keys
+git clone https://github.com/SoheylM/agentic-eng-design.git
+cd agentic-eng-design
+pip install -e .[dev]            # editable install with dev tools
+pre-commit install               # set up pre-commit hooks
+cp .env.example .env             # edit with your API keys
 ```
 
-3. **Configure LLM Backend**:
+> **Note:** `requirements.txt` is kept for backwards compatibility. All dependency management lives in `pyproject.toml`.
+
+### Configure LLM Backend
+
 Edit `llm_models.py` to use your preferred LLM backend:
 - **OpenAI API**: Set `openai_api_key` and `openai_api_base`
 - **Local vLLM**: Set `openai_api_base="http://localhost:8000/v1"`
@@ -134,6 +144,25 @@ agentic-eng-design/
 ├── llm_models.py          # LLM client setup
 └── tools.py               # Agent tool definitions
 ```
+
+## Development
+
+This project uses modern Python tooling for code quality:
+
+| Tool | Purpose | Command |
+|------|---------|---------|
+| [Ruff](https://docs.astral.sh/ruff/) | Linting & formatting | `ruff check .` / `ruff format .` |
+| [MyPy](https://mypy.readthedocs.io/) | Static type checking | `mypy .` |
+| [Pre-commit](https://pre-commit.com/) | Git hooks for auto-checks | `pre-commit run --all-files` |
+| [Pytest](https://docs.pytest.org/) | Testing | `pytest tests/ -v` |
+
+Pre-commit hooks run automatically on `git commit`. To run all checks manually:
+
+```bash
+pre-commit run --all-files
+```
+
+Configuration lives in `pyproject.toml` (ruff, mypy, pytest) and `.pre-commit-config.yaml`.
 
 ## Citation
 
