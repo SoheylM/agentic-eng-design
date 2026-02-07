@@ -7,10 +7,26 @@ authors:
     given-names: "Mark"
 title: "Agentic Large Language Models for Conceptual Systems Engineering and Design"
 version: "1.0.0"
-doi: "10.48550/arXiv.2507.08619"
-date-released: 2025-07-11
-url: "https://arxiv.org/abs/2507.08619"
+doi: "10.1115/1.4070328"
+date-released: 2026-01-01
+url: "https://doi.org/10.1115/1.4070328"
 repository-code: "https://github.com/SoheylM/agentic-eng-design"
+preferred-citation:
+  type: article
+  authors:
+    - family-names: "Massoudi"
+      given-names: "Soheyl"
+    - family-names: "Fuge"
+      given-names: "Mark"
+  title: "Agentic Large Language Models for Conceptual Systems Engineering and Design"
+  journal: "Journal of Mechanical Design"
+  volume: 148
+  issue: 5
+  start: "051405"
+  year: 2026
+  month: 1
+  doi: "10.1115/1.4070328"
+  url: "https://doi.org/10.1115/1.4070328"
 keywords:
   - "artificial intelligence"
   - "large language models"

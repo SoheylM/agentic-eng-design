@@ -2,7 +2,7 @@
 
 > Multi-agent LLM framework for conceptual systems engineering and design.
 
-This repository implements the framework described in the paper **"Agentic Large Language Models for Conceptual Systems Engineering and Design"** ([arXiv:2507.08619](https://arxiv.org/abs/2507.08619)). It provides a structured multi-agent workflow that guides LLM agents through requirements extraction, functional decomposition, and simulator code generation for engineering design tasks.
+This repository implements the framework described in the paper **"Agentic Large Language Models for Conceptual Systems Engineering and Design"** published in the [Journal of Mechanical Design](https://doi.org/10.1115/1.4070328). It provides a structured multi-agent workflow that guides LLM agents through requirements extraction, functional decomposition, and simulator code generation for engineering design tasks.
 
 ## Key Features
 
@@ -140,11 +140,17 @@ agentic-eng-design/
 If you use this work, please cite:
 
 ```bibtex
-@article{massoudi2025agentic,
-  title={Agentic Large Language Models for Conceptual Systems Engineering and Design},
-  author={Massoudi, Soheyl and Fuge, Mark},
-  journal={arXiv preprint arXiv:2507.08619},
-  year={2025}
+@article{10.1115/1.4070328,
+    author = {Massoudi, Soheyl and Fuge, Mark},
+    title = {Agentic Large Language Models for Conceptual Systems Engineering and Design},
+    journal = {Journal of Mechanical Design},
+    volume = {148},
+    number = {5},
+    pages = {051405},
+    year = {2026},
+    month = {01},
+    doi = {10.1115/1.4070328},
+    url = {https://doi.org/10.1115/1.4070328},
 }
 ```
 
