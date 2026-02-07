@@ -1,6 +1,4 @@
-import uuid
-from typing import List, Tuple
-from data_models import DesignNode, DesignState, NodeOp, EdgeOp
+from data_models import DesignNode, DesignState, NodeOp
 
 
 def add_node_to_state(design_graph: DesignState, node: DesignNode) -> None:
@@ -10,7 +8,7 @@ def add_node_to_state(design_graph: DesignState, node: DesignNode) -> None:
     design_graph.nodes[node.node_id] = node
 
 
-def add_edges_to_state(design_graph: DesignState, edges: List[Tuple[str, str]]) -> None:
+def add_edges_to_state(design_graph: DesignState, edges: list[tuple[str, str]]) -> None:
     """
     Adds directed edges between existing nodes in the design graph.
 
@@ -27,14 +25,14 @@ def add_edges_to_state(design_graph: DesignState, edges: List[Tuple[str, str]]) 
             print(f"⚠️ Warning: Edge ({source_id} -> {target_id}) could not be added. One or both nodes are missing.")
 
 
-def get_node_edges(design_graph: DesignState, node_id: str) -> Tuple[List[str], List[str]]:
+def get_node_edges(design_graph: DesignState, node_id: str) -> tuple[list[str], list[str]]:
     """
     Get incoming and outgoing edges for a node by filtering the edges list.
-    
+
     Args:
         design_graph: The design graph.
         node_id: The ID of the node to get edges for.
-        
+
     Returns:
         Tuple of (incoming_edge_ids, outgoing_edge_ids)
     """
@@ -74,8 +72,8 @@ def add_node_func(design_graph: DesignState, op: NodeOp) -> str:
     add_node_to_state(design_graph, new_node)
 
     # 2) Wire up any initial edges from the updates dict
-    if op.updates and 'edges_to_add' in op.updates:
-        add_edges_to_state(design_graph, op.updates['edges_to_add'])
+    if op.updates and "edges_to_add" in op.updates:
+        add_edges_to_state(design_graph, op.updates["edges_to_add"])
 
     return f"✅ DesignNode '{new_node.name}' ({new_node.node_id}) added successfully."
 
@@ -83,7 +81,7 @@ def add_node_func(design_graph: DesignState, op: NodeOp) -> str:
 def delete_node_func(design_graph: DesignState, node_id: str, recursive: bool = True) -> str:
     """
     Deletes a node from the design graph and removes all associated edges.
-    
+
     Args:
         design_graph: The design graph to modify
         node_id (str): The ID of the node to delete.
@@ -92,17 +90,17 @@ def delete_node_func(design_graph: DesignState, node_id: str, recursive: bool = 
     Returns:
         str: Confirmation message.
     """
+
     def _delete(design_graph: DesignState, nid: str, rec: bool):
         if nid not in design_graph.nodes:
             return
-        
+
         # Get all edges connected to this node
-        incoming, outgoing = get_node_edges(design_graph, nid)
-        
+        _incoming, outgoing = get_node_edges(design_graph, nid)
+
         # Remove all edges connected to this node
-        design_graph.edges = [edge for edge in design_graph.edges 
-                            if edge[0] != nid and edge[1] != nid]
-        
+        design_graph.edges = [edge for edge in design_graph.edges if edge[0] != nid and edge[1] != nid]
+
         # Recursively delete nodes that have no other parents
         if rec:
             for target_id in outgoing:
@@ -153,15 +151,16 @@ def update_node_func(design_graph: DesignState, op: NodeOp) -> str:
 
 
 def visualize_design_state_func(design_graph: DesignState) -> str:
-    import plotly.graph_objects as go
-    import networkx as nx
     import re
+
+    import networkx as nx
+    import plotly.graph_objects as go
 
     def is_uuid(text):
         """Check if a string is a UUID format."""
-        uuid_pattern = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', re.IGNORECASE)
+        uuid_pattern = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE)
         return bool(uuid_pattern.match(text))
-    
+
     def get_display_name(node_id, node_name):
         """Get the display name for a node - use name if available, otherwise ID."""
         if is_uuid(node_id):
@@ -194,14 +193,14 @@ def visualize_design_state_func(design_graph: DesignState) -> str:
     # Use spring layout with tighter spacing (k=1.0 instead of default ~3.0)
     # and more iterations for better convergence
     pos = nx.spring_layout(G, k=1.0, iterations=50, seed=42)
-    
+
     color_map = {
-        "function":    "gold",
+        "function": "gold",
         "subfunction": "orange",
         "requirement": "lightgreen",
-        "constraint":  "salmon",
-        "component":   "lightblue",
-        "subsystem":   "lightcoral",
+        "constraint": "salmon",
+        "component": "lightblue",
+        "subsystem": "lightcoral",
         # add others as needed
     }
 
@@ -209,11 +208,12 @@ def visualize_design_state_func(design_graph: DesignState) -> str:
     annotations = []
     for nid, data in G.nodes(data=True):
         x, y = pos[nid]
-        node_x.append(x); node_y.append(y)
-        
+        node_x.append(x)
+        node_y.append(y)
+
         # Get display name for the annotation
-        display_name = get_display_name(nid, data['name'])
-        
+        display_name = get_display_name(nid, data["name"])
+
         hover = (
             f"ID: {nid}<br>"
             f"Name: {data['name']}<br>"
@@ -225,44 +225,64 @@ def visualize_design_state_func(design_graph: DesignState) -> str:
         )
         node_text.append(hover)
         node_colors.append(color_map.get(data["kind"], "gray"))
-        annotations.append(dict(
-            x=x+0.02, y=y+0.02, text=display_name, showarrow=False,
-            font=dict(size=16, color="black", family="Arial Black")  # Increased font size
-        ))
+        annotations.append(
+            {
+                "x": x + 0.02,
+                "y": y + 0.02,
+                "text": display_name,
+                "showarrow": False,
+                "font": {"size": 16, "color": "black", "family": "Arial Black"},  # Increased font size
+            }
+        )
 
     edge_x, edge_y = [], []
     arrow_anns = []
     for src, dst in G.edges():
-        x0, y0 = pos[src]; x1, y1 = pos[dst]
-        edge_x += [x0, x1, None]; edge_y += [y0, y1, None]
-        arrow_anns.append(dict(ax=x0, ay=y0, x=x1, y=y1,
-                               showarrow=True, arrowhead=3,
-                               arrowsize=1.5, arrowwidth=1.5))
+        x0, y0 = pos[src]
+        x1, y1 = pos[dst]
+        edge_x += [x0, x1, None]
+        edge_y += [y0, y1, None]
+        arrow_anns.append(
+            {
+                "ax": x0,
+                "ay": y0,
+                "x": x1,
+                "y": y1,
+                "showarrow": True,
+                "arrowhead": 3,
+                "arrowsize": 1.5,
+                "arrowwidth": 1.5,
+            }
+        )
 
-    edge_trace = go.Scatter(x=edge_x, y=edge_y, mode="lines", line=dict(width=2))  # Increased line width
+    edge_trace = go.Scatter(x=edge_x, y=edge_y, mode="lines", line={"width": 2})  # Increased line width
     node_trace = go.Scatter(
-        x=node_x, y=node_y, mode="markers", marker=dict(color=node_colors, size=25),  # Increased node size
-        hoverinfo="text", text=node_text
+        x=node_x,
+        y=node_y,
+        mode="markers",
+        marker={"color": node_colors, "size": 25},  # Increased node size
+        hoverinfo="text",
+        text=node_text,
     )
 
     fig = go.Figure(
         data=[edge_trace, node_trace],
         layout=go.Layout(
-            title=dict(
-                text="Design State Graph",
-                font=dict(size=20, family="Arial Black")  # Larger title
-            ),
+            title={
+                "text": "Design State Graph",
+                "font": {"size": 20, "family": "Arial Black"},  # Larger title
+            },
             showlegend=False,
             hovermode="closest",
             annotations=annotations + arrow_anns,
-            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            xaxis={"showgrid": False, "zeroline": False, "showticklabels": False},
+            yaxis={"showgrid": False, "zeroline": False, "showticklabels": False},
             # Reduce margins to bring nodes closer to edges
-            margin=dict(l=20, r=20, t=40, b=20),
+            margin={"l": 20, "r": 20, "t": 40, "b": 20},
             # Set a fixed height and width for better control
             height=700,
-            width=900
-        )
+            width=900,
+        ),
     )
     fig.show()
     return "Visualization displayed successfully."
@@ -286,10 +306,7 @@ def summarize_design_state_func(design_graph: DesignState) -> str:
 
         # Embodiment block
         emb = node.embodiment
-        emb_params = (
-            ", ".join(f"{k}={v}" for k, v in emb.design_parameters.items())
-            or "None"
-        )
+        emb_params = ", ".join(f"{k}={v}" for k, v in emb.design_parameters.items()) or "None"
         emb_block = (
             f"  Embodiment:\n"
             f"    Principle      : {emb.principle}\n"
@@ -323,14 +340,11 @@ def summarize_design_state_func(design_graph: DesignState) -> str:
             f"ID: {nid}\n"
             f"  Name       : {node.name}\n"
             f"  Kind       : {node.node_kind}\n"
-            f"  Description: {node.description}\n\n"
-            + emb_block + "\n"
-            + pm_block + "\n"
+            f"  Description: {node.description}\n\n" + emb_block + "\n" + pm_block + "\n"
             f"  Maturity   : {node.maturity}\n"
             f"  Tags       : {tags}\n\n"
             f"  Incoming Edges: {incoming_str}\n"
-            f"  Outgoing Edges: {outgoing_str}\n"
-            + "-"*60
+            f"  Outgoing Edges: {outgoing_str}\n" + "-" * 60
         )
         lines.append(block)
 
@@ -340,7 +354,7 @@ def summarize_design_state_func(design_graph: DesignState) -> str:
 def analyze_node_func(design_graph: DesignState, node_id: str) -> str:
     """
     Analyze a specific node in the design graph.
-    
+
     This function retrieves the node identified by 'node_id' from the design graph and returns a
     formatted summary that includes:
       - DesignNode ID
@@ -350,17 +364,17 @@ def analyze_node_func(design_graph: DesignState, node_id: str) -> str:
       - Incoming Edges (dependencies)
       - Outgoing Edges (influences)
       - Payload contents
-      
+
     Args:
         design_graph: The design graph to analyze
         node_id: The unique identifier of the node to analyze.
-    
+
     Returns:
         A formatted string summarizing the node details.
     """
     if node_id not in design_graph.nodes:
         return f"❌ Error: DesignNode '{node_id}' not found in the design graph."
-    
+
     node = design_graph.nodes[node_id]
     incoming, outgoing = get_node_edges(design_graph, node_id)
     incoming_str = ", ".join(incoming) if incoming else "None"
@@ -378,5 +392,5 @@ def analyze_node_func(design_graph: DesignState, node_id: str) -> str:
         f"🗃 **Description:** {node.description}\n"
         "-------------------------------------"
     )
-    
+
     return summary

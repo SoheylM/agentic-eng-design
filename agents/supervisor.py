@@ -1,19 +1,19 @@
-# agents/supervisor.py  – counter-safe, batch-aligned DSG saving
+# agents/supervisor.py  - counter-safe, batch-aligned DSG saving
 from __future__ import annotations
-from typing import Literal
-from datetime import datetime, UTC
-
-from langchain_core.messages import SystemMessage, HumanMessage
-from langgraph.types import Command
-from langgraph.graph import END
 
 import json
+from datetime import datetime
+from typing import Literal
 
-from data_models import State, DesignState, CahierDesCharges, SupervisorDecision
-from prompts import SUPERVISOR_PROMPT
+from langchain_core.messages import HumanMessage, SystemMessage
+from langgraph.graph import END
+from langgraph.types import Command
+
+from data_models import CahierDesCharges, DesignState, State, SupervisorDecision
+from graph_utils import summarize_design_state_func
 from llm_models import supervisor_model
-from graph_utils import summarize_design_state_func, visualize_design_state_func
-from utils import remove_think_tags, save_dsg
+from prompts import SUPERVISOR_PROMPT
+from utils import save_dsg
 
 
 def supervisor_node(state: State) -> Command[Literal["generation", END]]:
@@ -33,12 +33,16 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
     cdc_js = cdc.model_dump_json() if isinstance(cdc, CahierDesCharges) else json.dumps(cdc or {}, indent=2)
 
     meta_notes = state.meta_review_notes[-1] if state.meta_review_notes else "No meta-review notes available."
-    last_instructions = state.supervisor_instructions[-1] if len(state.supervisor_instructions) > 1 else "No previous instructions."
+    last_instructions = (
+        state.supervisor_instructions[-1] if len(state.supervisor_instructions) > 1 else "No previous instructions."
+    )
 
     # 2) Invoke structured LLM for decision -----------------------------------------
-    decision: SupervisorDecision = supervisor_model.invoke([
-        SystemMessage(content=SUPERVISOR_PROMPT),
-        HumanMessage(content=f"""
+    decision: SupervisorDecision = supervisor_model.invoke(
+        [
+            SystemMessage(content=SUPERVISOR_PROMPT),
+            HumanMessage(
+                content=f"""
 ### Current Design State:
 {summarize_design_state_func(dsg)}
 
@@ -49,8 +53,10 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
 {meta_notes}
 
 ### Your Last Instructions:
-{last_instructions}""")
-    ])
+{last_instructions}"""
+            ),
+        ]
+    )
 
     status = "✅" if decision.step_completed else "🔄"
     print(f"{status} Design State: {'Complete' if decision.step_completed else 'Needs iteration'}")
@@ -59,13 +65,16 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
 
     # 3) Update control flags and iteration counters -------------------------------
     redo_flag = not decision.step_completed
-    new_max_iter = max(
-        state.max_iterations,
-        state.generation_iteration,
-        state.reflection_iteration,
-        state.ranking_iteration,
-        state.evolution_iteration,
-    ) + 1
+    new_max_iter = (
+        max(
+            state.max_iterations,
+            state.generation_iteration,
+            state.reflection_iteration,
+            state.ranking_iteration,
+            state.evolution_iteration,
+        )
+        + 1
+    )
 
     new_step_index = state.current_step_index
     if decision.step_completed and not decision.workflow_complete:
@@ -118,7 +127,7 @@ def supervisor_node(state: State) -> Command[Literal["generation", END]]:
         "current_step_index": new_step_index,
         "supervisor_visit_counter": state.supervisor_visit_counter + 1,
         "dsg_save_folder": save_folder,
-        "supervisor_status": f"supervised_{datetime.utcnow().isoformat(timespec='seconds')}"
+        "supervisor_status": f"supervised_{datetime.utcnow().isoformat(timespec='seconds')}",
     }
 
     goto = "generation" if not decision.workflow_complete else END

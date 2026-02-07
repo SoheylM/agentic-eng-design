@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from typing import List, Optional, Literal
+from typing import Literal
 
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.types import Command
 
-from data_models import State, Proposal                           # long-term container
-from prompts      import RA_PROMPT, RESEARCH_PROMPT_RANKING
-from llm_models   import ranking_agent, base_model
-from graph_utils  import summarize_design_state_func
-from utils        import remove_think_tags
+from data_models import Proposal, State  # long-term container
+from graph_utils import summarize_design_state_func
+from llm_models import base_model, ranking_agent
+from prompts import RA_PROMPT, RESEARCH_PROMPT_RANKING
+from utils import remove_think_tags
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -21,29 +21,30 @@ def ranking_node(state: State) -> Command[Literal["orchestrator", "meta_review"]
     """
     print("\n🔺 [RANK] Ranking node")
 
-    iter_now  = state.ranking_iteration
-    max_iter  = state.max_iterations
+    iter_now = state.ranking_iteration
+    max_iter = state.max_iterations
     print(f"   • iteration {iter_now + 1}/{max_iter}")
 
     if iter_now >= max_iter:
         print("   ⚠️  max-iterations reached; skipping ranking.")
         return Command(
             update={
-                "ranking_notes":   [f"Stopped after {max_iter} ranking loops."],
+                "ranking_notes": [f"Stopped after {max_iter} ranking loops."],
                 "ranking_iteration": iter_now - 1,
-                "analyses":        [],
+                "analyses": [],
             },
             goto="meta_review",
         )
 
     # ── Context strings ────────────────────────────────────────────────────
     sup_instr = state.supervisor_instructions[-1] if state.supervisor_instructions else "No supervisor instructions."
-    cdc_text  = state.cahier_des_charges or "No Cahier des Charges."
+    cdc_text = state.cahier_des_charges or "No Cahier des Charges."
 
     # proposals produced in the latest Generation pass (and critiqued in Reflection)
-    recent_props: List[Proposal] = [
-        p for p in state.proposals
-        if p.current_step_index          == state.supervisor_visit_counter
+    recent_props: list[Proposal] = [
+        p
+        for p in state.proposals
+        if p.current_step_index == state.supervisor_visit_counter
         and p.generation_iteration_index == state.generation_iteration
     ]
 
@@ -57,27 +58,31 @@ def ranking_node(state: State) -> Command[Literal["orchestrator", "meta_review"]
     # short, but information-dense briefs for the LLM
     prop_briefs = [
         {
-            "idx":        i,
-            "title":      p.title,
+            "idx": i,
+            "title": p.title,
             "prev_score": p.grade,
-            "feedback":   (p.feedback or "no feedback"),
-            "summary":    summarize_design_state_func(p.content)
+            "feedback": (p.feedback or "no feedback"),
+            "summary": summarize_design_state_func(p.content),
         }
         for i, p in enumerate(recent_props)
     ]
 
     # ── LLM call (structured output expected) ──────────────────────────────
-    rk_out = ranking_agent.invoke([
-        SystemMessage(content=RA_PROMPT),
-        HumanMessage(content=f"""
+    rk_out = ranking_agent.invoke(
+        [
+            SystemMessage(content=RA_PROMPT),
+            HumanMessage(
+                content=f"""
 Supervisor instructions: {sup_instr}
 
 Cahier des Charges: {cdc_text}
 
 Proposal briefs:
 {prop_briefs}
-""")
-    ])
+"""
+            ),
+        ]
+    )
 
     print(f"   • LLM produced {len(rk_out.rankings)} ranking items")
 
@@ -85,8 +90,8 @@ Proposal briefs:
     for r in rk_out.rankings:
         if 0 <= r.proposal_index < len(recent_props):
             prop = recent_props[r.proposal_index]
-            prop.grade                   = r.grade
-            prop.ranking_justification   = r.ranking_justification
+            prop.grade = r.grade
+            prop.ranking_justification = r.ranking_justification
             prop.ranking_iteration_index = iter_now
             print(f"     ↳ proposal {r.proposal_index} scored {r.grade}")
         else:
@@ -100,11 +105,11 @@ Proposal briefs:
         print(f"   🧠 requesting research: {preview}")
         return Command(
             update={
-                "orchestrator_orders":      [orch_request],
+                "orchestrator_orders": [orch_request],
                 "current_requesting_agent": "ranking",
-                "current_tasks_count":      0,
-                "ranking_iteration":        iter_now + 1,
-                "ranking_notes":           [f"Research requested at rank-iter {iter_now + 1}"],
+                "current_tasks_count": 0,
+                "ranking_iteration": iter_now + 1,
+                "ranking_notes": [f"Research requested at rank-iter {iter_now + 1}"],
             },
             goto="orchestrator",
         )
@@ -114,7 +119,7 @@ Proposal briefs:
     return Command(
         update={
             "ranking_iteration": iter_now,
-            "ranking_notes":    [f"Completed rank-iter {iter_now}"],
+            "ranking_notes": [f"Completed rank-iter {iter_now}"],
             "current_tasks_count": 0,
         },
         goto="meta_review",
@@ -122,20 +127,18 @@ Proposal briefs:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-def _need_more_research_ranking(
-    props: List[Proposal],
-    state: State
-) -> Optional[str]:
+def _need_more_research_ranking(props: list[Proposal], state: State) -> str | None:
     """Ask an LLM whether the ranking stage needs more external research."""
     sup_instr = state.supervisor_instructions[-1] if state.supervisor_instructions else "No instructions."
-    cdc_text  = state.cahier_des_charges or "No Cahier des Charges."
+    cdc_text = state.cahier_des_charges or "No Cahier des Charges."
 
     critique_overview = [
         {
-            "idx":   i,
+            "idx": i,
             "score": p.grade,
-            "justif_excerpt": (p.ranking_justification or "")[:120] + ("…" if p.ranking_justification and len(p.ranking_justification) > 120 else ""),
-            "summary": summarize_design_state_func(p.content)[:800]   # token guard
+            "justif_excerpt": (p.ranking_justification or "")[:120]
+            + ("…" if p.ranking_justification and len(p.ranking_justification) > 120 else ""),
+            "summary": summarize_design_state_func(p.content)[:800],  # token guard
         }
         for i, p in enumerate(props)
     ]
@@ -153,10 +156,12 @@ If yes, output ONE clear task for the Orchestrator.
 If no, answer exactly:  "No additional research is needed."
 """
 
-    resp = base_model.invoke([
-        SystemMessage(content=RESEARCH_PROMPT_RANKING),
-        HumanMessage(content=question),
-    ]).content
+    resp = base_model.invoke(
+        [
+            SystemMessage(content=RESEARCH_PROMPT_RANKING),
+            HumanMessage(content=question),
+        ]
+    ).content
     resp_clean = remove_think_tags(resp).strip()
 
     if resp_clean.lower().startswith("no additional research"):

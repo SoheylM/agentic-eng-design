@@ -2,22 +2,20 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Literal
-import tempfile
-from pathlib import Path
+from typing import Literal
 
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.types import Command
 
 from data_models import (
-    State,
     DesignState,
-    SingleProposal,          # title + DSG
-    Proposal,                # full life-cycle container
+    Proposal,  # full life-cycle container
+    SingleProposal,  # title + DSG
+    State,
 )
-from prompts import GE_PROMPT_STRUCTURED, GEN_RESEARCH_PROMPT
-from llm_models import generation_agent, base_model
 from graph_utils import summarize_design_state_func
+from llm_models import base_model, generation_agent
+from prompts import GE_PROMPT_STRUCTURED, GEN_RESEARCH_PROMPT
 from utils import remove_think_tags
 from validation import filter_valid_proposals  # Import our validation functions
 
@@ -32,9 +30,9 @@ def generation_node(state: State) -> Command[Literal["orchestrator", "coder"]]:
     print("\n🔧 [GEN] Generation node")
 
     # ── Counters ────────────────────────────────────────────────────────────
-    iter_now      = state.generation_iteration
-    max_iter      = state.max_iterations
-    worker_budget = state.current_tasks_count       # how many analyses we expected
+    iter_now = state.generation_iteration
+    max_iter = state.max_iterations
+    worker_budget = state.current_tasks_count  # how many analyses we expected
 
     print(f"   • iteration {iter_now + 1}/{max_iter}")
 
@@ -44,28 +42,23 @@ def generation_node(state: State) -> Command[Literal["orchestrator", "coder"]]:
         return Command(
             update={
                 "generation_notes": [f"Stopped after {max_iter} generation loops."],
-                "generation_iteration": iter_now - 1,   # ← keep last valid index
+                "generation_iteration": iter_now - 1,  # ← keep last valid index
             },
             goto="coder",
         )
 
     # ── Context strings for the LLM ────────────────────────────────────────
-    sup_instr   = state.supervisor_instructions[-1] if state.supervisor_instructions else "No supervisor instructions."
-    cdc_text    = state.cahier_des_charges or "No Cahier des Charges."
-    graph_now   = state.design_graph_history[-1] if state.design_graph_history else DesignState()
-    graph_sum   = summarize_design_state_func(graph_now)
+    sup_instr = state.supervisor_instructions[-1] if state.supervisor_instructions else "No supervisor instructions."
+    cdc_text = state.cahier_des_charges or "No Cahier des Charges."
+    graph_now = state.design_graph_history[-1] if state.design_graph_history else DesignState()
+    graph_sum = summarize_design_state_func(graph_now)
 
     # ── Attach worker analyses (if any)──────────────────────────────────────
-    analyses = [
-        a for a in state.analyses
-        if a.called_by_agent == "generation"
-    ][-worker_budget:]
+    analyses = [a for a in state.analyses if a.called_by_agent == "generation"][-worker_budget:]
 
     if analyses:
         print(f"Integrating {len(analyses)} worker analyses")
-        analysis_block = "\n\n---\n\n".join(
-            f"From *{a.from_task}*:\n{a.content}" for a in analyses
-        )
+        analysis_block = "\n\n---\n\n".join(f"From *{a.from_task}*:\n{a.content}" for a in analyses)
         human_msg = f"""
 Supervisor instructions: {sup_instr}
 
@@ -93,14 +86,16 @@ Generate **DSG proposals**.
 """
 
     # ── LLM call (structured) ──────────────────────────────────────────────
-    llm_out = generation_agent.invoke([
-        SystemMessage(content=GE_PROMPT_STRUCTURED),
-        HumanMessage(content=human_msg.strip()),
-    ])
+    llm_out = generation_agent.invoke(
+        [
+            SystemMessage(content=GE_PROMPT_STRUCTURED),
+            HumanMessage(content=human_msg.strip()),
+        ]
+    )
 
-    dsg_proposals: List[SingleProposal] = llm_out.proposals
+    dsg_proposals: list[SingleProposal] = llm_out.proposals
     print(f"LLM returned {len(dsg_proposals)} DSGs")
-    
+
     # Validate and sanitize proposals
     valid_proposals = filter_valid_proposals(dsg_proposals)
     if len(valid_proposals) < len(dsg_proposals):
@@ -117,17 +112,17 @@ Generate **DSG proposals**.
             )
 
     # ── Wrap into long-term `Proposal` objects and update State ────────────
-    new_entries: List[Proposal] = [
+    new_entries: list[Proposal] = [
         Proposal(
             title=p.title,
-            content=p.content,                 # ← the DesignState object
+            content=p.content,  # ← the DesignState object
             status="generated",
             current_step_index=state.supervisor_visit_counter,  # Add current step index
             generation_iteration_index=iter_now,
             reflection_iteration_index=state.reflection_iteration,
             ranking_iteration_index=state.ranking_iteration,
             evolution_iteration_index=state.evolution_iteration,
-            meta_review_iteration_index=state.meta_review_iteration
+            meta_review_iteration_index=state.meta_review_iteration,
         )
         for i, p in enumerate(dsg_proposals)
     ]
@@ -140,12 +135,12 @@ Generate **DSG proposals**.
         print(f"🧠 requesting research: {orch_request[:80]}…")
         return Command(
             update={
-                "proposals":            new_entries,
-                "orchestrator_orders":  [orch_request],
+                "proposals": new_entries,
+                "orchestrator_orders": [orch_request],
                 "current_requesting_agent": "generation",
-                "current_tasks_count":  0,                 # new tasks will be counted by orchestrator
-                "generation_iteration": iter_now + 1,      # next pass
-                "generation_notes":    [f"Research requested at gen-iter {iter_now + 1}"],
+                "current_tasks_count": 0,  # new tasks will be counted by orchestrator
+                "generation_iteration": iter_now + 1,  # next pass
+                "generation_notes": [f"Research requested at gen-iter {iter_now + 1}"],
             },
             goto="orchestrator",
         )
@@ -154,18 +149,19 @@ Generate **DSG proposals**.
     print(" ✅ generation complete → coder")
     return Command(
         update={
-            "proposals":          new_entries,
-            "generation_notes":  [f"Finished gen-iter {iter_now}"],
-            "generation_iteration": iter_now,              # keep counter
+            "proposals": new_entries,
+            "generation_notes": [f"Finished gen-iter {iter_now}"],
+            "generation_iteration": iter_now,  # keep counter
         },
         goto="coder",
     )
 
+
 # --------------------------------------------------------------------------
-def _need_more_research(props: List[SingleProposal], state: State) -> Optional[str]:
+def _need_more_research(props: list[SingleProposal], state: State) -> str | None:
     """Ask a reasoning LLM whether extra data/tools are required."""
     sup_instr = state.supervisor_instructions[-1] if state.supervisor_instructions else "No instructions."
-    cdc_text  = state.cahier_des_charges or "No Cahier des Charges."
+    cdc_text = state.cahier_des_charges or "No Cahier des Charges."
 
     question = f"""
 Supervisor instructions: {sup_instr}
@@ -174,21 +170,14 @@ Cahier des Charges: {cdc_text}
 
 Here are the DSG proposals:
 
-{[
-    {"title": p.title,
-     "content": p.content}
-    for p in props
-]}
+{[{"title": p.title, "content": p.content} for p in props]}
 
 Should we perform **additional web / code / calc research** before sending these to coder?
 If yes, output a SINGLE clear task for the orchestrator.
 If no, answer exactly:  "No additional research is needed."
 """
 
-    resp = base_model.invoke([
-        SystemMessage(content=GEN_RESEARCH_PROMPT),
-        HumanMessage(content=question)
-    ]).content
+    resp = base_model.invoke([SystemMessage(content=GEN_RESEARCH_PROMPT), HumanMessage(content=question)]).content
     resp_clean = remove_think_tags(resp).strip()
 
     if resp_clean.lower().startswith("no additional research"):

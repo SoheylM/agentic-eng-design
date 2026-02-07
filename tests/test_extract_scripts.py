@@ -2,20 +2,21 @@
 """Test script to verify _fenced_blocks function works correctly."""
 
 import re
-from pathlib import Path
 
 # Copy the regex pattern from eval_saved.py
 FENCE_RE = re.compile(r"```(?:python)?\s+([\s\S]+?)```", re.I)
+
 
 def _fenced_blocks(txt: str):
     """Extract code blocks from text."""
     blocks = FENCE_RE.findall(txt)
     return blocks if blocks else [txt]
 
+
 # Test with the user's example
 test_text = '''Alright, so the user wants me to create a Python script for a Solar Panel Power Generation model. Let me break down what I need to do.
 
-First, the model is based on the equation P = η * A * G. The initial code provided is just a simple calculation, but the user wants a more comprehensive script that fits into a larger engineering system. 
+First, the model is based on the equation P = η * A * G. The initial code provided is just a simple calculation, but the user wants a more comprehensive script that fits into a larger engineering system.
 
 I need to make sure the script is correct, both syntactically and physically. It should be runnable without any placeholders. High fidelity is important, so I should include key time and space-dependent effects. Since the user mentioned using libraries like NumPy and SciPy, I'll stick to those for minimal dependencies.
 
@@ -54,7 +55,7 @@ def simulate_time_series(start_time, end_time, eta=0.15, area=1.0):
     time_step = timedelta(hours=1)
     current_time = start_time
     times = []
-    
+
     # Generate irradiance profile (simple sinusoidal pattern for demonstration)
     irradiance_values = []
     while current_time <= end_time:
@@ -64,27 +65,27 @@ def simulate_time_series(start_time, end_time, eta=0.15, area=1.0):
         irradiance = 300 * np.sin(np.pi/12 * time_since_midnight) + 300
         irradiance_values.append(irradiance)
         current_time += time_step
-    
+
     # Convert to numpy arrays
     times = np.array([t.timestamp() for t in times])
     irradiance_values = np.array(irradiance_values)
-    
+
     # Calculate power
     power_output = calculate_power(eta, area, irradiance_values)
-    
+
     return times, power_output
 
 def save_results(times, power, output_path="outputs"):
     """Save results to HDF5 file"""
     if not os.path.exists(output_path):
         os.makedirs(output_path)
-    
+
     filename = os.path.join(output_path, "solar_power_output.h5")
-    
+
     with h5py.File(filename, "w") as f:
         f.create_dataset("time", data=times)
         f.create_dataset("power", data=power)
-        
+
     logging.info(f"Results saved to {filename}")
 
 def couple_with_system(system_input):
@@ -99,7 +100,7 @@ def main():
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
-    
+
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Solar Panel Power Generation Model')
     parser.add_argument('--eta', type=float, default=0.15, help='Solar panel efficiency')
@@ -110,24 +111,24 @@ def main():
                        help='End time in YYYY-MM-DD HH:MM:SS format')
     parser.add_argument('--verbosity', type=int, default=logging.INFO, help='Logging verbosity')
     args = parser.parse_args()
-    
+
     # Set logging level
     logging.getLogger().setLevel(args.verbosity)
-    
+
     # Parse datetime
     start_time = datetime.strptime(args.start_time, '%Y-%m-%d %H:%M:%S')
     end_time = datetime.strptime(args.end_time, '%Y-%m-%d %H:%M:%S')
-    
+
     # Run simulation
     times, power = simulate_time_series(start_time, end_time, args.eta, args.area)
-    
+
     # Save results
     save_results(times, power)
-    
+
     # Optional coupling
     # system_input = ...  # Get input from other system components
     # modified_input = couple_with_system(system_input)
-    
+
     logging.info("Simulation completed successfully")
 
 def test_calculate_power():
@@ -136,7 +137,7 @@ def test_calculate_power():
     area = 1.0
     irradiance = 300.0
     expected_power = 45.0  # 0.15 * 1 * 300
-    
+
     assert np.isclose(calculate_power(eta, area, irradiance), expected_power, rtol=1e-3)
 
 if __name__ == "__main__":
@@ -178,13 +179,13 @@ blocks = _fenced_blocks(test_text)
 
 print(f"Found {len(blocks)} code block(s)")
 for i, block in enumerate(blocks):
-    print(f"\n--- Block {i+1} ---")
+    print(f"\n--- Block {i + 1} ---")
     print(f"Length: {len(block)} characters")
     print(f"First 100 chars: {block[:100]}...")
     print(f"Last 100 chars: ...{block[-100:]}")
-    
+
     # Check if it looks like Python code
-    if 'import' in block and 'def ' in block:
+    if "import" in block and "def " in block:
         print("✅ This looks like Python code!")
     else:
-        print("❌ This doesn't look like Python code") 
+        print("❌ This doesn't look like Python code")

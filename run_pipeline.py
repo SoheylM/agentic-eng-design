@@ -14,22 +14,23 @@ records all sub-runs for easy discovery by eval_saved.py.
 """
 
 from __future__ import annotations
+
 import argparse
 import importlib
 import json
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any
 
-from prompts import CAHIER_DES_CHARGES_REV_C, CAHIER_DES_CHARGES_REV_C_PAIR, CAHIER_DES_CHARGES_UAM
 from experiment_config import (
-    ExperimentConfig,
-    generate_experiment_configs,
     LLM_TYPES,
     TEMPERATURES,
     WORKFLOW_TYPES,
+    ExperimentConfig,
+    generate_experiment_configs,
 )
+from prompts import CAHIER_DES_CHARGES_REV_C, CAHIER_DES_CHARGES_REV_C_PAIR, CAHIER_DES_CHARGES_UAM
 
 
 def default_request(workflow_type: str = "mas", system_type: str = "water") -> str:
@@ -38,32 +39,24 @@ def default_request(workflow_type: str = "mas", system_type: str = "water") -> s
         prompt = CAHIER_DES_CHARGES_UAM
         return (
             "I want to create an Urban Air Mobility (UAM) eVTOL aircraft that satisfies "
-            "the following Cahier-des-Charges:\n\n"
-            + prompt
+            "the following Cahier-des-Charges:\n\n" + prompt
         )
     else:  # water system
-        prompt = (
-            CAHIER_DES_CHARGES_REV_C_PAIR
-            if workflow_type == "pair"
-            else CAHIER_DES_CHARGES_REV_C
-        )
+        prompt = CAHIER_DES_CHARGES_REV_C_PAIR if workflow_type == "pair" else CAHIER_DES_CHARGES_REV_C
         return (
             "I want to create a solar-powered water-filtration system that satisfies "
-            "the following Cahier-des-Charges Rev C:\n\n"
-            + prompt
+            "the following Cahier-des-Charges Rev C:\n\n" + prompt
         )
 
 
-def _run_once(
-    config: ExperimentConfig, request: str, batch_id: str, base_dir: Path
-) -> Dict[str, Any]:
+def _run_once(config: ExperimentConfig, request: str, batch_id: str, base_dir: Path) -> dict[str, Any]:
     """
     Launch one workflow run and return metadata about the run.
     DSGs will be written by the workflow into:
         base_dir / batch_id / config.run_folder_name / *.json
     """
     start_time = time.time()
-    run_metadata: Dict[str, Any] = {
+    run_metadata: dict[str, Any] = {
         "config": {
             "llm_type": config.llm_type,
             "temperature": config.temperature,
@@ -122,7 +115,7 @@ def _run_once(
 
 def generate_specific_configs(
     llm_type: str, temperature: float, workflow_type: str, runs: int = 5
-) -> List[ExperimentConfig]:
+) -> list[ExperimentConfig]:
     """Generate configurations for a specific experiment combination."""
     return [
         ExperimentConfig(
@@ -143,20 +136,16 @@ if __name__ == "__main__":
         default="runs",
         help="Base directory to store all batches (default: runs/)",
     )
+    ap.add_argument("--request", default=None, help="Initial user request (overrides default prompt)")
     ap.add_argument(
-        "--request", default=None, help="Initial user request (overrides default prompt)"
-    )
-    ap.add_argument(
-        "--system", 
-        choices=["water", "uam"], 
+        "--system",
+        choices=["water", "uam"],
         default="water",
-        help="System type: water (solar-powered water filtration) or uam (eVTOL aircraft)"
+        help="System type: water (solar-powered water filtration) or uam (eVTOL aircraft)",
     )
     ap.add_argument("--llm", choices=LLM_TYPES, help="Run only this LLM type")
     ap.add_argument("--temp", type=float, choices=TEMPERATURES, help="Only this temperature")
-    ap.add_argument(
-        "--workflow", choices=WORKFLOW_TYPES, help="Only this workflow type (mas|pair)"
-    )
+    ap.add_argument("--workflow", choices=WORKFLOW_TYPES, help="Only this workflow type (mas|pair)")
     ap.add_argument(
         "--runs",
         type=int,
@@ -177,9 +166,7 @@ if __name__ == "__main__":
 
     # Decide which configs to run
     if args.llm and args.temp is not None and args.workflow:
-        configs = generate_specific_configs(
-            args.llm, args.temp, args.workflow, args.runs
-        )
+        configs = generate_specific_configs(args.llm, args.temp, args.workflow, args.runs)
         print(f"Running specific combination: {args.llm}, t={args.temp}, {args.workflow}")
     else:
         configs = generate_experiment_configs()
@@ -189,7 +176,7 @@ if __name__ == "__main__":
     print(f"Total runs: {total}\n")
 
     # Prepare manifest
-    manifest: List[Dict[str, Any]] = []
+    manifest: list[dict[str, Any]] = []
 
     # Open a line-delimited JSONL log for quick debugging
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

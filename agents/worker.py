@@ -1,13 +1,13 @@
-from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, AnyMessage, BaseMessage, SystemMessage
-from langgraph.types import Command
 from typing import Literal
-from data_models import EngineeringTask, WorkerAnalysis
-from prompts import BRA_PROMPT
-from llm_models import bra_model
-from IPython.display import display, Markdown
-from utils import process_tool_calls
-from utils import remove_think_tags
 
+from IPython.display import Markdown, display
+from langchain_core.messages import HumanMessage, SystemMessage
+from langgraph.types import Command
+
+from data_models import EngineeringTask, WorkerAnalysis
+from llm_models import bra_model
+from prompts import BRA_PROMPT
+from utils import process_tool_calls, remove_think_tags
 
 
 def worker_node(task: EngineeringTask) -> Command[Literal["generation"]]:
@@ -36,14 +36,14 @@ def worker_node(task: EngineeringTask) -> Command[Literal["generation"]]:
 
     # Process any tool calls the worker may request (e.g., web search, Python REPL)
     tool_messages = process_tool_calls(bra_output)
-    messages.extend(tool_messages) # TODO: check if that's what I want in the end.
+    messages.extend(tool_messages)  # TODO: check if that's what I want in the end.
 
     # Wrap the worker's output with metadata
     worker_analysis = WorkerAnalysis(
         content=bra_output.content,
         from_task=task.topic,
-        step_index=0, #TODO left at zero for now state.current_step_index,
-        called_by_agent=task.return_to_agent #state.current_requesting_agent or "unknown"
+        step_index=0,  # TODO left at zero for now state.current_step_index,
+        called_by_agent=task.return_to_agent,  # state.current_requesting_agent or "unknown"
     )
 
     print(f"✅ [DEBUG] Worker finished. Returning analysis to '{task.return_to_agent}'.")
@@ -51,5 +51,5 @@ def worker_node(task: EngineeringTask) -> Command[Literal["generation"]]:
     # Return the analysis and route back to the calling agent
     return Command(
         update={"analyses": [worker_analysis]},
-        goto=task.return_to_agent #state.current_requesting_agent
+        goto=task.return_to_agent,  # state.current_requesting_agent
     )

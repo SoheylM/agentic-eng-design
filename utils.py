@@ -1,17 +1,27 @@
+import json
 import re
-import json
 import uuid
-from langchain_core.messages import ToolMessage  # Ensure correct import
-from typing import List, Optional
-from tools import python_repl_tool, tavily_tool, duckduckgo_tool, arxiv_search_tool, summarize_design_state_tool, visualize_design_state_tool, add_node_tool, delete_node_tool
-
+from datetime import UTC, datetime
 from pathlib import Path
-import json
-from datetime import datetime, UTC
+
+from langchain_core.messages import ToolMessage  # Ensure correct import
+
 from data_models import DesignState
+from tools import (
+    add_node_tool,
+    arxiv_search_tool,
+    delete_node_tool,
+    duckduckgo_tool,
+    python_repl_tool,
+    summarize_design_state_tool,
+    tavily_tool,
+    visualize_design_state_tool,
+)
+
 
 def remove_think_tags(text):
-    return re.sub(r'^.*?</think>\s*', '', text, flags=re.DOTALL)
+    return re.sub(r"^.*?</think>\s*", "", text, flags=re.DOTALL)
+
 
 def separate_think_tags(text):
     """
@@ -20,21 +30,22 @@ def separate_think_tags(text):
     - think_content is the text within <think> tags
     - rest_content is everything else
     """
-    think_pattern = r'<think>(.*?)</think>'
+    think_pattern = r"<think>(.*?)</think>"
     think_match = re.search(think_pattern, text, flags=re.DOTALL)
-    
+
     think_content = think_match.group(1) if think_match else ""
-    rest_content = re.sub(think_pattern, '', text, flags=re.DOTALL).strip()
-    
+    rest_content = re.sub(think_pattern, "", text, flags=re.DOTALL).strip()
+
     return think_content, rest_content
 
+
 def remove_think_tags_ollama(text):
-    return re.sub(r'<think>.*?</think>\s*', '', text, flags=re.DOTALL)
+    return re.sub(r"<think>.*?</think>\s*", "", text, flags=re.DOTALL)
 
 
-def process_tool_calls(ai_msg) -> List[ToolMessage]:
+def process_tool_calls(ai_msg) -> list[ToolMessage]:
     """
-    Extracts and executes any tool calls issued by the LLM in ai_msg, 
+    Extracts and executes any tool calls issued by the LLM in ai_msg,
     returning new messages (ToolMessage or AIMessage) with the tool outputs.
     """
     tool_calls = None
@@ -52,11 +63,7 @@ def process_tool_calls(ai_msg) -> List[ToolMessage]:
                 if not name:
                     print("🚨 [DEBUG] Function call missing name field, skipping...")
                 else:
-                    tool_calls = [{
-                        "name": name,
-                        "args": function_data.get("parameters", {}),
-                        "id": str(uuid.uuid4())
-                    }]
+                    tool_calls = [{"name": name, "args": function_data.get("parameters", {}), "id": str(uuid.uuid4())}]
         elif isinstance(parsed_content, list):
             # Assume each item in the list is a tool call
             tool_calls = []
@@ -65,7 +72,7 @@ def process_tool_calls(ai_msg) -> List[ToolMessage]:
                     # Handle both direct and nested function structures
                     name = None
                     args = {}
-                    
+
                     if "function" in item:
                         # Nested structure
                         function_data = item.get("function", {})
@@ -75,16 +82,11 @@ def process_tool_calls(ai_msg) -> List[ToolMessage]:
                         # Direct structure
                         name = item.get("name")
                         args = item.get("args", {})
-                    
+
                     if name:
-                        tool_calls.append({
-                            "name": name,
-                            "args": args,
-                            "id": str(uuid.uuid4())
-                        })
+                        tool_calls.append({"name": name, "args": args, "id": str(uuid.uuid4())})
     except (json.JSONDecodeError, TypeError) as e:
         print(f"🔍 [DEBUG] JSON parsing error: {e}")
-        pass
 
     # 2) Or check if the model attached tool_calls in ai_msg.tool_calls
     if not tool_calls and hasattr(ai_msg, "tool_calls"):
@@ -105,7 +107,7 @@ def process_tool_calls(ai_msg) -> List[ToolMessage]:
             if not tool_name:
                 print("🚨 [DEBUG] Tool call missing name field, skipping...")
                 continue
-                
+
             tool_args = call.get("args", {})
             tool_id = call.get("id", str(uuid.uuid4()))
 
@@ -126,7 +128,7 @@ def process_tool_calls(ai_msg) -> List[ToolMessage]:
                     # Extract relevant content from search results
                     if isinstance(tool_output, list):
                         tool_output = " ".join(
-                            [f"{i+1}) {item.get('content', 'No Content')}" for i, item in enumerate(tool_output)]
+                            [f"{i + 1}) {item.get('content', 'No Content')}" for i, item in enumerate(tool_output)]
                         )
 
                 elif tool_name == "duckduckgo_results_json":
@@ -135,7 +137,7 @@ def process_tool_calls(ai_msg) -> List[ToolMessage]:
                     # Extract relevant content from search results
                     if isinstance(tool_output, list):
                         tool_output = " ".join(
-                            [f"{i+1}) {item.get('content', 'No Content')}" for i, item in enumerate(tool_output)]
+                            [f"{i + 1}) {item.get('content', 'No Content')}" for i, item in enumerate(tool_output)]
                         )
 
                 elif tool_name == "arxiv_search":
@@ -162,14 +164,12 @@ def process_tool_calls(ai_msg) -> List[ToolMessage]:
                     tool_output = f"❌ Error: Unrecognized tool '{tool_name}'"
                     print(f"🚨 [DEBUG] Unknown tool call received: {tool_name}")
             except Exception as e:
-                tool_output = f"❌ Error invoking tool '{tool_name}': {repr(e)}"
+                tool_output = f"❌ Error invoking tool '{tool_name}': {e!r}"
                 print(f"🚨 [DEBUG] Exception during tool call: {tool_output}")
 
             print(f"🟢 [DEBUG] Tool Output: {tool_output}\n")
 
-            new_messages.append(
-                ToolMessage(content=tool_output, tool_call_id=tool_id)
-            )
+            new_messages.append(ToolMessage(content=tool_output, tool_call_id=tool_id))
         except Exception as e:
             print(f"🚨 [DEBUG] Error processing tool call: {e}")
 
@@ -181,7 +181,7 @@ def save_dsg(
     dsg: DesignState,
     thread_id: str,
     step_idx: int,
-    save_folder: Optional[str] = None,
+    save_folder: str | None = None,
 ) -> Path:
     """
     Dump one Design-State Graph to

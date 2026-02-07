@@ -1,12 +1,14 @@
-from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, AnyMessage, BaseMessage, SystemMessage
-from langgraph.types import Command
 from typing import Literal
+
+from IPython.display import Markdown, display
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langgraph.types import Command
+
 from data_models import State
+from llm_models import base_model, req_structured_model
 from prompts import REQ_PROMPT
-from llm_models import base_model
-from IPython.display import display, Markdown
-from llm_models import req_structured_model
 from utils import remove_think_tags
+
 
 def requirements_node(state: State) -> Command[Literal["human", "supervisor"]]:
     """Iterates with the human until requirements are finalized, then outputs a structured Cahier des Charges."""
@@ -19,30 +21,27 @@ def requirements_node(state: State) -> Command[Literal["human", "supervisor"]]:
 
     display(Markdown(f"### 📜 Requirements Agent Response:\n\n{req_output.content}"))
 
-
     # **Step 2: If FINALIZED, Generate Structured Cahier des Charges**
     if "FINALIZED" in req_output.content or "FINALIZED" in req_output.content.lower():
         print("✅ Cahier des Charges finalized. Generating structured output...")
 
         # Invoke **structured LLM** to format the final Cahier des Charges
-        structured_output = req_structured_model.invoke([
-            SystemMessage(content="Convert the finalized requirements into a structured Cahier des Charges."),
-            HumanMessage(content=req_output.content)
-        ])
+        structured_output = req_structured_model.invoke(
+            [
+                SystemMessage(content="Convert the finalized requirements into a structured Cahier des Charges."),
+                HumanMessage(content=req_output.content),
+            ]
+        )
 
         print(f"📜 Generated Cahier des Charges:\n{structured_output.model_dump_json()}")
-
 
         return Command(
             update={
                 "cahier_des_charges": structured_output,  # ✅ Store the structured output
-                "active_agent": "supervisor"  # ✅ Move to Supervisor
+                "active_agent": "supervisor",  # ✅ Move to Supervisor
             },
-            goto="supervisor"
+            goto="supervisor",
         )
 
     # **Step 3: Continue Iteration with Human**
-    return Command(
-        update={"messages": [AIMessage(content=req_output.content)]},  
-        goto="human"
-    )
+    return Command(update={"messages": [AIMessage(content=req_output.content)]}, goto="human")

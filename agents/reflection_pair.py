@@ -1,12 +1,14 @@
-from typing import List, Literal
+from typing import Literal
+
+from langchain_core.messages import HumanMessage, SystemMessage
+from langgraph.graph import END
 from langgraph.types import Command
-from langchain_core.messages import SystemMessage, HumanMessage
+
 from data_models import PairState, Proposal
+from graph_utils import summarize_design_state_func
 from llm_models import pair_reflection_agent
 from prompts import RE_PAIR_PROMPT
-from graph_utils import summarize_design_state_func, visualize_design_state_func
 from utils import save_dsg
-from langgraph.graph import END
 
 
 def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair", END]]:
@@ -30,9 +32,8 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
     save_folder = state.dsg_save_folder
 
     # Filter proposals from the most recent generation
-    recent_props: List[Proposal] = [
-        p for p in state.proposals
-        if p.generation_iteration_index == state.generation_iteration
+    recent_props: list[Proposal] = [
+        p for p in state.proposals if p.generation_iteration_index == state.generation_iteration
     ]
 
     if not recent_props:
@@ -44,8 +45,7 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
 
     # Build summaries
     full_summaries = [
-        f"### Proposal {idx}: {p.title or 'Untitled'}\n"
-        + summarize_design_state_func(p.content)
+        f"### Proposal {idx}: {p.title or 'Untitled'}\n" + summarize_design_state_func(p.content)
         for idx, p in enumerate(recent_props)
     ]
 
@@ -74,14 +74,14 @@ def reflection_pair_node(state: PairState) -> Command[Literal["generation_pair",
             prop.reason_for_status = item.reason
             print(f"     ↳ proposal {idx} → {item.final_status}")
         else:
-            print(f"     ⚠️  bad index {idx} in LLM output – ignored")
+            print(f"     ⚠️  bad index {idx} in LLM output - ignored")
 
     # Select chosen DSG
     selected_idx = llm_resp.selected_proposal_index
     chosen_dsg = None
     if 0 <= selected_idx < len(recent_props):
         chosen_dsg = recent_props[selected_idx].content
-        print(f"   ✅ proposal {selected_idx} selected – storing DSG snapshot")
+        print(f"   ✅ proposal {selected_idx} selected - storing DSG snapshot")
     else:
         print("   ⚠️  no valid proposal selected")
 

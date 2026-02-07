@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Agentic Engineering Design – Development Environment Setup
+Agentic Engineering Design - Development Environment Setup
 Cross-platform setup script for Windows, macOS, and Linux.
 """
 
@@ -16,9 +16,7 @@ def run_command(cmd, check=True, capture_output=True):
     """Run a command and handle errors."""
     try:
         print(f"  Running: {' '.join(cmd)}")
-        result = subprocess.run(
-            cmd, check=check, capture_output=capture_output, text=True
-        )
+        result = subprocess.run(cmd, check=check, capture_output=capture_output, text=True)
         if result.stdout and capture_output:
             print(result.stdout)
         if result.stderr and capture_output:
@@ -75,9 +73,7 @@ def create_environment():
 
     if not result:
         print("  Environment creation failed. Checking if it already exists...")
-        env_check = subprocess.run(
-            ["conda", "env", "list"], check=False, capture_output=True, text=True
-        )
+        env_check = subprocess.run(["conda", "env", "list"], check=False, capture_output=True, text=True)
         if ENV_NAME in env_check.stdout:
             print(f"  Environment '{ENV_NAME}' already exists. Removing and recreating...")
             if run_command(["conda", "env", "remove", "-n", ENV_NAME, "-y"]):
@@ -135,19 +131,19 @@ def main():
     print("\n" + "=" * 65)
     print("🎉 Setup complete!")
     print("=" * 65)
-    print(f"\nNext steps:")
+    print("\nNext steps:")
     print(f"  1. Activate the environment:  conda activate {ENV_NAME}")
-    print(f"  2. Edit .env with your API keys (OpenAI, Tavily, LangChain, SerpAPI)")
-    print(f"  3. Configure your LLM backend in llm_models.py")
-    print(f"  4. Run an experiment:")
-    print(f"       python run_pipeline.py --system water --llm reasoning --temp 1.0 --workflow mas --runs 1")
-    print(f"\nUseful commands:")
-    print(f"  ruff check .                         # Lint")
-    print(f"  ruff check --fix .                   # Auto-fix lint issues")
-    print(f"  ruff format .                        # Format code")
-    print(f"  mypy .                               # Type checking")
-    print(f"  pre-commit run --all-files            # Run all pre-commit hooks")
-    print(f"  pytest tests/ -v                     # Run tests")
+    print("  2. Edit .env with your API keys (OpenAI, Tavily, LangChain, SerpAPI)")
+    print("  3. Configure your LLM backend in llm_models.py")
+    print("  4. Run an experiment:")
+    print("       python run_pipeline.py --system water --llm reasoning --temp 1.0 --workflow mas --runs 1")
+    print("\nUseful commands:")
+    print("  ruff check .                         # Lint")
+    print("  ruff check --fix .                   # Auto-fix lint issues")
+    print("  ruff format .                        # Format code")
+    print("  mypy .                               # Type checking")
+    print("  pre-commit run --all-files            # Run all pre-commit hooks")
+    print("  pytest tests/ -v                     # Run tests")
 
     return 0
 

@@ -28,28 +28,25 @@ Assumptions:
 import argparse
 import json
 import logging
-import os
-from datetime import datetime
 from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pytest
-from scipy.spatial import Delaunay
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import spsolve
+from scipy.spatial import Delaunay
 
 # Create output directory
-output_dir = "outputs"
-os.makedirs(output_dir, exist_ok=True)
+output_dir = Path("outputs")
+output_dir.mkdir(parents=True, exist_ok=True)
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler("outputs/pump_model_log.txt"),
-        logging.StreamHandler()
-    ]
+    handlers=[logging.FileHandler("outputs/pump_model_log.txt"), logging.StreamHandler()],
 )
 logger = logging.getLogger("PumpModel")
 
@@ -69,6 +66,7 @@ MATERIAL_DATA = """
 }
 """
 
+
 # Data classes
 @dataclass
 class MaterialProperties:
@@ -76,12 +74,14 @@ class MaterialProperties:
     viscosity: float
     conductivity: float
 
+
 @dataclass
 class SimulationParameters:
     mesh_size: int
     time_step: float
     total_time: float
     material: str
+
 
 # Mesh generation
 def generate_mesh(domain_size: tuple[float, float], mesh_size: int) -> tuple[np.ndarray, np.ndarray]:
@@ -103,12 +103,9 @@ def generate_mesh(domain_size: tuple[float, float], mesh_size: int) -> tuple[np.
     tri = Delaunay(points)
     return points, tri.simplices
 
+
 # Solver routines
-def assemble_stiffness_matrix(
-    points: np.ndarray,
-    elements: np.ndarray,
-    material: MaterialProperties
-) -> csr_matrix:
+def assemble_stiffness_matrix(points: np.ndarray, elements: np.ndarray, material: MaterialProperties) -> csr_matrix:
     """
     Assemble the stiffness matrix for the flow problem.
 
@@ -126,8 +123,8 @@ def assemble_stiffness_matrix(
     data_values = []
 
     for elem in elements:
-        for local_i, global_i in enumerate(elem):
-            for local_j, global_j in enumerate(elem):
+        for _local_i, global_i in enumerate(elem):
+            for _local_j, global_j in enumerate(elem):
                 if global_i == global_j:
                     row_indices.append(global_i)
                     col_indices.append(global_j)
@@ -139,11 +136,8 @@ def assemble_stiffness_matrix(
 
     return csr_matrix((data_values, (row_indices, col_indices)), shape=(num_nodes, num_nodes))
 
-def explicit_time_step(
-    q: np.ndarray,
-    dt: float,
-    material: MaterialProperties
-) -> np.ndarray:
+
+def explicit_time_step(q: np.ndarray, dt: float, material: MaterialProperties) -> np.ndarray:
     """
     Explicit time integration step.
 
@@ -157,11 +151,8 @@ def explicit_time_step(
     """
     return q + dt * material.conductivity * q
 
-def implicit_time_step(
-    q: np.ndarray,
-    dt: float,
-    material: MaterialProperties
-) -> np.ndarray:
+
+def implicit_time_step(q: np.ndarray, dt: float, material: MaterialProperties) -> np.ndarray:
     """
     Implicit time integration step using Newton-Raphson.
 
@@ -183,20 +174,16 @@ def implicit_time_step(
 
     return q_new
 
+
 # Multiphysics coupling stub
 def coupling_stub() -> None:
     """
     Stub for multiphysics coupling.
     """
-    pass
+
 
 # I/O and visualization
-def save_results(
-    filename: str,
-    points: np.ndarray,
-    elements: np.ndarray,
-    field: np.ndarray
-) -> None:
+def save_results(filename: str, points: np.ndarray, elements: np.ndarray, field: np.ndarray) -> None:
     """
     Save results to a VTK file.
 
@@ -206,7 +193,7 @@ def save_results(
         elements (np.ndarray): Element connectivity
         field (np.ndarray): Field values to save
     """
-    with open(filename, "w") as f:
+    with Path(filename).open("w") as f:
         f.write("# vtk DataFileVersion 3.0\n")
         f.write("Unstructured Grid\n")
         f.write("ASCII\n")
@@ -222,13 +209,14 @@ def save_results(
             f.write(f"3 {elem[0]} {elem[1]} {elem[2]}\n")
 
         f.write(f"CELL_TYPES {num_cells}\n")
-        f.write(("5\n" * num_cells))  # VTK_TRIANGLE = 5
+        f.write("5\n" * num_cells)  # VTK_TRIANGLE = 5
 
         f.write(f"POINT_DATA {len(points)}\n")
         f.write("SCALARS flow_rate float 1\n")
         f.write("LOOKUP_TABLE default\n")
         for val in field:
             f.write(f"{val}\n")
+
 
 def combine_snapshots_to_vtk(snapshot_files: list[str], output_filename: str) -> None:
     """
@@ -241,7 +229,7 @@ def combine_snapshots_to_vtk(snapshot_files: list[str], output_filename: str) ->
     # This is a placeholder implementation. In practice, you would read
     # each snapshot, extract point coordinates, connectivity, and field data,
     # then write them into a single multi-block or multi-time-step VTK file.
-    pass
+
 
 # Logging configuration
 def set_verbosity(level: int) -> None:
@@ -252,6 +240,7 @@ def set_verbosity(level: int) -> None:
         level (int): Logging level (DEBUG=10, INFO=20, WARNING=30, ERROR=40)
     """
     logger.setLevel(level)
+
 
 # Unit tests
 def test_manufactured_solution() -> None:
@@ -274,6 +263,7 @@ def test_manufactured_solution() -> None:
 
     assert np.allclose(exact, numerical, atol=1e-6)
 
+
 def test_parameterized_mesh_refinement() -> None:
     """
     Test mesh refinement convergence.
@@ -281,7 +271,7 @@ def test_parameterized_mesh_refinement() -> None:
     domain_size = (1.0, 1.0)
     material_dict = json.loads(MATERIAL_DATA)
 
-    for material_name, props in material_dict.items():
+    for _material_name, props in material_dict.items():
         material = MaterialProperties(**props)
 
         for mesh_size in [10, 20, 40]:
@@ -293,41 +283,18 @@ def test_parameterized_mesh_refinement() -> None:
             norm = np.linalg.norm(solution)
             assert norm > 0.0
 
+
 # Main function
 def main() -> None:
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Pump Model Simulator")
+    parser.add_argument("--mesh-size", type=int, default=50, help="Number of elements per dimension")
+    parser.add_argument("--time-step", type=float, default=0.01, help="Time step size")
+    parser.add_argument("--total-time", type=float, default=10.0, help="Total simulation time")
     parser.add_argument(
-        "--mesh-size",
-        type=int,
-        default=50,
-        help="Number of elements per dimension"
+        "--material", type=str, default="standard", choices=["standard", "high_efficiency"], help="Material name"
     )
-    parser.add_argument(
-        "--time-step",
-        type=float,
-        default=0.01,
-        help="Time step size"
-    )
-    parser.add_argument(
-        "--total-time",
-        type=float,
-        default=10.0,
-        help="Total simulation time"
-    )
-    parser.add_argument(
-        "--material",
-        type=str,
-        default="standard",
-        choices=["standard", "high_efficiency"],
-        help="Material name"
-    )
-    parser.add_argument(
-        "--verbosity",
-        type=int,
-        default=logging.INFO,
-        help="Logging verbosity level"
-    )
+    parser.add_argument("--verbosity", type=int, default=logging.INFO, help="Logging verbosity level")
     args = parser.parse_args()
 
     # Set up logging
@@ -361,7 +328,7 @@ def main() -> None:
 
         # Save results
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-        filename = os.path.join(output_dir, f"flow_{timestamp}.vtk")
+        filename = output_dir / f"flow_{timestamp}.vtk"
         save_results(filename, points, elements, q)
 
         time += dt
@@ -370,6 +337,7 @@ def main() -> None:
     # combine_snapshots_to_vtk([...], os.path.join(output_dir, "combined.vtk"))
 
     logger.info("Simulation completed successfully")
+
 
 if __name__ == "__main__":
     main()

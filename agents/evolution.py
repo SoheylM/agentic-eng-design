@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from typing import List, Optional, Literal
+from typing import Literal
 
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.types import Command
 
-from data_models  import State, Proposal, DesignState
-from prompts      import EVOLUTION_PROMPT, RESEARCH_PROMPT_EVOLUTION
-from llm_models   import evolution_agent, base_model
-from graph_utils  import summarize_design_state_func
-from utils        import remove_think_tags
-from validation   import filter_valid_proposals
+from data_models import Proposal, State
+from graph_utils import summarize_design_state_func
+from llm_models import base_model, evolution_agent
+from prompts import EVOLUTION_PROMPT, RESEARCH_PROMPT_EVOLUTION
+from utils import remove_think_tags
+from validation import validate_dsg
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -30,7 +30,7 @@ def evolution_node(state: State) -> Command[Literal["orchestrator", "meta_review
         print("   ⚠️  max-iterations reached; skipping evolution.")
         return Command(
             update={
-                "evolution_notes":   [f"Stopped after {max_iter} evolution loops."],
+                "evolution_notes": [f"Stopped after {max_iter} evolution loops."],
                 "evolution_iteration": iter_now - 1,
             },
             goto="meta_review",
@@ -38,14 +38,15 @@ def evolution_node(state: State) -> Command[Literal["orchestrator", "meta_review
 
     # ── Context grab ───────────────────────────────────────────────────────
     sup_instr = state.supervisor_instructions[-1] if state.supervisor_instructions else "No supervisor instructions."
-    cdc_text  = state.cahier_des_charges or "No Cahier des Charges."
+    cdc_text = state.cahier_des_charges or "No Cahier des Charges."
 
     # pick proposals from the latest Ranking pass
-    recent_props: List[Proposal] = [
-        p for p in state.proposals
-        if p.current_step_index          == state.current_step_index
+    recent_props: list[Proposal] = [
+        p
+        for p in state.proposals
+        if p.current_step_index == state.current_step_index
         and p.generation_iteration_index == state.generation_iteration
-        and p.ranking_iteration_index    == state.ranking_iteration
+        and p.ranking_iteration_index == state.ranking_iteration
     ]
 
     if not recent_props:
@@ -56,23 +57,25 @@ def evolution_node(state: State) -> Command[Literal["orchestrator", "meta_review
         )
 
     # sort by score (desc) so the LLM sees best first
-    recent_props.sort(key=lambda p: (p.grade if p.grade is not None else 0.0), reverse=True)
+    recent_props.sort(key=lambda p: p.grade if p.grade is not None else 0.0, reverse=True)
 
     briefs = [
         {
-            "idx":   i,
+            "idx": i,
             "title": p.title,
             "score": p.grade,
             "feedback": p.feedback or "no feedback",
-            "summary": summarize_design_state_func(p.content)
+            "summary": summarize_design_state_func(p.content),
         }
         for i, p in enumerate(recent_props)
     ]
 
     # ── LLM call ────────────────────────────────────────────────────────────
-    evo_out = evolution_agent.invoke([
-        SystemMessage(content=EVOLUTION_PROMPT),
-        HumanMessage(content=f"""
+    evo_out = evolution_agent.invoke(
+        [
+            SystemMessage(content=EVOLUTION_PROMPT),
+            HumanMessage(
+                content=f"""
 Supervisor instructions → {sup_instr}
 
 Cahier des Charges → {cdc_text}
@@ -81,8 +84,10 @@ Ranked proposal briefs →
 {briefs}
 
 Produce refined DSG proposal for each ranked proposal.
-""")
-    ])
+"""
+            ),
+        ]
+    )
 
     print(f"   • LLM produced {len(evo_out.evolutions)} evolutions")
 
@@ -109,7 +114,7 @@ Produce refined DSG proposal for each ranked proposal.
                 valid_evolutions.append(prop)
         else:
             print(f"     ⚠️  invalid proposal index {idx} ignored")
-    
+
     if not valid_evolutions:
         print("❌ No valid evolutions produced")
         return Command(
@@ -128,11 +133,11 @@ Produce refined DSG proposal for each ranked proposal.
         print(f"   🧠 requesting research: {preview}")
         return Command(
             update={
-                "orchestrator_orders":      [orch_request],
+                "orchestrator_orders": [orch_request],
                 "current_requesting_agent": "evolution",
-                "current_tasks_count":      0,
-                "evolution_iteration":      iter_now + 1,
-                "evolution_notes":         [f"Research requested at evol-iter {iter_now + 1}"],
+                "current_tasks_count": 0,
+                "evolution_iteration": iter_now + 1,
+                "evolution_notes": [f"Research requested at evol-iter {iter_now + 1}"],
             },
             goto="orchestrator",
         )
@@ -142,7 +147,7 @@ Produce refined DSG proposal for each ranked proposal.
     return Command(
         update={
             "evolution_iteration": iter_now,
-            "evolution_notes":    [f"Completed evol-iter {iter_now}"],
+            "evolution_notes": [f"Completed evol-iter {iter_now}"],
             "current_tasks_count": 0,
         },
         goto="meta_review",
@@ -150,20 +155,18 @@ Produce refined DSG proposal for each ranked proposal.
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-def _need_more_research_evolution(
-    props: List[Proposal],
-    state: State
-) -> Optional[str]:
+def _need_more_research_evolution(props: list[Proposal], state: State) -> str | None:
     """Ask an LLM if evolved DSGs need extra research before meta-review."""
     sup_instr = state.supervisor_instructions[-1] if state.supervisor_instructions else "No instructions."
-    cdc_text  = state.cahier_des_charges or "No Cahier des Charges."
+    cdc_text = state.cahier_des_charges or "No Cahier des Charges."
 
     evo_briefs = [
         {
-            "idx":   i,
+            "idx": i,
             "score": p.grade,
-            "evo_ex": (p.evolution_justification or "")[:120] + ("…" if p.evolution_justification and len(p.evolution_justification) > 120 else ""),
-            "summary": summarize_design_state_func(p.content)[:800]   # token guard
+            "evo_ex": (p.evolution_justification or "")[:120]
+            + ("…" if p.evolution_justification and len(p.evolution_justification) > 120 else ""),
+            "summary": summarize_design_state_func(p.content)[:800],  # token guard
         }
         for i, p in enumerate(props)
     ]
@@ -181,10 +184,12 @@ If yes, output ONE clear task for the Orchestrator.
 If no, answer exactly:  "No additional research is needed."
 """
 
-    resp = base_model.invoke([
-        SystemMessage(content=RESEARCH_PROMPT_EVOLUTION),
-        HumanMessage(content=question),
-    ]).content
+    resp = base_model.invoke(
+        [
+            SystemMessage(content=RESEARCH_PROMPT_EVOLUTION),
+            HumanMessage(content=question),
+        ]
+    ).content
     resp_clean = remove_think_tags(resp).strip()
 
     if resp_clean.lower().startswith("no additional research"):

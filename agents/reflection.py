@@ -7,18 +7,18 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Literal
+from typing import Literal
 
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.types import Command
 
 from data_models import (
+    Proposal,  # contains .content -> DesignState
     State,
-    Proposal,                         # contains .content -> DesignState
 )
-from prompts import REFLECTION_PROMPT, RESEARCH_PROMPT_REFLECTION
-from llm_models import reflection_agent, base_model
 from graph_utils import summarize_design_state_func
+from llm_models import base_model, reflection_agent
+from prompts import REFLECTION_PROMPT, RESEARCH_PROMPT_REFLECTION
 from utils import remove_think_tags
 
 
@@ -47,15 +47,11 @@ def reflection_node(state: State) -> Command[Literal["orchestrator", "ranking"]]
         )
 
     # ---------------------------------------------------------------- context
-    sup_instr = (
-        state.supervisor_instructions[-1]
-        if state.supervisor_instructions
-        else "No supervisor instructions."
-    )
+    sup_instr = state.supervisor_instructions[-1] if state.supervisor_instructions else "No supervisor instructions."
     cdc_text = state.cahier_des_charges or "No Cahier des Charges."
 
     # proposals from the most recent Generation loop
-    recent_props: List[Proposal] = [
+    recent_props: list[Proposal] = [
         p
         for p in state.proposals
         if p.current_step_index == state.supervisor_visit_counter
@@ -73,8 +69,7 @@ def reflection_node(state: State) -> Command[Literal["orchestrator", "ranking"]]
 
     # Build a deterministic, fully-detailed text summary for each DSG
     full_summaries = [
-        f"### Proposal {idx}: {p.title or 'Untitled'}\n"
-        + summarize_design_state_func(p.content)
+        f"### Proposal {idx}: {p.title or 'Untitled'}\n" + summarize_design_state_func(p.content)
         for idx, p in enumerate(recent_props)
     ]
 
@@ -104,7 +99,7 @@ def reflection_node(state: State) -> Command[Literal["orchestrator", "ranking"]]
             recent_props[idx].reflection_iteration_index = iter_now
             print(f"     ↳ feedback stored for proposal {idx}")
         else:
-            print(f"     ⚠️  bad index {idx} in LLM output – ignored")
+            print(f"     ⚠️  bad index {idx} in LLM output - ignored")
 
     # ---------------------------------------------------------------- need more research?
     orch_request = _need_more_research_reflection(recent_props, state)
@@ -137,15 +132,11 @@ def reflection_node(state: State) -> Command[Literal["orchestrator", "ranking"]]
 
 # ----------------------------------------------------------------------------
 def _need_more_research_reflection(
-    props: List[Proposal],
+    props: list[Proposal],
     state: State,
-) -> Optional[str]:
+) -> str | None:
     """Ask a reasoning LLM whether the critiques require extra research."""
-    sup_instr = (
-        state.supervisor_instructions[-1]
-        if state.supervisor_instructions
-        else "No instructions."
-    )
+    sup_instr = state.supervisor_instructions[-1] if state.supervisor_instructions else "No instructions."
     cdc_text = state.cahier_des_charges or "No Cahier des Charges."
 
     question = f"""
@@ -154,13 +145,15 @@ Supervisor instructions: {sup_instr}
 Cahier des Charges: {cdc_text}
 
 Current critiques (truncated):
-{[
-    {
-        "idx": i,
-        "excerpt": (p.feedback or "")[:120] + ("…" if p.feedback and len(p.feedback) > 120 else ""),
+{
+        [
+            {
+                "idx": i,
+                "excerpt": (p.feedback or "")[:120] + ("…" if p.feedback and len(p.feedback) > 120 else ""),
+            }
+            for i, p in enumerate(props)
+        ]
     }
-    for i, p in enumerate(props)
-]}
 
 Should we commission **additional web / code / calc research** to strengthen these critiques?
 If yes, output ONE clear task for the Orchestrator.

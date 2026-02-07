@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import List, Literal
+from typing import Literal
+
 
 @dataclass
 class ExperimentConfig:
@@ -13,23 +14,20 @@ class ExperimentConfig:
         """Generate a unique folder name for this experiment run."""
         return f"{self.llm_type}_t{self.temperature:.1f}_{self.workflow_type}_run{self.run_id:02d}"
 
+
 # Experiment combinations
 LLM_TYPES = ["non_reasoning", "reasoning"]
 TEMPERATURES = [0.0, 0.5, 1.0]
 WORKFLOW_TYPES = ["mas", "pair"]
 RUNS_PER_COMBINATION = 5
 
-def generate_experiment_configs() -> List[ExperimentConfig]:
+
+def generate_experiment_configs() -> list[ExperimentConfig]:
     """Generate all experiment configurations."""
     configs = []
     for llm in LLM_TYPES:
         for temp in TEMPERATURES:
             for wf in WORKFLOW_TYPES:
                 for run in range(RUNS_PER_COMBINATION):
-                    configs.append(ExperimentConfig(
-                        llm_type=llm,
-                        temperature=temp,
-                        workflow_type=wf,
-                        run_id=run
-                    ))
-    return configs 
+                    configs.append(ExperimentConfig(llm_type=llm, temperature=temp, workflow_type=wf, run_id=run))
+    return configs
